@@ -30,7 +30,7 @@
         .diff-view { grid-column: span 2; background: #ffffff; padding: 40px; border: 2px solid #f1f1f1; border-radius: 12px; font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
         .d-missing { color: #e74c3c !important; font-weight: bold; background: rgba(231, 76, 60, 0.1); padding: 0 3px; border-radius: 4px; }
         .d-added { color: #27ae60 !important; font-weight: bold; text-decoration: underline; }
-        .d-wrong { color: #2980b9 !important; font-weight: bold; border-bottom: 2px solid #2980b9; position: relative; display: inline-block; line-height: 1.2; }
+        .d-wrong { color: #2980b9 !important; font-weight: bold; border-bottom: 2980b9; position: relative; display: inline-block; line-height: 1.2; }
         .correction { position: absolute; top: -1.7em; left: 0; font-size: 0.55em; color: #2980b9; background: white; border: 1px solid #2980b9; padding: 1px 5px; border-radius: 3px; white-space: nowrap; font-weight: normal; }
         .history-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
         .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; flex-wrap: wrap; gap: 5px; }
@@ -176,53 +176,44 @@ function analyzeAndGrade() {
     document.getElementById('diffOutput').innerHTML = html;
     document.getElementById('result').style.display = 'block';
 
-    scoreHistory.push({ date: new Date().toLocaleString(), title: fName, score: score, target: tScore, pass: isPass });
+    // 히스토리에 상세 개수도 함께 저장
+    scoreHistory.push({ date: new Date().toLocaleString(), title: fName, score: score, target: tScore, pass: isPass, w: w, mi: mi, ad: ad });
     localStorage.setItem('shorthand_history', JSON.stringify(scoreHistory));
     sendDataToServer(score, w, mi, ad, fName);
     updateHistoryUI(); updateChart();
 }
 
+// 리스트 상세 내역 핀셋 수정 완료
 function updateHistoryUI() {
     const list = document.getElementById('historyList');
     list.innerHTML = scoreHistory.slice(-10).reverse().map(item => `
-        <div class="history-item"><span>📅 ${item.date} [${item.title}]</span><span class="${item.pass ? 'pass' : 'fail'}"><strong>${item.score}%</strong></span></div>
+        <div class="history-item" style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px; padding: 12px; border-bottom: 1px solid #eee;">
+            <div style="width: 100%; display: flex; justify-content: space-between; font-weight: bold;">
+                <span>📅 ${item.date} [${item.title}]</span>
+                <span class="${item.pass ? 'pass' : 'fail'}">${item.score}%</span>
+            </div>
+            <div style="font-size: 12px; color: #7f8c8d;">
+                🔍 오자: ${item.w || 0} / 탈자: ${item.mi || 0} / 첨자: ${item.ad || 0}
+            </div>
+        </div>
     `).join('');
 }
 
-// 가로축 회차 정보로 핀셋 수정 완료
 function updateChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
     const labels = scoreHistory.slice(-15).map((item, index) => `${index + 1}회차`);
     const fileNames = scoreHistory.slice(-15).map(item => item.title);
     const data = scoreHistory.slice(-15).map(item => item.score);
-
     if(myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{ 
-                label: '정확도 (%)', 
-                data: data, 
-                borderColor: '#3498db', 
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                tension: 0.3, 
-                fill: true,
-                pointRadius: 5
-            }]
+            datasets: [{ label: '정확도 (%)', data: data, borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.1)', tension: 0.3, fill: true, pointRadius: 5 }]
         },
         options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        afterLabel: function(context) {
-                            return `파일명: ${fileNames[context.dataIndex]}`;
-                        }
-                    }
-                }
-            }
+            responsive: true, maintainAspectRatio: false,
+            plugins: { tooltip: { callbacks: { afterLabel: function(context) { return `파일명: ${fileNames[context.dataIndex]}`; } } } }
         }
     });
 }
