@@ -9,52 +9,36 @@
         :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; --success: #27ae60; --fail: #e74c3c; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); padding: 10px; color: #333; margin: 0; }
         .container { max-width: 1200px; margin: 10px auto; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        
-        /* 로그인 화면 */
         #login-screen { text-align: center; padding: 50px 0; }
         .login-form { max-width: 350px; margin: 0 auto; background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #ddd; }
         .login-input { width: 100%; padding: 15px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        
-        /* 헤더 및 설정 */
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
         .config-bar { display: flex; gap: 15px; background: #f1f4f7; padding: 15px; border-radius: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
         .config-bar input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 100px; }
-
-        /* 입력 및 결과 - 반응형 */
         .input-group { display: flex; gap: 20px; margin-bottom: 20px; flex-direction: row; }
         @media (max-width: 768px) { .input-group { flex-direction: column; } }
-
         .box { flex: 1; display: flex; flex-direction: column; }
         textarea { height: 200px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; resize: none; font-size: 18px; line-height: 1.8; }
         .btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
         button { flex: 2; padding: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 20px; font-weight: bold; }
         .sub-btn { flex: 1; background-color: #95a5a6; font-size: 16px; }
-        
-        /* 대시보드 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
         @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
-
         .score-box { text-align: center; background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #eee; }
         .score-text { font-size: 60px; font-weight: 900; color: var(--main-blue); }
         .chart-container { background: white; padding: 20px; border-radius: 12px; border: 1px solid #eee; height: 350px; }
         .diff-view { grid-column: span 2; background: #ffffff; padding: 40px; border: 2px solid #f1f1f1; border-radius: 12px; font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
-        @media (max-width: 900px) { .diff-view { grid-column: span 1; padding: 20px; font-size: 18px; } }
-
-        /* 채점 스타일 */
         .d-missing { color: #e74c3c !important; font-weight: bold; background: rgba(231, 76, 60, 0.1); padding: 0 3px; border-radius: 4px; }
         .d-added { color: #27ae60 !important; font-weight: bold; text-decoration: underline; }
         .d-wrong { color: #2980b9 !important; font-weight: bold; border-bottom: 2px solid #2980b9; position: relative; display: inline-block; line-height: 1.2; }
         .correction { position: absolute; top: -1.7em; left: 0; font-size: 0.55em; color: #2980b9; background: white; border: 1px solid #2980b9; padding: 1px 5px; border-radius: 3px; white-space: nowrap; font-weight: normal; }
-        
         .history-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
         .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; flex-wrap: wrap; gap: 5px; }
         .pass { color: var(--success); font-weight: bold; }
         .fail { color: var(--fail); font-weight: bold; }
     </style>
 </head>
-
 <body onload="initApp()">
-
 <div class="container">
     <div id="login-screen" style="display: none;">
         <h2>⌨️ SHORTHAND MASTER S2</h2>
@@ -64,31 +48,20 @@
             <button onclick="login()" id="loginBtn" style="width:100%; padding:15px; font-size:16px;">로그인</button>
         </div>
     </div>
-
     <div id="main-screen" style="display: none;">
         <div class="header-flex">
             <h2>⌨️ SHORTHAND MASTER S2</h2>
-            <div>
-                <span class="login-info" id="userInfo">사용자: -</span>
-                <button class="sub-btn" onclick="logout()" style="padding: 5px 15px; font-size: 14px; margin-left: 10px;">로그아웃</button>
-            </div>
+            <div><span class="login-info" id="userInfo">사용자: -</span><button class="sub-btn" onclick="logout()" style="padding: 5px 15px; font-size: 14px; margin-left: 10px;">로그아웃</button></div>
         </div>
-
         <div class="config-bar">
             <div style="display:flex; align-items:center; gap:5px;">📂 <label>파일명:</label> <input type="text" id="fileName" placeholder="예: 2024 연습 1"></div>
             <div style="display:flex; align-items:center; gap:5px;">🎯 <label>목표 점수:</label> <input type="number" id="targetScore" value="95" style="width: 60px;">%</div>
         </div>
-
         <div class="input-group">
             <div class="box"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
             <div class="box"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
         </div>
-
-        <div class="btn-row">
-            <button onclick="analyzeAndGrade()">💯 채점 및 분석 실행</button>
-            <button class="sub-btn" onclick="clearHistory()">기록 초기화</button>
-        </div>
-
+        <div class="btn-row"><button onclick="analyzeAndGrade()">💯 채점 및 분석 실행</button><button class="sub-btn" onclick="clearHistory()">기록 초기화</button></div>
         <div id="result" style="display:none;">
             <div class="dashboard">
                 <div class="score-box">
@@ -97,20 +70,13 @@
                     <div id="scoreDesc" style="color:#95a5a6; font-size:16px;"></div>
                     <div id="goalResult" style="margin-top:10px; font-weight:bold;"></div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="scoreChart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="scoreChart"></canvas></div>
                 <div class="diff-view" id="diffOutput"></div>
             </div>
         </div>
-
-        <div class="history-section">
-            <h3>📜 최근 채점 기록 (서버 동기화됨)</h3>
-            <div id="historyList"></div>
-        </div>
+        <div class="history-section"><h3>📜 최근 채점 기록</h3><div id="historyList"></div></div>
     </div>
 </div>
-
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbysfOdjVR8hmTRTOn7gwMc384TloH2qzur8XxOZTo4hune0V5ZBFn7tJZU3NktLYc8/exec";
 let currentUser = localStorage.getItem('shorthand_user') || null;
@@ -136,8 +102,7 @@ async function fetchHistoryFromServer() {
         if (data.result === "success") {
             scoreHistory = data.history;
             localStorage.setItem('shorthand_history', JSON.stringify(scoreHistory));
-            updateHistoryUI();
-            updateChart();
+            updateHistoryUI(); updateChart();
         }
     } catch (e) { console.error("기록 불러오기 실패"); }
 }
@@ -146,59 +111,27 @@ async function login() {
     const btn = document.getElementById('loginBtn');
     const name = document.getElementById('nameInput').value.trim();
     const pw = document.getElementById('pwInput').value;
-    
-    if (!name || !pw) { alert("이름과 비밀번호를 입력하세요."); return; }
-    
-    btn.innerText = "로그인 중... 잠시만 기다려주세요";
-    btn.disabled = true;
-
+    if (!name || !pw) { alert("입력 필요"); return; }
+    btn.innerText = "로그인 중..."; btn.disabled = true;
     try {
-        const res = await fetch(GAS_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "login", name: name, pw: pw })
-        });
+        const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name: name, pw: pw }) });
         const result = await res.json();
-        if (result.result === "success") {
-            if (currentUser !== result.name) {
-                localStorage.removeItem('shorthand_history');
-                scoreHistory = [];
-            }
-            currentUser = result.name;
-            localStorage.setItem('shorthand_user', currentUser);
-            alert(currentUser + "님 환영합니다!");
-            initApp();
-        } else { alert("로그인 정보가 올바르지 않습니다."); }
-    } catch (e) {
-        alert("네트워크 오류가 발생했습니다.");
-    } finally {
-        btn.innerText = "로그인";
-        btn.disabled = false;
-    }
+        if (result.result === "success") { currentUser = result.name; localStorage.setItem('shorthand_user', currentUser); initApp(); }
+        else { alert("로그인 실패"); }
+    } catch (e) { alert("연결 오류"); }
+    finally { btn.innerText = "로그인"; btn.disabled = false; }
 }
 
-function logout() {
-    if(confirm("로그아웃 하시겠습니까?")) {
-        localStorage.removeItem('shorthand_user');
-        localStorage.removeItem('shorthand_history');
-        currentUser = null;
-        location.reload();
-    }
-}
+function logout() { if(confirm("로그아웃?")) { localStorage.removeItem('shorthand_user'); location.reload(); } }
 
-/* ====== [절대 보존] 채점 엔진 로직 (감점 수식 핀셋 수정 완료) ====== */
 function analyzeAndGrade() {
-    if (!currentUser) { alert("로그인이 필요합니다!"); return; }
-
+    if (!currentUser) return;
     let rawO = document.getElementById('original').value;
     let rawS = document.getElementById('student').value;
     if(!rawO.trim()) return;
 
-    let spaceMap = []; 
-    let pureIdx = 0;
-    for (let i = 0; i < rawO.length; i++) {
-        if (/\s/.test(rawO[i])) spaceMap[pureIdx] = true; 
-        else pureIdx++;
-    }
+    let spaceMap = []; let pureIdx = 0;
+    for (let i = 0; i < rawO.length; i++) { if (/\s/.test(rawO[i])) spaceMap[pureIdx] = true; else pureIdx++; }
 
     const preprocess = (t) => t.replace(/\s/g, '').split('');
     let oArr = preprocess(rawO), sArr = preprocess(rawS);
@@ -212,13 +145,9 @@ function analyzeAndGrade() {
 
     let i = n, j = m, diffs = [];
     while (i > 0 || j > 0) {
-        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) {
-            diffs.push({ t: 'same', c: oArr[i-1], idx: i-1 }); i--; j--;
-        } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
-            diffs.push({ t: 'added', c: sArr[j-1] }); j--;
-        } else {
-            diffs.push({ t: 'missing', c: oArr[i-1], idx: i-1 }); i--;
-        }
+        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { diffs.push({ t: 'same', c: oArr[i-1], idx: i-1 }); i--; j--; }
+        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { diffs.push({ t: 'added', c: sArr[j-1] }); j--; }
+        else { diffs.push({ t: 'missing', c: oArr[i-1], idx: i-1 }); i--; }
     }
     diffs.reverse();
 
@@ -227,97 +156,54 @@ function analyzeAndGrade() {
         let cur = diffs[k], next = diffs[k+1];
         if (cur.idx !== undefined && spaceMap[cur.idx]) html += " ";
         if (cur.t === 'same') html += `<span>${cur.c}</span>`;
-        else if (cur.t === 'missing' && next && next.t === 'added') {
-            html += `<span class="d-wrong">${next.c}<span class="correction">${cur.c}</span></span>`;
-            w++; k++;
-        } else if (cur.t === 'missing') { html += `<span class="d-missing">${cur.c}</span>`; mi++; }
+        else if (cur.t === 'missing' && next && next.t === 'added') { html += `<span class="d-wrong">${next.c}<span class="correction">${cur.c}</span></span>`; w++; k++; }
+        else if (cur.t === 'missing') { html += `<span class="d-missing">${cur.c}</span>`; mi++; }
         else if (cur.t === 'added') { html += `<span class="d-added">${cur.c}</span>`; ad++; }
     }
 
-    // [핀셋 수정] 감점 기준 적용: 오자(w) 1점, 탈자(mi) 1점, 첨자(ad) 0.33점(3개당 1점)
-    let totalPenalty = (w * 1) + (mi * 1) + (ad * (1/3)); 
+    // [최종 핀셋 수정] 첨자 3개당 1점씩 묶음 감점 (몫 계산)
+    let adPenalty = Math.floor(ad / 3); 
+    let totalPenalty = (w * 1) + (mi * 1) + adPenalty;
     let score = n > 0 ? Math.max(0, 100 - (totalPenalty / n * 100)).toFixed(1) : 0;
 
-    const fName = document.getElementById('fileName').value || "미지정 파일";
+    const fName = document.getElementById('fileName').value || "미지정";
     const tScore = parseFloat(document.getElementById('targetScore').value) || 95;
     const isPass = parseFloat(score) >= tScore;
 
-    const resultData = { 
-        date: new Date().toLocaleString(), 
-        title: fName, 
-        score: score, 
-        w: w, mi: mi, ad: ad, 
-        target: tScore,
-        pass: isPass 
-    };
-    
-    scoreHistory.push(resultData);
-    localStorage.setItem('shorthand_history', JSON.stringify(scoreHistory));
-
     document.getElementById('finalScore').innerText = score;
-    document.getElementById('scoreDesc').innerText = `오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
-    document.getElementById('goalResult').innerText = isPass ? "🎉 목표 달성 성공!" : "📉 목표 달성 실패";
+    document.getElementById('scoreDesc').innerText = `오자: ${w} / 탈자: ${mi} / 첨자: ${ad} (감점점수: ${adPenalty})`;
+    document.getElementById('goalResult').innerText = isPass ? "🎉 성공" : "📉 실패";
     document.getElementById('goalResult').className = isPass ? "pass" : "fail";
     document.getElementById('diffOutput').innerHTML = html;
     document.getElementById('result').style.display = 'block';
 
+    scoreHistory.push({ date: new Date().toLocaleString(), title: fName, score: score, target: tScore, pass: isPass });
+    localStorage.setItem('shorthand_history', JSON.stringify(scoreHistory));
     sendDataToServer(score, w, mi, ad, fName);
-    updateHistoryUI();
-    updateChart();
+    updateHistoryUI(); updateChart();
 }
-/* ====== 보존 끝 ====== */
 
 function updateHistoryUI() {
     const list = document.getElementById('historyList');
     list.innerHTML = scoreHistory.slice(-10).reverse().map(item => `
-        <div class="history-item">
-            <span>📅 ${item.date} [${item.title}]</span>
-            <span class="${item.pass ? 'pass' : 'fail'}">
-                <strong>${item.score}%</strong> (목표:${item.target}%)
-            </span>
-        </div>
+        <div class="history-item"><span>📅 ${item.date} [${item.title}]</span><span class="${item.pass ? 'pass' : 'fail'}"><strong>${item.score}%</strong></span></div>
     `).join('');
 }
 
 function updateChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
-    const labels = scoreHistory.slice(-15).map(i => i.title);
-    const data = scoreHistory.slice(-15).map(i => i.score);
-
     if(myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{ 
-                label: '최근 정확도 변화', 
-                data: data, 
-                borderColor: '#3498db', 
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                tension: 0.3, 
-                fill: true 
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            scales: { y: { /* 자동 조절 */ } } 
-        }
+        data: { labels: scoreHistory.slice(-15).map(i => i.title), datasets: [{ label: '정확도', data: scoreHistory.slice(-15).map(i => i.score), borderColor: '#3498db', fill: true }] },
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
-function clearHistory() {
-    if(confirm("모든 기록을 삭제할까요? (서버 기록은 유지됩니다)")) {
-        localStorage.removeItem('shorthand_history');
-        scoreHistory = [];
-        updateHistoryUI();
-        updateChart();
-    }
-}
+function clearHistory() { if(confirm("삭제?")) { scoreHistory = []; updateHistoryUI(); updateChart(); } }
 
 async function sendDataToServer(score, w, mi, ad, title) {
-    const payload = { action: "save", name: currentUser, title: title, score: score, w: w, mi: mi, ad: ad };
-    try { await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) }); } catch(e) { console.error("서버 저장 실패"); }
+    try { await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "save", name: currentUser, title: title, score: score, w: w, mi: mi, ad: ad }) }); } catch(e) {}
 }
 </script>
 </body>
