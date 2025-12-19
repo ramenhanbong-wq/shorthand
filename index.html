@@ -136,12 +136,18 @@ async function fetchData() {
         const data = await res.json();
         if (data.result === "success") {
             let fullHistory = data.history || [];
-            const resetDateStr = localStorage.getItem('shorthand_reset_date');
             
-            if (resetDateStr) {
-                const resetDate = new Date(resetDateStr);
-                // 로컬 리셋 설정 시간 이후의 기록만 필터링
-                scoreHistory = fullHistory.filter(h => new Date(h.date) > resetDate);
+            // 1. 로컬 스토리지에서 리셋 날짜(문자열) 가져오기
+            const resetLimit = localStorage.getItem('shorthand_reset_date');
+            
+            if (resetLimit) {
+                // 2. 리셋 시간보다 이후에 생성된 기록만 필터링
+                // ISO 문자열 비교는 문자열 자체로 비교해도 정확합니다.
+                scoreHistory = fullHistory.filter(h => {
+                    // 서버에서 온 날짜가 '2025-12-20' 형태라면 시간 정보를 붙여서 비교
+                    const itemDate = new Date(h.date + "T23:59:59").toISOString();
+                    return itemDate > resetLimit;
+                });
             } else {
                 scoreHistory = fullHistory;
             }
@@ -154,6 +160,27 @@ async function fetchData() {
     } catch (e) { console.error("데이터 수신 오류"); }
 }
 
+function resetMyView() {
+    if (!confirm("나의 연습 목록을 비우시겠습니까?\n\n")) return;
+
+    // 현재 이 순간의 시간을 저장 (이 시간 이전 기록은 모두 숨김)
+    const now = new Date();
+    // 현재 날짜의 가장 마지막 시간으로 설정하여 오늘 기록까지 싹 숨김
+    now.setHours(23, 59, 59, 999); 
+    
+    localStorage.setItem('shorthand_reset_date', now.toISOString());
+    
+    alert("목록이 정리되었습니다.");
+    
+    // 즉시 화면에서 안 보이게 처리하기 위해 배열 비우고 새로고침
+    scoreHistory = [];
+    updateHistoryUI();
+    updateChart();
+    
+    // 다시 데이터를 불러와서 필터링 확인
+    fetchData();
+}
+    
 function updateKingRanking(allHistory) {
     const kingListEl = document.getElementById('kingList');
     if (!allHistory || allHistory.length === 0) { kingListEl.innerHTML = "연습을 시작해 1등이 되어보세요! 🏆"; return; }
@@ -294,3 +321,4 @@ function closeReport() { document.getElementById('overlay').style.display = 'non
 </script>
 </body>
 </html>
+
