@@ -1,0 +1,41 @@
+async function checkAuth() {
+    const name = document.getElementById('loginName').value;
+    const pw = document.getElementById('loginPw').value;
+    const msg = document.getElementById('loginMsg');
+    
+    msg.innerText = "학생 정보 확인 중...";
+
+    try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+        const response = await fetch(url);
+        const data = await response.text();
+        
+        // CSV 파싱
+        const rows = data.split('\n').map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
+        
+        let authOk = false;
+        for(let i = 1; i < rows.length; i++) {
+            // rows[i][0] : 이름 (A)
+            // rows[i][1] : 연락처 (B)
+            // rows[i][2] : 비밀번호 (C)
+            // rows[i][3] : 상태 (D)
+            
+            if(rows[i][0] === name && rows[i][2] === pw && rows[i][3] === '허용') {
+                authOk = true;
+                break;
+            }
+        }
+
+        if(authOk) {
+            alert(name + " 학생, 로그인이 승인되었습니다.");
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('studentName').value = name;
+            initChart();
+        } else {
+            msg.innerText = "이름 또는 비밀번호를 확인하세요. (혹은 미등록 학생)";
+        }
+    } catch (e) {
+        msg.innerText = "로그인 서버 연결에 실패했습니다.";
+    }
+}
