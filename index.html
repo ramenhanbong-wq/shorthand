@@ -3,102 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDOKSORI S2 | Shorthand Master</title>
+    <title>DDOKSORI S2 | Premium</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --main-blue: #3498db; --bg: #f4f7f9; --card: #ffffff; --text: #2c3e50; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #2c3e50; margin: 0; padding: 0; color: var(--text); }
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .login-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 350px; }
-        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .login-box button { width: 100%; padding: 15px; background: var(--main-blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .login-box input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .login-box button { width: 100%; padding: 18px; background: var(--main-blue); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; }
         
-        #app-content { display: none; background: var(--bg); min-height: 100vh; padding: 20px; box-sizing: border-box; }
-        .container { max-width: 1300px; margin: 0 auto; background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 20px; }
+        #app-content { display: none; background: var(--bg); min-height: 100vh; padding: 40px 20px; box-sizing: border-box; }
+        .container { max-width: 1300px; margin: 0 auto; background: var(--card); padding: 50px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 25px; margin-bottom: 30px; }
         
-        .info-bar { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap: 15px; background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 25px; align-items: end; }
-        .info-bar div { display: flex; flex-direction: column; gap: 5px; }
-        .info-bar input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .info-bar { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap: 20px; background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 35px; align-items: end; }
+        .info-bar input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
 
-        .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
-        textarea { width: 100%; height: 320px; padding: 20px; border: 1px solid #ddd; border-radius: 12px; font-size: 18px; line-height: 1.8; resize: none; box-sizing: border-box; background: #fff; }
+        .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+        label { font-weight: bold; font-size: 18px; color: var(--main-blue); margin-bottom: 12px; display: block; }
+        textarea { width: 100%; height: 350px; padding: 25px; border: 1px solid #ddd; border-radius: 15px; font-size: 19px; line-height: 1.8; resize: none; box-sizing: border-box; background: #fff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); }
 
-        .btn-group { display: flex; gap: 10px; margin-bottom: 30px; }
-        .main-btn { flex: 2; padding: 20px; background: var(--main-blue); color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; }
-        .save-btn { flex: 1; padding: 20px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: none; }
+        .btn-group { display: flex; gap: 15px; margin-bottom: 50px; }
+        .main-btn { flex: 2; padding: 22px; background: var(--main-blue); color: white; border: none; border-radius: 12px; font-size: 22px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+        .save-btn { flex: 1; padding: 22px; background: #27ae60; color: white; border: none; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer; display: none; }
 
-        .score-display { text-align: center; margin: 30px 0; }
-        .score-num { font-size: 80px; font-weight: 900; color: var(--main-blue); }
+        .score-display { text-align: center; margin: 40px 0; }
+        .score-num { font-size: 85px; font-weight: 900; color: var(--main-blue); margin: 0; }
 
-        /* 채점 결과창 (여백 및 줄간격 확보) */
+        /* 채점 결과 가독성 최적화 */
         .diff-view { 
-            background: #fff; padding: 40px; border: 1px solid #eee; border-radius: 15px; 
-            font-size: 22px; line-height: 3.0; white-space: pre-wrap; word-break: break-all;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+            background: #fff; padding: 45px; border: 2px solid #edf2f7; border-radius: 20px; 
+            font-size: 23px; line-height: 3.2; white-space: pre-wrap; word-break: break-all;
         }
 
-        /* 채점 강조 스타일 */
-        .d-missing { color: #e74c3c; font-weight: bold; background: rgba(231,76,60,0.1); padding: 2px 4px; border-radius: 4px; }
-        .d-added { color: #27ae60; font-weight: bold; text-decoration: underline; background: rgba(39,174,96,0.1); padding: 2px 4px; border-radius: 4px; }
-        .d-wrong { color: #2980b9; font-weight: bold; background: rgba(41,128,185,0.1); padding: 2px 4px; border-radius: 4px; }
-        .correction { font-size: 0.65em; vertical-align: super; color: #3498db; border: 1px solid #3498db; padding: 1px 3px; border-radius: 3px; background: #fff; margin-left: 2px; font-weight: normal; }
+        /* 속기 채점 표준 색상 */
+        .d-missing { color: #e74c3c; font-weight: bold; background: rgba(231,76,60,0.1); padding: 0 4px; border-radius: 4px; } /* 탈자 */
+        .d-added { color: #27ae60; font-weight: bold; text-decoration: underline; background: rgba(39,174,96,0.1); padding: 0 4px; border-radius: 4px; } /* 첨자 */
+        .d-wrong { color: #2980b9; font-weight: bold; background: rgba(41,128,185,0.1); padding: 0 4px; border-radius: 4px; } /* 오자 */
+        .correction { font-size: 0.6em; vertical-align: super; color: #3498db; border: 1px solid #3498db; padding: 1px 4px; border-radius: 4px; background: #fff; margin-left: 2px; font-weight: normal; }
 
-        .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px; }
-        .chart-container { height: 350px; background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 15px; }
-        @media (max-width: 800px) { .input-section, .bottom-section { grid-template-columns: 1fr; } }
+        .bottom-section { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; margin-top: 60px; }
+        .chart-container { height: 450px; background: #fff; border: 1px solid #eee; padding: 25px; border-radius: 20px; }
+        @media (max-width: 900px) { .input-section, .bottom-section { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div id="login-overlay">
     <div class="login-box">
-        <h2 style="color:var(--main-blue)">DDOKSORI Season 2</h2>
+        <h2 style="color:var(--main-blue)">⌨️ DDOKSORI S2</h2>
         <input type="text" id="loginName" placeholder="성함">
         <input type="password" id="loginPw" placeholder="연락처">
-        <button onclick="checkAuth()">접속하기</button>
-        <p id="loginMsg" style="color:red; font-size:13px;"></p>
+        <button onclick="checkAuth()">시스템 접속</button>
+        <p id="loginMsg" style="color:red; font-size:13px; margin-top:15px;"></p>
     </div>
 </div>
 
 <div id="app-content">
     <div class="container">
         <div class="header">
-            <h2 style="margin:0">⌨️ SHORTHAND MASTER <span style="font-weight:300; font-size:18px; color:#888;">| 전문 분석</span></h2>
-            <button onclick="logout()" style="background:none; border:1px solid #ccc; padding:5px 10px; border-radius:5px; cursor:pointer;">로그아웃</button>
+            <h2 style="margin:0">⌨️ SHORTHAND MASTER <span style="font-weight:300; font-size:20px; color:#888;">| 전문 분석</span></h2>
+            <button onclick="logout()" style="background:none; border:1px solid #ccc; padding:8px 15px; border-radius:8px; cursor:pointer;">로그아웃</button>
         </div>
 
         <div class="info-bar">
-            <div><strong>📌 연습 지문</strong><input type="text" id="docTitle" placeholder="지문명 입력"></div>
-            <div><strong>👤 학생 정보</strong><input type="text" id="studentDisplay" readonly style="font-weight:bold; color:var(--main-blue); background:#fff;"></div>
-            <div><strong>🎯 합격 목표</strong><input type="number" id="targetScore" value="95"></div>
+            <div><label>📌 연습 지문</label><input type="text" id="docTitle" placeholder="지문명"></div>
+            <div><label>👤 학생 정보</label><input type="text" id="studentDisplay" readonly style="font-weight:bold; color:var(--main-blue); background:#fff;"></div>
+            <div><label>🎯 합격 목표</label><input type="number" id="targetScore" value="95"></div>
             <input type="hidden" id="studentPhone">
         </div>
 
         <div class="input-section">
-            <textarea id="original" placeholder="정답 원문을 입력하세요..."></textarea>
-            <textarea id="student" placeholder="연습한 내용을 입력하세요..."></textarea>
+            <div><label>📄 정답 원문</label><textarea id="original" placeholder="정답을 붙여넣으세요"></textarea></div>
+            <div><label>✍️ 학생 입력</label><textarea id="student" placeholder="내용을 입력하세요"></textarea></div>
         </div>
 
         <div class="btn-group">
             <button class="main-btn" onclick="analyzeAndGrade()">💯 실시간 정밀 채점 시작</button>
-            <button id="saveBtn" class="save-btn" onclick="saveToCloud()">📥 서버에 기록 저장</button>
+            <button id="saveBtn" class="save-btn" onclick="saveToCloud()">📥 서버 기록 저장</button>
         </div>
 
         <div id="resultArea" style="display:none;">
             <div class="score-display">
-                <div class="score-num" id="finalScore">0%</div>
-                <div id="scoreDesc" style="font-size:20px; color:#7f8c8d; font-weight:bold; margin-top:10px;"></div>
+                <div class="score-num" id="finalScoreDisplay">0%</div>
+                <div id="scoreDesc" style="font-size:22px; color:#7f8c8d; font-weight:bold; margin-top:15px;"></div>
             </div>
-            <label style="font-weight:bold; display:block; margin-bottom:15px; font-size:18px;">🧐 상세 분석 결과 (원문 구조 보존됨)</label>
+            <label>🧐 정밀 분석 결과 (문장 구조 보존)</label>
             <div class="diff-view" id="diffOutput"></div>
         </div>
 
         <div class="bottom-section">
             <div class="chart-container"><canvas id="scoreChart"></canvas></div>
-            <div style="background:#fff; border:1px solid #eee; padding:20px; border-radius:15px; overflow-y:auto;">
-                <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:center;">
-                    <thead style="background:#f8f9fa;"><tr><th style="padding:12px;">회차</th><th>지문</th><th>점수</th></tr></thead>
+            <div style="background:#fff; border:1px solid #eee; padding:25px; border-radius:20px; overflow-y:auto;">
+                <label>📋 누적 기록</label>
+                <table style="width:100%; border-collapse:collapse; font-size:15px; text-align:center;">
+                    <thead style="background:#f8f9fa;"><tr><th style="padding:15px;">회차</th><th>지문</th><th>정확도</th></tr></thead>
                     <tbody id="historyTable"></tbody>
                 </table>
             </div>
@@ -107,6 +107,7 @@
 </div>
 
 <script>
+// 선생님의 고유 정보 유지
 const SHEET_ID = '17SFATNdgT0YFk9o3WzjEmKtk_BjrNPZfwBmJuaeB3s4'; 
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxs0JKdgmCaRpLQqcTycQ-vnmei-VMqIGu9pIT-oKjSWoXH2T4M55jYtQKz4K4ob1s/exec';
 let currentResult = null; let scoreChart = null;
@@ -124,8 +125,8 @@ async function checkAuth() {
         if(user && user[3] === '허용') {
             sessionStorage.setItem('sh_name', name); sessionStorage.setItem('sh_phone', pw);
             enterApp(name, pw);
-        } else { document.getElementById('loginMsg').innerText = "인증 실패"; }
-    } catch (e) { document.getElementById('loginMsg').innerText = "오류 발생"; }
+        } else { document.getElementById('loginMsg').innerText = "정보가 일치하지 않습니다."; }
+    } catch (e) { document.getElementById('loginMsg').innerText = "연결 오류가 발생했습니다."; }
 }
 
 function enterApp(name, pw) {
@@ -148,7 +149,7 @@ async function saveToCloud() {
     };
     try {
         await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-        alert("저장되었습니다!"); btn.innerText = "저장 완료"; loadCloudData(payload.name);
+        alert("기록이 저장되었습니다!"); btn.innerText = "저장 완료"; loadCloudData(payload.name);
     } catch (e) { alert("저장 실패"); btn.disabled = false; btn.innerText = "기록 저장"; }
 }
 
@@ -157,11 +158,11 @@ function analyzeAndGrade() {
     const rawS = document.getElementById('student').value;
     if(!rawO.trim() || !rawS.trim()) return;
 
-    // 1. 순수 글자만 추출 (계산용)
+    // 1. 계산용 클린 텍스트 (공백 포함 보존하여 계산)
     const cleanO = rawO.replace(/[^a-z0-9가-힣]/gi, '').split('');
     const cleanS = rawS.replace(/[^a-z0-9가-힣]/gi, '').split('');
 
-    // 2. LCS 알고리즘
+    // 2. LCS 알고리즘 실행
     let n = cleanO.length, m = cleanS.length;
     let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
     for(let i=1; i<=n; i++) {
@@ -179,40 +180,31 @@ function analyzeAndGrade() {
     }
     diffs.reverse();
 
-    // 3. 결과 렌더링 (원문 구조 보존 핵심)
+    // 3. 렌더링 (원문 구조 위에 채점 결과 덧입히기)
     let finalHtml = "";
     let diffIdx = 0;
     const fullOriginal = rawO.split('');
 
     fullOriginal.forEach(char => {
-        // 공백, 줄바꿈, 기호는 있는 그대로 출력
         if (/[^a-z0-9가-힣]/i.test(char)) {
-            finalHtml += char;
+            finalHtml += char; // 기호 및 공백 보존
         } else {
-            // 실제 글자인 경우에만 diffs 결과와 매칭
             let res = diffs[diffIdx];
             if (res) {
-                if (res.t === 's') {
-                    finalHtml += res.c;
-                } else if (res.t === 'w') {
-                    finalHtml += `<span class="d-wrong">${res.c}<span class="correction">${res.o}</span></span>`;
-                } else if (res.t === 'm') {
-                    finalHtml += `<span class="d-missing">${res.c}</span>`;
-                }
+                if (res.t === 's') finalHtml += res.c;
+                else if (res.t === 'w') finalHtml += `<span class="d-wrong">${res.c}<span class="correction">${res.o}</span></span>`;
+                else if (res.t === 'm') finalHtml += `<span class="d-missing">${res.c}</span>`;
                 
-                // 첨자(원문에 없는데 학생이 쓴 것) 확인
                 let next = diffs[diffIdx+1];
                 while(next && next.t === 'a') {
                     finalHtml += `<span class="d-added">${next.c}</span>`;
-                    diffIdx++;
-                    next = diffs[diffIdx+1];
+                    diffIdx++; next = diffs[diffIdx+1];
                 }
                 diffIdx++;
             }
         }
     });
 
-    // 4. 점수 요약
     let wrong = diffs.filter(d => d.t === 'w').length;
     let missing = diffs.filter(d => d.t === 'm').length;
     let added = diffs.filter(d => d.t === 'a').length;
@@ -220,8 +212,8 @@ function analyzeAndGrade() {
     let score = n > 0 ? Math.max(0, 100 - ((wrong + missing + added) / n * 100)).toFixed(1) : 0;
     currentResult = { score, wrong, missing, added };
     
-    document.getElementById('finalScore').innerText = score + "%";
-    document.getElementById('scoreDesc').innerText = `오자: ${wrong} / 탈자: ${missing} / 첨자: ${added}`;
+    document.getElementById('finalScoreDisplay').innerText = score + "%";
+    document.getElementById('scoreDesc').innerText = `분석 결과: 오자 ${wrong} / 탈자 ${missing} / 첨자 ${added}`;
     document.getElementById('diffOutput').innerHTML = finalHtml;
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('saveBtn').style.display = 'block';
@@ -231,7 +223,7 @@ function analyzeAndGrade() {
 function initChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
     if(scoreChart) scoreChart.destroy();
-    scoreChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: '정확도', data: [], borderColor: '#3498db', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
+    scoreChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: '정확도(%)', data: [], borderColor: '#3498db', tension: 0.3, fill: true, backgroundColor: 'rgba(52, 152, 219, 0.1)' }] }, options: { responsive: true, maintainAspectRatio: false } });
 }
 
 async function loadCloudData(phone) {
@@ -246,7 +238,7 @@ function renderHistory(data) {
     scoreChart.data.labels = []; scoreChart.data.datasets[0].data = [];
     data.slice(1).reverse().forEach((row, idx) => {
         let s = parseFloat(row[6]); if(s <= 1) s *= 100;
-        tbody.innerHTML += `<tr><td style="padding:12px;">${data.length - idx - 1}회</td><td>${row[2]}</td><td><b>${s.toFixed(1)}%</b></td></tr>`;
+        tbody.innerHTML += `<tr><td style="padding:15px;">${data.length - idx - 1}회</td><td>${row[2]}</td><td><b>${s.toFixed(1)}%</b></td></tr>`;
         scoreChart.data.labels.push(idx+1); scoreChart.data.datasets[0].data.push(s);
     });
     scoreChart.update();
