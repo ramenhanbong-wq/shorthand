@@ -82,15 +82,15 @@
                 <div class="diff-view" id="diffOutput"></div>
             </div>
         </div>
-        <div style="margin-top:40px;">
+        <div style="margin-top:40px; display:flex; justify-content:space-between; align-items:center;">
             <h3>📜 나의 최근 기록 (상세 지표 포함)</h3>
-            <div id="historyList" style="background:#f9f9f9; border-radius:10px; border:1px solid #eee;"></div>
+            <button onclick="resetMyView()" style="background:var(--fail); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">나의 목록 비우기</button>
         </div>
+        <div id="historyList" style="background:#f9f9f9; border-radius:10px; border:1px solid #eee;"></div>
     </div>
 </div>
 
 <script>
-// ⚠️ 주의: 반드시 선생님의 구글 앱 스크립트 [새 배포] URL로 교체하세요!
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxaxj3MBG5MK3nIO8hOV3EH9clAQi00pp-L78weLbFP7wj-9X1Fwt9ExUAncapRJsY/exec"; 
 
 let currentUser = localStorage.getItem('shorthand_user');
@@ -125,7 +125,7 @@ async function login() {
             alert("로그인 실패: 이름이나 비밀번호를 확인하세요."); 
         }
     } catch(e) { 
-        alert("연결 오류: GAS URL이 정확한지, 배포 설정이 '모든 사용자'인지 확인하세요."); 
+        alert("연결 오류: GAS URL이 정확한지 확인하세요."); 
     }
     document.getElementById('loginBtn').innerText = "시스템 접속";
 }
@@ -135,7 +135,17 @@ async function fetchData() {
         const res = await fetch(`${GAS_URL}?action=getHistory&name=${encodeURIComponent(currentUser)}`);
         const data = await res.json();
         if (data.result === "success") {
-            scoreHistory = data.history || [];
+            let fullHistory = data.history || [];
+            const resetDateStr = localStorage.getItem('shorthand_reset_date');
+            
+            if (resetDateStr) {
+                const resetDate = new Date(resetDateStr);
+                // 로컬 리셋 설정 시간 이후의 기록만 필터링
+                scoreHistory = fullHistory.filter(h => new Date(h.date) > resetDate);
+            } else {
+                scoreHistory = fullHistory;
+            }
+
             updateHistoryUI(); 
             updateChart();
             if(data.allTodayHistory) updateKingRanking(data.allTodayHistory);
@@ -215,10 +225,14 @@ async function sendDataToServer(score, w, mi, ad, title, n) {
 
 function updateHistoryUI() {
     const list = document.getElementById('historyList');
+    if (scoreHistory.length === 0) {
+        list.innerHTML = `<p style="padding:20px; text-align:center; color:#999;">표시할 기록이 없습니다.</p>`;
+        return;
+    }
     list.innerHTML = scoreHistory.slice(-10).reverse().map(item => `
         <div class="history-item">
             <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>📅 ${item.date} [${item.title}]</span><span style="color:var(--main-blue);">${item.score}%</span></div>
-            <div class="history-details">📍 총 글자: ${item.n} | ❌ 오자: ${item.w} | 🕳️ 탈자: ${item.mi} | ➕ 첨자: ${item.ad}</div>
+            <div class="history-details">📍 총 글자: ${item.n} |  오자: ${item.w} |  탈자: ${item.mi} |  첨자: ${item.ad}</div>
         </div>
     `).join('');
 }
@@ -236,63 +250,47 @@ function updateChart() {
     });
 }
 
+function resetMyView() {
+    if (!confirm("나의 연습 목록을 비우시겠습니까?\n\n(본인 화면에서만 사라지며, 선생님 서버에는 기록이 그대로 보관됩니다.)")) return;
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 1); // 1분 여유를 두어 현재 기록까지 모두 포함
+    localStorage.setItem('shorthand_reset_date', now.toISOString());
+    alert("목록이 정리되었습니다.");
+    fetchData();
+}
+
+function generateReport() {
+    if (!scoreHistory || scoreHistory.length === 0) return alert("분석할 데이터가 없습니다.");
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const monthlyData = scoreHistory.filter(h => {
+        const d = new Date(h.date);
+        return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    });
+    if (monthlyData.length === 0) return alert("이번 달 기록이 없습니다.");
+    
+    const avgScore = (monthlyData.reduce((acc, cur) => acc + parseFloat(cur.score), 0) / monthlyData.length).toFixed(1);
+    const totalChars = monthlyData.reduce((acc, cur) => acc + parseInt(cur.n || 0), 0);
+    
+    document.getElementById('report-content').innerHTML = `
+        <div style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--main-blue);">
+            <p>📊 총 연습: ${monthlyData.length}회</p>
+            <p>🎯 평균 정확도: ${avgScore}%</p>
+            <p>⌨️ 누적 글자수: ${totalChars.toLocaleString()}자</p>
+        </div>`;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('report-modal').style.display = 'block';
+}
+
 function checkAttendance(history) {
-    if(!history || history.length === 0) return;
-    const dates = [...new Set(history.map(h => h.date))].sort().reverse();
-    if(dates.length > 1) {
-        const msg = document.getElementById('streakMsg');
-        msg.innerHTML = `🔥 <b>꾸준함의 승리!</b> 연속으로 연습을 이어가고 있습니다!`;
-        msg.style.display = 'block';
-    }
+    if(!history || history.length < 2) return;
+    document.getElementById('streakMsg').innerHTML = `🔥 <b>꾸준함의 승리!</b> 연속으로 연습을 이어가고 있습니다!`;
+    document.getElementById('streakMsg').style.display = 'block';
 }
 
 function logout() { if(confirm("로그아웃 하시겠습니까?")) { localStorage.removeItem('shorthand_user'); location.reload(); } }
 function closeReport() { document.getElementById('overlay').style.display = 'none'; document.getElementById('report-modal').style.display = 'none'; }
-function generateReport() {
-    if (!scoreHistory || scoreHistory.length === 0) {
-        alert("분석할 연습 기록이 없습니다. 먼저 연습을 진행해 주세요!");
-        return;
-    }
-
-    const now = new Date();
-    const thisMonth = now.getMonth(); // 0(1월) ~ 11(12월)
-    const thisYear = now.getFullYear();
-
-    // 1. 이번 달 데이터만 추출
-    const monthlyData = scoreHistory.filter(h => {
-        const hDate = new Date(h.date);
-        return hDate.getMonth() === thisMonth && hDate.getFullYear() === thisYear;
-    });
-
-    if (monthlyData.length === 0) {
-        alert("이번 달(12월)에 기록된 데이터가 없습니다.");
-        return;
-    }
-
-    // 2. 지표 계산
-    const totalSessions = monthlyData.length;
-    const avgScore = (monthlyData.reduce((acc, cur) => acc + parseFloat(cur.score), 0) / totalSessions).toFixed(1);
-    const totalChars = monthlyData.reduce((acc, cur) => acc + parseInt(cur.n || 0), 0);
-    const maxScore = Math.max(...monthlyData.map(h => parseFloat(h.score)));
-
-    // 3. 리포트 HTML 생성
-    const reportHtml = `
-        <div style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--main-blue); margin-bottom:15px;">
-            <p style="margin:5px 0;">📊 <b>총 연습 횟수:</b> ${totalSessions}회</p>
-            <p style="margin:5px 0;">🎯 <b>평균 정확도:</b> <span style="color:var(--main-blue);">${avgScore}%</span></p>
-            <p style="margin:5px 0;">🏆 <b>최고 정확도:</b> ${maxScore}%</p>
-            <p style="margin:5px 0;">⌨️ <b>누적 연습량:</b> ${totalChars.toLocaleString()}자</p>
-        </div>
-        <p style="text-align:center; font-size:14px; color:#666;">
-            ${avgScore >= 95 ? "🌟 전문가 수준의 정확도입니다!" : "📈 꾸준히 연습하면 더 좋아질 거예요!"}
-        </p>
-    `;
-
-    document.getElementById('report-content').innerHTML = reportHtml;
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('report-modal').style.display = 'block';
-}</script>
+</script>
 </body>
 </html>
-
-
