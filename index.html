@@ -24,18 +24,15 @@
         
         textarea { width: 100%; height: 220px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; resize: none; font-size: 18px; line-height: 1.8; box-sizing: border-box; }
         
-        /* 채점 효과 */
         .d-missing { color: #e74c3c; font-weight: bold; background: rgba(231,76,60,0.1); }
         .d-added { color: #27ae60; font-weight: bold; text-decoration: underline; }
         .d-wrong { color: #2980b9; font-weight: bold; border-bottom: 2px solid #2980b9; position: relative; display: inline-block; }
         .correction { position: absolute; top: -1.7em; left: 0; font-size: 0.55em; color: #2980b9; background: white; border: 1px solid #2980b9; padding: 1px 5px; border-radius: 3px; font-weight: normal; }
         .diff-view { grid-column: span 2; background: #ffffff; padding: 30px; border: 2px solid #f1f1f1; border-radius: 12px; font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
         
-        /* 히스토리 아이템 */
         .history-item { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; line-height: 1.6; }
         .history-details { color: #7f8c8d; font-size: 12px; margin-top: 5px; background: #fdfdfd; padding: 5px; border-radius: 4px; }
 
-        /* 리포트 모달 */
         #report-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 1000; border: 5px solid var(--main-blue); }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999; }
     </style>
@@ -108,6 +105,7 @@
 </div>
 
 <script>
+// 배포된 GAS 웹 앱 URL을 여기에 입력하세요.
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxW3L7WhNbb-v362mzPVNgLYUQ9lrvrfSr4z8tjuk-lzcoGoIkaLfUais1gzW-R0WQ/exec";
 let currentUser = localStorage.getItem('shorthand_user');
 let scoreHistory = [];
@@ -146,21 +144,29 @@ async function fetchData() {
         const res = await fetch(`${GAS_URL}?action=getHistory&name=${encodeURIComponent(currentUser)}`);
         const data = await res.json();
         if (data.result === "success") {
-            scoreHistory = data.history;
-            updateHistoryUI(); updateChart();
-            updateKingRanking(data.allTodayHistory);
+            scoreHistory = data.history || [];
+            updateHistoryUI(); 
+            updateChart();
+            // 🔥 실시간 랭킹 데이터 수신 및 업데이트
+            if(data.allTodayHistory) {
+                updateKingRanking(data.allTodayHistory);
+            }
             checkAttendance(scoreHistory);
         }
-    } catch (e) {}
+    } catch (e) {
+        console.error("데이터 로드 실패", e);
+        document.getElementById('kingList').innerHTML = "서버 연결 오류";
+    }
 }
 
 function checkAttendance(history) {
-    if(history.length === 0) return;
+    if(!history || history.length === 0) return;
     const dates = [...new Set(history.map(h => h.date))].sort().reverse();
     let streak = 0;
     let checkDate = new Date();
     for(let i=0; i<dates.length; i++) {
-        if(dates[i] === checkDate.toLocaleDateString()) { streak++; checkDate.setDate(checkDate.getDate()-1); }
+        let dStr = Utilities_formatDate(checkDate);
+        if(dates.includes(dStr)) { streak++; checkDate.setDate(checkDate.getDate()-1); }
         else break;
     }
     if(streak > 1) {
@@ -170,33 +176,19 @@ function checkAttendance(history) {
     }
 }
 
-function generateReport() {
-    const now = new Date();
-    const thisMonth = now.getMonth();
-    const monthlyData = scoreHistory.filter(h => new Date(h.date).getMonth() === thisMonth);
-    if(monthlyData.length === 0) return alert("이번 달 기록이 없습니다.");
-    
-    const avgScore = (monthlyData.reduce((acc, cur) => acc + parseFloat(cur.score), 0) / monthlyData.length).toFixed(1);
-    const totalChars = monthlyData.reduce((acc, cur) => acc + parseInt(cur.n || 0), 0);
-    const bestScore = Math.max(...monthlyData.map(h => parseFloat(h.score)));
-
-    document.getElementById('report-content').innerHTML = `
-        <p>✅ 이번 달 총 연습: <b>${monthlyData.length}회</b></p>
-        <p>✅ 누적 연습량: <b>${totalChars.toLocaleString()}자</b></p>
-        <p>✅ 평균 정확도: <b>${avgScore}%</b></p>
-        <p>✅ 최고 점수: <b style="color:var(--success)">${bestScore}%</b></p>
-        <hr style="border:1px dashed #eee;">
-        <p style="text-align:center; font-weight:bold; color:var(--main-blue);">꾸준한 연습이 실력을 만듭니다! 🚀</p>
-    `;
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('report-modal').style.display = 'block';
+function Utilities_formatDate(date) {
+    let d = new Date(date), month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+    return [year, month, day].join('-');
 }
-
-function closeReport() { document.getElementById('overlay').style.display = 'none'; document.getElementById('report-modal').style.display = 'none'; }
 
 function updateKingRanking(allHistory) {
     const kingListEl = document.getElementById('kingList');
-    if (!allHistory || allHistory.length === 0) { kingListEl.innerHTML = "오늘의 연습왕에 도전하세요! 🏆"; return; }
+    if (!allHistory || allHistory.length === 0) { 
+        kingListEl.innerHTML = "오늘의 첫 연습왕이 되어보세요! 🏆"; 
+        return; 
+    }
     const totals = {};
     allHistory.forEach(h => { totals[h.name] = (totals[h.name] || 0) + Number(h.charCount || 0); });
     const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -249,13 +241,11 @@ function analyzeAndGrade() {
     let score = n > 0 ? Math.max(0, 100 - ((w + mi + adPenalty) / n * 100)).toFixed(1) : 0;
     const fName = document.getElementById('fileName').value || "미지정";
 
-    // ✅ 결과창 표시 (복구 완료)
     document.getElementById('finalScore').innerText = score;
     document.getElementById('scoreDesc').innerText = `총 글자: ${n} / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
     document.getElementById('diffOutput').innerHTML = html;
     document.getElementById('result').style.display = 'block';
 
-    // ✅ 최고 기록 체크
     const prevBest = scoreHistory.length > 0 ? Math.max(...scoreHistory.map(h => parseFloat(h.score))) : 0;
     if(parseFloat(score) > prevBest && scoreHistory.length > 0) {
         const rMsg = document.getElementById('recordMsg');
@@ -264,8 +254,6 @@ function analyzeAndGrade() {
         setTimeout(() => rMsg.style.display = 'none', 4000);
     }
 
-    scoreHistory.push({ date: new Date().toLocaleDateString(), title: fName, score: score, n: n, w: w, mi: mi, ad: ad });
-    updateHistoryUI(); updateChart();
     sendDataToServer(score, w, mi, ad, fName, n);
 }
 
@@ -304,7 +292,30 @@ async function sendDataToServer(score, w, mi, ad, title, n) {
         fetchData();
     } catch(e) {}
 }
+
+function generateReport() {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const monthlyData = scoreHistory.filter(h => new Date(h.date).getMonth() === thisMonth);
+    if(monthlyData.length === 0) return alert("이번 달 기록이 없습니다.");
+    
+    const avgScore = (monthlyData.reduce((acc, cur) => acc + parseFloat(cur.score), 0) / monthlyData.length).toFixed(1);
+    const totalChars = monthlyData.reduce((acc, cur) => acc + parseInt(cur.n || 0), 0);
+    const bestScore = Math.max(...monthlyData.map(h => parseFloat(h.score)));
+
+    document.getElementById('report-content').innerHTML = `
+        <p>✅ 이번 달 총 연습: <b>${monthlyData.length}회</b></p>
+        <p>✅ 누적 연습량: <b>${totalChars.toLocaleString()}자</b></p>
+        <p>✅ 평균 정확도: <b>${avgScore}%</b></p>
+        <p>✅ 최고 점수: <b style="color:var(--success)">${bestScore}%</b></p>
+        <hr style="border:1px dashed #eee;">
+        <p style="text-align:center; font-weight:bold; color:var(--main-blue);">꾸준함이 실력을 만듭니다! 🚀</p>
+    `;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('report-modal').style.display = 'block';
+}
+
+function closeReport() { document.getElementById('overlay').style.display = 'none'; document.getElementById('report-modal').style.display = 'none'; }
 </script>
 </body>
 </html>
-
