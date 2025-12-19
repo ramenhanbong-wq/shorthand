@@ -8,52 +8,39 @@
         :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); padding: 20px; color: #333; }
         .container { max-width: 1200px; margin: 0 auto; background: var(--card); padding: 35px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        
-        /* 헤더 및 로그인 */
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 25px; }
         .login-info { font-size: 14px; color: #7f8c8d; }
-
-        /* 입력창 */
         .input-group { display: flex; gap: 20px; margin-bottom: 20px; }
         .box { flex: 1; display: flex; flex-direction: column; }
         textarea { height: 200px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; resize: none; font-size: 18px; line-height: 1.8; }
-        
-        /* 버튼 */
         .btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
         button { flex: 2; padding: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 20px; font-weight: bold; }
         .sub-btn { flex: 1; background-color: #95a5a6; font-size: 16px; }
-
-        /* 결과 및 통계 영역 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
         .score-box { text-align: center; background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #eee; }
         .score-text { font-size: 60px; font-weight: 900; color: var(--main-blue); }
         .chart-container { background: white; padding: 20px; border-radius: 12px; border: 1px solid #eee; height: 300px; }
-
-        /* 상세 분석 뷰 (절대 보존 영역) */
-        .diff-view { 
-            grid-column: span 2; background: #ffffff; padding: 40px; border: 2px solid #f1f1f1; border-radius: 12px; 
-            font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; margin-top: 20px;
-        }
-
-        /* 색상 규칙 (절대 보존) */
+        .diff-view { grid-column: span 2; background: #ffffff; padding: 40px; border: 2px solid #f1f1f1; border-radius: 12px; font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
         .d-missing { color: #e74c3c !important; font-weight: bold; background: rgba(231, 76, 60, 0.1); padding: 0 3px; border-radius: 4px; }
         .d-added { color: #27ae60 !important; font-weight: bold; text-decoration: underline; }
         .d-wrong { color: #2980b9 !important; font-weight: bold; border-bottom: 2px solid #2980b9; position: relative; display: inline-block; line-height: 1.2; }
         .correction { position: absolute; top: -1.7em; left: 0; font-size: 0.55em; color: #2980b9; background: white; border: 1px solid #2980b9; padding: 1px 5px; border-radius: 3px; white-space: nowrap; font-weight: normal; }
-
-        /* 기록 리스트 */
         .history-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
         .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
     </style>
 </head>
+
 <body onload="initApp()">
 
 <div class="container">
     <div class="header-flex">
         <h2>⌨️ SHORTHAND MASTER S2</h2>
-        <div class="login-info" id="userInfo">로그인 필요</div>
+        <div>
+            <span class="login-info" id="userInfo">로그인 필요</span>
+            <button class="sub-btn" onclick="login()">로그인</button>
+        </div>
     </div>
-    
+
     <div class="input-group">
         <div class="box"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
         <div class="box"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
@@ -85,18 +72,26 @@
 </div>
 
 <script>
+/* ====== 추가: GAS 연동 설정 (기존 코드 미변경) ====== */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwkDlVeDObfZwFVyQL7cSeC_Md9Mn3K6s_EgiQU-PIBW8RrWqFMh5Kb1BZkX1CIDDo/exec";
+let currentUser = localStorage.getItem('shorthand_user') || null;
+/* ==================================================== */
+
 let scoreHistory = JSON.parse(localStorage.getItem('shorthand_history')) || [];
 let myChart = null;
 
 function initApp() {
     updateHistoryUI();
     updateChart();
-    // 임시 로그인 기능
-    document.getElementById('userInfo').innerText = "사용자: Master_User님 환영합니다.";
+    if (currentUser) {
+        document.getElementById('userInfo').innerText = "사용자: " + currentUser;
+    }
 }
 
-// [절대 보존] 채점 엔진 로직 시작
+/* ====== [절대 보존] 채점 엔진 로직 ====== */
 function analyzeAndGrade() {
+    if (!currentUser) { alert("로그인이 필요합니다!"); return; }
+
     let rawO = document.getElementById('original').value;
     let rawS = document.getElementById('student').value;
     if(!rawO.trim()) return;
@@ -143,22 +138,22 @@ function analyzeAndGrade() {
     }
 
     let score = n > 0 ? Math.max(0, 100 - ((w + mi + ad) / n * 100)).toFixed(1) : 0;
-    // [보존 끝]
 
-    // 기능 1: 데이터 저장
     const resultData = { date: new Date().toLocaleString(), score: score, w: w, mi: mi, ad: ad };
     scoreHistory.push(resultData);
     localStorage.setItem('shorthand_history', JSON.stringify(scoreHistory));
 
-    // 기능 2: 화면 업데이트
     document.getElementById('finalScore').innerText = score;
     document.getElementById('scoreDesc').innerText = `오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
     document.getElementById('diffOutput').innerHTML = html;
     document.getElementById('result').style.display = 'block';
-    
+
+    sendDataToServer(score, w, mi, ad);
+
     updateHistoryUI();
     updateChart();
 }
+/* ====== 보존 끝 ====== */
 
 function updateHistoryUI() {
     const list = document.getElementById('historyList');
@@ -194,6 +189,41 @@ function clearHistory() {
         updateChart();
     }
 }
+
+/* ====== 추가 함수 (신규) ====== */
+async function sendDataToServer(score, w, mi, ad) {
+    const payload = {
+        action: "save",
+        name: currentUser,
+        title: "미지정",
+        score: score,
+        w: w,
+        mi: mi,
+        ad: ad
+    };
+    await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+}
+
+async function login() {
+    const name = prompt("이름을 입력하세요");
+    const pw = prompt("비밀번호를 입력하세요");
+
+    const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "login", name: name, pw: pw })
+    });
+    const result = await res.json();
+
+    if (result.result === "success") {
+        currentUser = result.name;
+        localStorage.setItem('shorthand_user', currentUser);
+        alert(currentUser + "님 환영합니다!");
+        location.reload();
+    } else {
+        alert("로그인 정보가 올바르지 않습니다.");
+    }
+}
 </script>
+
 </body>
 </html>
