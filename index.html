@@ -175,7 +175,7 @@ function updateKingRanking(allHistory) {
         if (idx === 0) { style = "background: #f1c40f; color: #d35400;"; label = "🥇 1등"; }
         else if (idx === 1) { style = "background: #ecf0f1; color: #2c3e50;"; label = "🥈 2등"; }
         else if (idx === 2) { style = "background: #e67e22; color: #fff;"; label = "🥉 3등"; }
-        return `<div class="ranking-item" style="${style}">${label} ${s[0]} (${s[1].toLocaleString()}자)</div>`;
+        return `<div class="ranking-item" style="${style}">${label} ${s[0]}</div>`;
     }).join('');
 }
 
@@ -271,4 +271,5 @@ async function sendDataToServer(score, w, mi, ad, title, n) {
 </script>
 </body>
 </html>
+
 
