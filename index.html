@@ -1,45 +1,229 @@
-// 1. 위에서 복사한 구글 앱스 스크립트 URL을 여기에 넣으세요.
-const GAS_URL = "여기에_배포된_URL을_붙여넣으세요";
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>DDOKSORI S2 | 정밀 분석 및 기록 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: var(--card); padding: 35px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 25px; }
+        .login-info { font-size: 14px; color: #7f8c8d; }
+        .input-group { display: flex; gap: 20px; margin-bottom: 20px; }
+        .box { flex: 1; display: flex; flex-direction: column; }
+        textarea { height: 200px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; resize: none; font-size: 18px; line-height: 1.8; }
+        .btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { flex: 2; padding: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 20px; font-weight: bold; }
+        .sub-btn { flex: 1; background-color: #95a5a6; font-size: 16px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        .score-box { text-align: center; background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #eee; }
+        .score-text { font-size: 60px; font-weight: 900; color: var(--main-blue); }
+        .chart-container { background: white; padding: 20px; border-radius: 12px; border: 1px solid #eee; height: 300px; }
+        .diff-view { grid-column: span 2; background: #ffffff; padding: 40px; border: 2px solid #f1f1f1; border-radius: 12px; font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
+        .d-missing { color: #e74c3c !important; font-weight: bold; background: rgba(231, 76, 60, 0.1); padding: 0 3px; border-radius: 4px; }
+        .d-added { color: #27ae60 !important; font-weight: bold; text-decoration: underline; }
+        .d-wrong { color: #2980b9 !important; font-weight: bold; border-bottom: 2px solid #2980b9; position: relative; display: inline-block; line-height: 1.2; }
+        .correction { position: absolute; top: -1.7em; left: 0; font-size: 0.55em; color: #2980b9; background: white; border: 1px solid #2980b9; padding: 1px 5px; border-radius: 3px; white-space: nowrap; font-weight: normal; }
+        .history-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+    </style>
+</head>
 
-// [보존] 기존 채점 로직 함수 안의 마지막 부분에 아래 내용을 추가합니다.
+<body onload="initApp()">
+
+<div class="container">
+    <div class="header-flex">
+        <h2>⌨️ SHORTHAND MASTER S2</h2>
+        <div>
+            <span class="login-info" id="userInfo">로그인 필요</span>
+            <button class="sub-btn" onclick="login()">로그인</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <div class="box"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
+        <div class="box"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
+    </div>
+
+    <div class="btn-row">
+        <button onclick="analyzeAndGrade()">💯 채점 및 분석 실행</button>
+        <button class="sub-btn" onclick="clearHistory()">기록 초기화</button>
+    </div>
+
+    <div id="result" style="display:none;">
+        <div class="dashboard">
+            <div class="score-box">
+                <div style="font-weight:bold; color:#7f8c8d;">최종 정확도</div>
+                <div class="score-text"><span id="finalScore">0</span>%</div>
+                <div id="scoreDesc" style="color:#95a5a6; font-size:16px;"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="scoreChart"></canvas>
+            </div>
+            <div class="diff-view" id="diffOutput"></div>
+        </div>
+    </div>
+
+    <div class="history-section">
+        <h3>📜 최근 채점 기록</h3>
+        <div id="historyList"></div>
+    </div>
+</div>
+
+<script>
+/* ====== 추가: GAS 연동 설정 (기존 코드 미변경) ====== */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwkDlVeDObfZwFVyQL7cSeC_Md9Mn3K6s_EgiQU-PIBW8RrWqFMh5Kb1BZkX1CIDDo/exec";
+let currentUser = localStorage.getItem('shorthand_user') || null;
+/* ==================================================== */
+
+let scoreHistory = JSON.parse(localStorage.getItem('shorthand_history')) || [];
+let myChart = null;
+
+function initApp() {
+    updateHistoryUI();
+    updateChart();
+    if (currentUser) {
+        document.getElementById('userInfo').innerText = "사용자: " + currentUser;
+    }
+}
+
+/* ====== [절대 보존] 채점 엔진 로직 ====== */
 function analyzeAndGrade() {
-    // ... (선생님의 완벽한 LCS 채점 로직 실행 중) ...
-    
+    if (!currentUser) { alert("로그인이 필요합니다!"); return; }
+
+    let rawO = document.getElementById('original').value;
+    let rawS = document.getElementById('student').value;
+    if(!rawO.trim()) return;
+
+    let spaceMap = []; 
+    let pureIdx = 0;
+    for (let i = 0; i < rawO.length; i++) {
+        if (/\s/.test(rawO[i])) spaceMap[pureIdx] = true; 
+        else pureIdx++;
+    }
+
+    const preprocess = (t) => t.replace(/\s/g, '').split('');
+    let oArr = preprocess(rawO), sArr = preprocess(rawS);
+    let n = oArr.length, m = sArr.length;
+    let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
+    for (let i = 1; i <= n; i++) {
+        for (let j = 1; j <= m; j++) {
+            dp[i][j] = (oArr[i-1] === sArr[j-1]) ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+
+    let i = n, j = m, diffs = [];
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) {
+            diffs.push({ t: 'same', c: oArr[i-1], idx: i-1 }); i--; j--;
+        } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+            diffs.push({ t: 'added', c: sArr[j-1] }); j--;
+        } else {
+            diffs.push({ t: 'missing', c: oArr[i-1], idx: i-1 }); i--;
+        }
+    }
+    diffs.reverse();
+
+    let html = "", w=0, mi=0, ad=0;
+    for (let k = 0; k < diffs.length; k++) {
+        let cur = diffs[k], next = diffs[k+1];
+        if (cur.idx !== undefined && spaceMap[cur.idx]) html += " ";
+        if (cur.t === 'same') html += `<span>${cur.c}</span>`;
+        else if (cur.t === 'missing' && next && next.t === 'added') {
+            html += `<span class="d-wrong">${next.c}<span class="correction">${cur.c}</span></span>`;
+            w++; k++;
+        } else if (cur.t === 'missing') { html += `<span class="d-missing">${cur.c}</span>`; mi++; }
+        else if (cur.t === 'added') { html += `<span class="d-added">${cur.c}</span>`; ad++; }
+    }
+
     let score = n > 0 ? Math.max(0, 100 - ((w + mi + ad) / n * 100)).toFixed(1) : 0;
-    
-    // [추가된 기능] 구글 시트로 데이터 전송
-    saveToGoogleSheet(score, w, mi, ad);
-    
-    // 화면 결과 표시 로직...
+
+    const resultData = { date: new Date().toLocaleString(), score: score, w: w, mi: mi, ad: ad };
+    scoreHistory.push(resultData);
+    localStorage.setItem('shorthand_history', JSON.stringify(scoreHistory));
+
+    document.getElementById('finalScore').innerText = score;
+    document.getElementById('scoreDesc').innerText = `오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
+    document.getElementById('diffOutput').innerHTML = html;
+    document.getElementById('result').style.display = 'block';
+
+    sendDataToServer(score, w, mi, ad);
+
+    updateHistoryUI();
+    updateChart();
+}
+/* ====== 보존 끝 ====== */
+
+function updateHistoryUI() {
+    const list = document.getElementById('historyList');
+    list.innerHTML = scoreHistory.slice(-5).reverse().map(item => `
+        <div class="history-item">
+            <span>📅 ${item.date}</span>
+            <span><strong>${item.score}%</strong> (오${item.w} 탈${item.mi} 첨${item.ad})</span>
+        </div>
+    `).join('');
 }
 
-// [새로 추가된 서버 통신 함수]
-async function saveToGoogleSheet(score, w, mi, ad) {
-    const userName = document.getElementById('userName').value || "익명학생";
+function updateChart() {
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    const labels = scoreHistory.slice(-10).map(i => i.date.split(' ')[1]);
+    const data = scoreHistory.slice(-10).map(i => i.score);
+
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{ label: '정확도 추이', data: data, borderColor: '#3498db', tension: 0.3, fill: true, backgroundColor: 'rgba(52, 152, 219, 0.1)' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+    });
+}
+
+function clearHistory() {
+    if(confirm("모든 기록을 삭제할까요?")) {
+        localStorage.removeItem('shorthand_history');
+        scoreHistory = [];
+        updateHistoryUI();
+        updateChart();
+    }
+}
+
+/* ====== 추가 함수 (신규) ====== */
+async function sendDataToServer(score, w, mi, ad) {
     const payload = {
-        user: userName,
+        action: "save",
+        name: currentUser,
+        title: "미지정",
         score: score,
-        w: w, mi: mi, ad: ad
+        w: w,
+        mi: mi,
+        ad: ad
     };
-
-    try {
-        await fetch(GAS_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        });
-        console.log("구글 시트에 기록 저장 완료!");
-        loadHistoryFromServer(); // 저장 후 목록 새로고침
-    } catch (e) {
-        console.error("저장 실패:", e);
-    }
+    await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
 }
 
-async function loadHistoryFromServer() {
-    try {
-        const response = await fetch(GAS_URL);
-        const data = await response.json();
-        updateHistoryUI(data); // 가져온 데이터로 목록 및 그래프 업데이트
-    } catch (e) {
-        console.log("기록을 불러올 수 없습니다.");
+async function login() {
+    const name = prompt("이름을 입력하세요");
+    const pw = prompt("비밀번호를 입력하세요");
+
+    const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "login", name: name, pw: pw })
+    });
+    const result = await res.json();
+
+    if (result.result === "success") {
+        currentUser = result.name;
+        localStorage.setItem('shorthand_user', currentUser);
+        alert(currentUser + "님 환영합니다!");
+        location.reload();
+    } else {
+        alert("로그인 정보가 올바르지 않습니다.");
     }
 }
+</script>
+
+</body>
+</html>
