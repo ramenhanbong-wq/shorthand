@@ -8,6 +8,13 @@
         :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); padding: 20px; color: #333; }
         .container { max-width: 1200px; margin: 0 auto; background: var(--card); padding: 35px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        
+        /* 로그인 화면 스타일 */
+        #login-screen { text-align: center; padding: 50px 0; }
+        .login-form { max-width: 350px; margin: 0 auto; background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #ddd; }
+        .login-input { width: 100%; padding: 15px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        
+        /* 메인 화면 스타일 (기존 스타일 유지) */
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 25px; }
         .login-info { font-size: 14px; color: #7f8c8d; }
         .input-group { display: flex; gap: 20px; margin-bottom: 20px; }
@@ -33,62 +40,108 @@
 <body onload="initApp()">
 
 <div class="container">
-    <div class="header-flex">
+    <div id="login-screen" style="display: none;">
         <h2>⌨️ SHORTHAND MASTER S2</h2>
-        <div>
-            <span class="login-info" id="userInfo">로그인 필요</span>
-            <button class="sub-btn" onclick="login()">로그인</button>
+        <p>서비스 이용을 위해 로그인해주세요.</p>
+        <div class="login-form">
+            <input type="text" id="nameInput" class="login-input" placeholder="이름 입력">
+            <input type="password" id="pwInput" class="login-input" placeholder="비밀번호 입력">
+            <button onclick="login()" style="width:100%; padding:15px; font-size:16px;">로그인</button>
         </div>
     </div>
 
-    <div class="input-group">
-        <div class="box"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
-        <div class="box"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
-    </div>
-
-    <div class="btn-row">
-        <button onclick="analyzeAndGrade()">💯 채점 및 분석 실행</button>
-        <button class="sub-btn" onclick="clearHistory()">기록 초기화</button>
-    </div>
-
-    <div id="result" style="display:none;">
-        <div class="dashboard">
-            <div class="score-box">
-                <div style="font-weight:bold; color:#7f8c8d;">최종 정확도</div>
-                <div class="score-text"><span id="finalScore">0</span>%</div>
-                <div id="scoreDesc" style="color:#95a5a6; font-size:16px;"></div>
+    <div id="main-screen" style="display: none;">
+        <div class="header-flex">
+            <h2>⌨️ SHORTHAND MASTER S2</h2>
+            <div>
+                <span class="login-info" id="userInfo">사용자: -</span>
+                <button class="sub-btn" onclick="logout()" style="padding: 5px 15px; font-size: 14px; margin-left: 10px;">로그아웃</button>
             </div>
-            <div class="chart-container">
-                <canvas id="scoreChart"></canvas>
-            </div>
-            <div class="diff-view" id="diffOutput"></div>
         </div>
-    </div>
 
-    <div class="history-section">
-        <h3>📜 최근 채점 기록</h3>
-        <div id="historyList"></div>
+        <div class="input-group">
+            <div class="box"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
+            <div class="box"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
+        </div>
+
+        <div class="btn-row">
+            <button onclick="analyzeAndGrade()">💯 채점 및 분석 실행</button>
+            <button class="sub-btn" onclick="clearHistory()">기록 초기화</button>
+        </div>
+
+        <div id="result" style="display:none;">
+            <div class="dashboard">
+                <div class="score-box">
+                    <div style="font-weight:bold; color:#7f8c8d;">최종 정확도</div>
+                    <div class="score-text"><span id="finalScore">0</span>%</div>
+                    <div id="scoreDesc" style="color:#95a5a6; font-size:16px;"></div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scoreChart"></canvas>
+                </div>
+                <div class="diff-view" id="diffOutput"></div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h3>📜 최근 채점 기록</h3>
+            <div id="historyList"></div>
+        </div>
     </div>
 </div>
 
 <script>
-/* ====== 추가: GAS 연동 설정 (기존 코드 미변경) ====== */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwkDlVeDObfZwFVyQL7cSeC_Md9Mn3K6s_EgiQU-PIBW8RrWqFMh5Kb1BZkX1CIDDo/exec";
 let currentUser = localStorage.getItem('shorthand_user') || null;
-/* ==================================================== */
-
 let scoreHistory = JSON.parse(localStorage.getItem('shorthand_history')) || [];
 let myChart = null;
 
 function initApp() {
-    updateHistoryUI();
-    updateChart();
     if (currentUser) {
+        // 로그인 상태: 메인 화면 표시
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-screen').style.display = 'block';
         document.getElementById('userInfo').innerText = "사용자: " + currentUser;
+        updateHistoryUI();
+        updateChart();
+    } else {
+        // 로그아웃 상태: 로그인 화면 표시
+        document.getElementById('login-screen').style.display = 'block';
+        document.getElementById('main-screen').style.display = 'none';
     }
 }
 
-/* ====== [절대 보존] 채점 엔진 로직 ====== */
+async function login() {
+    const name = document.getElementById('nameInput').value;
+    const pw = document.getElementById('pwInput').value;
+
+    if (!name || !pw) { alert("이름과 비밀번호를 입력하세요."); return; }
+
+    const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "login", name: name, pw: pw })
+    });
+    const result = await res.json();
+
+    if (result.result === "success") {
+        currentUser = result.name;
+        localStorage.setItem('shorthand_user', currentUser);
+        alert(currentUser + "님 환영합니다!");
+        initApp(); // 화면 전환
+    } else {
+        alert("로그인 정보가 올바르지 않습니다.");
+    }
+}
+
+function logout() {
+    if(confirm("로그아웃 하시겠습니까?")) {
+        localStorage.removeItem('shorthand_user');
+        currentUser = null;
+        location.reload();
+    }
+}
+
+/* ====== [절대 보존] 채점 엔진 로직 (기존 코드와 100% 동일) ====== */
 function analyzeAndGrade() {
     if (!currentUser) { alert("로그인이 필요합니다!"); return; }
 
@@ -190,38 +243,11 @@ function clearHistory() {
     }
 }
 
-/* ====== 추가 함수 (신규) ====== */
 async function sendDataToServer(score, w, mi, ad) {
-    const payload = {
-        action: "save",
-        name: currentUser,
-        title: "미지정",
-        score: score,
-        w: w,
-        mi: mi,
-        ad: ad
-    };
-    await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
-}
-
-async function login() {
-    const name = prompt("이름을 입력하세요");
-    const pw = prompt("비밀번호를 입력하세요");
-
-    const res = await fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "login", name: name, pw: pw })
-    });
-    const result = await res.json();
-
-    if (result.result === "success") {
-        currentUser = result.name;
-        localStorage.setItem('shorthand_user', currentUser);
-        alert(currentUser + "님 환영합니다!");
-        location.reload();
-    } else {
-        alert("로그인 정보가 올바르지 않습니다.");
-    }
+    const payload = { action: "save", name: currentUser, title: "미지정", score: score, w: w, mi: mi, ad: ad };
+    try {
+        await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+    } catch(e) { console.error("데이터 저장 실패"); }
 }
 </script>
 
