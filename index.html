@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SHORTHAND MASTER | 학원 전용 시스템</title>
+    <title>SHORTHAND MASTER | 소리자바 아카데미 유료 수강생 전용 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --bg-color: #f4f7f9; --card-bg: #ffffff; --main-blue: #3498db; --border-color: #e1e4e8; }
@@ -24,7 +24,7 @@
         .bottom-section { display: flex; flex-direction: column; gap: 30px; margin-top: 30px; }
         .chart-container { height: 300px; position: relative; }
         .table-wrapper { overflow-x: auto; }
-        table { width: 100%; min-width: 300px; border-collapse: collapse; font-size: 13px; text-align: center; }
+        table { width: 100%; min-width: 400px; border-collapse: collapse; font-size: 13px; text-align: center; }
         th, td { padding: 10px 5px; border-bottom: 1px solid #eee; }
         .d-missing { color: #e74c3c; font-weight: bold; background: rgba(231,76,60,0.1); }
         .d-added { color: #27ae60; font-weight: bold; text-decoration: underline; background: rgba(39,174,96,0.1); }
@@ -42,10 +42,10 @@
 <body>
 <div id="login-overlay">
     <div class="login-box">
-        <h2>⌨️ 속기 MASTER 인증</h2>
-        <input type="text" id="loginName" placeholder="학생 성함">
-        <input type="password" id="loginPw" placeholder="비밀번호">
-        <button onclick="checkAuth()">시스템 접속하기</button>
+        <h2>⌨️ 소리자바 아카데미 수강생 로그인</h2>
+        <input type="text" id="loginName" placeholder="학생 성함(연락처)">
+        <input type="password" id="loginPw" placeholder="연락처(비밀번호)">
+        <button onclick="checkAuth()">접속하기>button
         <p id="loginMsg" style="color:red; font-size:13px; margin-top:10px;"></p>
     </div>
 </div>
@@ -56,31 +56,32 @@
             <button onclick="location.reload()" style="background:none; border:1px solid #ccc; font-size:12px; padding:4px 8px; border-radius:4px; cursor:pointer;">로그아웃</button>
         </div>
         <div class="info-bar">
-            <div><strong>지문:</strong><br><input type="text" id="docTitle" placeholder="지문명"></div>
-            <div><strong>학생:</strong><br><input type="text" id="studentName" readonly style="font-weight:bold; color:#3498db; border:none;"></div>
-            <div><strong>목표:</strong><br><input type="number" id="targetScore" value="95"> %</div>
+            <div><strong>지문:</strong><br><input type="text" id="docTitle" placeholder="파일명"></div>
+            <div><strong>학생:</strong><br><input type="text" id="studentDisplay" readonly style="font-weight:bold; color:#3498db; border:none; background:transparent;"></div>
+            <div><strong>목표:</strong><br><input type="number" id="targetScore" value="90"> %</div>
+            <input type="hidden" id="studentPhone">
         </div>
         <div class="input-section">
             <div style="flex:1;"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
             <div style="flex:1;"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
         </div>
-        <button class="main-btn" onclick="analyzeAndGrade()">💯 실시간 정밀 채점</button>
-        <button id="saveBtn" class="save-btn" onclick="saveToCloud()" style="display:none;">📥 서버에 성적 저장</button>
+        <button class="main-btn" onclick="analyzeAndGrade()">💯 정밀 채점</button>
+        <button id="saveBtn" class="save-btn" onclick="saveToCloud()" style="display:none;">📥 성적 저장</button>
         <div id="resultArea" style="display:none; margin-top:30px;">
             <div style="text-align:center; margin-bottom:20px;">
                 <div id="finalScoreDisplay" style="font-size:50px; font-weight:900; color:#3498db;">0%</div>
                 <div id="scoreDesc" style="font-size:14px; color:#777;"></div>
             </div>
-            <label>🧐 분석 결과</label>
+            <label>🧐 채점 결과</label>
             <div id="diffOutput" class="diff-view"></div>
         </div>
         <div class="bottom-section">
             <div class="chart-box">
-                <label>📈 성적 추이 (최근 기록)</label>
+                <label>📈 성적 추이 (최근 10회)</label>
                 <div class="chart-container"><canvas id="scoreChart"></canvas></div>
             </div>
             <div class="history-box">
-                <label>📋 연습 기록</label>
+                <label>📋 전체 연습 기록</label>
                 <div class="table-wrapper">
                     <table id="historyTable">
                         <thead><tr><th>날짜</th><th>지문</th><th>오/탈/첨</th><th>정확도</th></tr></thead>
@@ -103,7 +104,7 @@ async function checkAuth() {
     const pw = document.getElementById('loginPw').value.trim();
     const msg = document.getElementById('loginMsg');
     if(!name || !pw) return;
-    msg.innerText = "학생 정보 확인 및 데이터 동기화 중...";
+    msg.innerText = "정보 확인 및 개별 기록 동기화 중...";
     try {
         const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=시트1`;
         const response = await fetch(url);
@@ -113,16 +114,18 @@ async function checkAuth() {
         if(user && user[3] === '허용') {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            document.getElementById('studentName').value = name;
+            document.getElementById('studentDisplay').value = name;
+            document.getElementById('studentPhone').value = pw; // 연락처를 식별 키로 사용
             initChart();
-            loadCloudData(name); // 로그인 시 클라우드 데이터 불러오기
-        } else { msg.innerText = "로그인 실패: 정보가 없거나 차단된 상태입니다."; }
+            loadCloudData(pw); // 연락처로 기록 불러오기
+        } else { msg.innerText = "로그인 실패: 성함과 연락처를 다시 확인해주세요."; }
     } catch (e) { msg.innerText = "연결 오류가 발생했습니다."; }
 }
 
-async function loadCloudData(name) {
+async function loadCloudData(phone) {
     try {
-        const response = await fetch(`${WEB_APP_URL}?name=${encodeURIComponent(name)}`);
+        // 앱스 스크립트 doGet에서 name 파라미터를 식별자로 처리하도록 설계됨
+        const response = await fetch(`${WEB_APP_URL}?name=${encodeURIComponent(phone)}`);
         const data = await response.json();
         renderHistory(data);
     } catch (e) { console.error("데이터 로드 실패", e); }
@@ -131,11 +134,12 @@ async function loadCloudData(name) {
 async function saveToCloud() {
     if(!currentResult) return;
     const saveBtn = document.getElementById('saveBtn');
-    saveBtn.innerText = "저장 중...";
+    saveBtn.innerText = "서버 저장 중...";
     saveBtn.disabled = true;
     const payload = {
-        name: document.getElementById('studentName').value,
-        title: document.getElementById('docTitle').value || "미지정",
+        name: document.getElementById('studentPhone').value, // 이름 대신 연락처 저장 (기록 분리용)
+        displayName: document.getElementById('studentDisplay').value, // 보조 기록용
+        title: document.getElementById('docTitle').value || "미지정 지문",
         score: currentResult.score,
         wrong: currentResult.wrong,
         missing: currentResult.missing,
@@ -143,10 +147,10 @@ async function saveToCloud() {
     };
     try {
         await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-        alert("성적이 구글 시트에 안전하게 저장되었습니다!");
+        alert("성적이 안전하게 기록되었습니다!");
         saveBtn.innerText = "저장 완료";
-        loadCloudData(payload.name); // 저장 후 목록 새로고침
-    } catch (e) { alert("저장 실패"); saveBtn.disabled = false; saveBtn.innerText = "다시 저장"; }
+        loadCloudData(payload.name); 
+    } catch (e) { alert("저장 실패"); saveBtn.disabled = false; saveBtn.innerText = "저장 재시도"; }
 }
 
 function analyzeAndGrade() {
@@ -186,20 +190,21 @@ function analyzeAndGrade() {
     let score = n > 0 ? Math.max(0, 100 - ((wrong + missing + added/3) / n * 100)).toFixed(1) : 0;
     currentResult = { score, wrong, missing, added };
     document.getElementById('finalScoreDisplay').innerText = score + "%";
-    document.getElementById('scoreDesc').innerText = `오자 ${wrong} / 탈자 ${missing} / 첨자 ${added}`;
+    document.getElementById('scoreDesc').innerText = `감점내역: 오자 ${wrong} / 탈자 ${missing} / 첨자 ${added}`;
     document.getElementById('diffOutput').innerHTML = html;
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('saveBtn').style.display = 'block';
     document.getElementById('saveBtn').disabled = false;
-    document.getElementById('saveBtn').innerText = "📥 서버에 성적 저장";
+    document.getElementById('saveBtn').innerText = "📥 성적 저장";
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop, behavior: 'smooth' });
 }
 
 function initChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
+    if(scoreChart) scoreChart.destroy();
     scoreChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ label: '정확도', data: [], borderColor: '#3498db', tension: 0.3, fill: true, backgroundColor: 'rgba(52, 152, 219, 0.1)' }] },
+        data: { labels: [], datasets: [{ label: '정확도(%)', data: [], borderColor: '#3498db', tension: 0.3, fill: true, backgroundColor: 'rgba(52, 152, 219, 0.1)' }] },
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 80, max: 100 } } }
     });
 }
@@ -210,16 +215,28 @@ function renderHistory(data) {
     scoreChart.data.labels = [];
     scoreChart.data.datasets[0].data = [];
     
-    // 첫 행(제목줄) 제외하고 역순으로 10개만 표시
-    const history = data.slice(1).reverse(); 
+    const history = data.slice(1); 
     history.forEach((row, idx) => {
-        const date = new Date(row[0]).toLocaleDateString();
-        tbody.innerHTML += `<tr><td>${date}</td><td>${row[2]}</td><td>${row[3]}/${row[4]}/${row[5]}</td><td><b>${row[6]}</b></td></tr>`;
-        if(idx < 10) {
-            scoreChart.data.labels.unshift(idx + 1 + "회전");
-            scoreChart.data.datasets[0].data.unshift(parseFloat(row[6]));
-        }
+        const dateRaw = new Date(row[0]);
+        const dateStr = isNaN(dateRaw) ? row[0].split(' ')[0] : (dateRaw.getMonth()+1) + "/" + dateRaw.getDate();
+        
+        let scoreVal = row[6];
+        if (typeof scoreVal === 'string') scoreVal = scoreVal.replace('%', '');
+        let numScore = parseFloat(scoreVal);
+        if (numScore <= 1) numScore = (numScore * 100);
+        let displayScore = numScore.toFixed(1) + "%";
+
+        let newRow = tbody.insertRow(0);
+        newRow.innerHTML = `<td>${dateStr}</td><td>${row[2]}</td><td>${row[3]}/${row[4]}/${row[5]}</td><td><b>${displayScore}</b></td>`;
+        
+        scoreChart.data.labels.push(idx + 1 + "회");
+        scoreChart.data.datasets[0].data.push(numScore);
     });
+    
+    if(scoreChart.data.labels.length > 10) {
+        scoreChart.data.labels = scoreChart.data.labels.slice(-10);
+        scoreChart.data.datasets[0].data = scoreChart.data.datasets[0].data.slice(-10);
+    }
     scoreChart.update();
 }
 </script>
