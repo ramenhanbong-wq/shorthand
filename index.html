@@ -3,91 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DDOKSORI S2 | 정밀 분석 및 기록 시스템</title>
+    <title>DDOKSORI S2 | 교육용 정밀 분석 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; --success: #27ae60; --fail: #e74c3c; --gold: #f1c40f; }
+        :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; --success: #27ae60; --fail: #e74c3c; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); padding: 10px; color: #333; margin: 0; }
         .container { max-width: 1200px; margin: 10px auto; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
         
-        /* 연습왕 랭킹 스타일 */
-        .ranking-banner { background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); }
-        .ranking-list { display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-weight: bold; }
-        .ranking-item { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 14px; }
+        /* 🏆 1,2,3등 연습왕 랭킹 배너 */
+        .ranking-banner { background: linear-gradient(135deg, #1a2a3a, #000); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .ranking-list { display: flex; justify-content: center; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+        .ranking-item { padding: 10px 20px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 15px; transition: 0.3s; }
 
-        .config-bar { display: flex; gap: 15px; background: #f1f4f7; padding: 15px; border-radius: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
-        .config-bar input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 100px; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 25px; }
+        .config-bar { display: flex; gap: 15px; background: #f1f4f7; padding: 15px; border-radius: 10px; margin-bottom: 20px; align-items: center; }
         .input-group { display: flex; gap: 20px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 200px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; resize: none; font-size: 18px; line-height: 1.8; box-sizing: border-box; }
-        button { width: 100%; padding: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 20px; font-weight: bold; }
+        @media (max-width: 768px) { .input-group { flex-direction: column; } }
+        
+        textarea { width: 100%; height: 220px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; resize: none; font-size: 18px; line-height: 1.8; box-sizing: border-box; }
+        button { width: 100%; padding: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 22px; font-weight: bold; box-shadow: 0 4px 0 #2980b9; transition: 0.2s; }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
+        
         .score-box { text-align: center; background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #eee; }
-        .score-text { font-size: 60px; font-weight: 900; color: var(--main-blue); }
+        .score-text { font-size: 65px; font-weight: 900; color: var(--main-blue); }
         .chart-container { background: white; padding: 20px; border-radius: 12px; border: 1px solid #eee; height: 350px; }
-        .diff-view { grid-column: span 2; background: #ffffff; padding: 40px; border: 2px solid #f1f1f1; border-radius: 12px; font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; }
-        .history-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
-        .pass { color: var(--success); font-weight: bold; }
-        .fail { color: var(--fail); font-weight: bold; }
-        .d-missing { color: #e74c3c; font-weight: bold; background: rgba(231,76,60,0.1); }
+        .diff-view { grid-column: span 2; background: #ffffff; padding: 40px; border: 2px solid #f1f1f1; border-radius: 12px; font-size: 24px; line-height: 3.8; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
+        
+        .d-missing { color: #e74c3c; font-weight: bold; background: rgba(231, 76, 60, 0.1); padding: 0 2px; }
         .d-added { color: #27ae60; font-weight: bold; text-decoration: underline; }
-        .d-wrong { color: #2980b9; font-weight: bold; border-bottom: 2px solid #2980b9; position: relative; display: inline-block; }
-        .correction { position: absolute; top: -1.7em; left: 0; font-size: 0.55em; color: #2980b9; background: white; border: 1px solid #2980b9; padding: 1px 5px; border-radius: 3px; }
+        .d-wrong { color: #2980b9; font-weight: bold; border-bottom: 2px solid #2980b9; position: relative; display: inline-block; line-height: 1.2; }
+        .correction { position: absolute; top: -1.7em; left: 0; font-size: 0.55em; color: #2980b9; background: white; border: 1px solid #2980b9; padding: 1px 5px; border-radius: 3px; white-space: nowrap; font-weight: normal; }
+        
+        .history-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
     </style>
 </head>
 <body onload="initApp()">
 <div class="container">
-    <div id="main-screen">
-        <div class="ranking-banner">
-            <div>👑 <b>오늘의 실시간 연습왕 (최다 연습)</b></div>
-            <div class="ranking-list" id="kingList">데이터 로딩 중...</div>
-        </div>
+    <div class="ranking-banner">
+        <div>👑 <b>오늘의 실시간 연습왕 (누적 글자 수 순위)</b></div>
+        <div class="ranking-list" id="kingList">데이터를 불러오는 중입니다...</div>
+    </div>
 
-        <div class="header-flex">
-            <h2>⌨️ SHORTHAND MASTER S2</h2>
-            <div><span id="userInfo">사용자: -</span></div>
-        </div>
+    <div class="header-flex">
+        <h2>⌨️ SHORTHAND MASTER S2</h2>
+        <div><span id="userInfo" style="font-weight:bold; color:#2c3e50;">사용자: -</span></div>
+    </div>
 
-        <div class="config-bar">
-            📂 파일명: <input type="text" id="fileName" placeholder="예: 2024 연습 1">
-            🎯 목표: <input type="number" id="targetScore" value="95" style="width:60px;">%
-        </div>
+    <div class="config-bar">
+        📂 <b>파일명:</b> <input type="text" id="fileName" placeholder="예: 2024 연습 1" style="padding:8px; border-radius:5px; border:1px solid #ddd; flex:1;">
+        🎯 <b>목표 점수:</b> <input type="number" id="targetScore" value="95" style="width:60px; padding:8px; border-radius:5px; border:1px solid #ddd;">%
+    </div>
 
-        <div class="input-group">
-            <div style="flex:1;"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
-            <div style="flex:1;"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
-        </div>
+    <div class="input-group">
+        <div style="flex:1;"><label>📄 <b>정답 원문 (표준 지문)</b></label><textarea id="original"></textarea></div>
+        <div style="flex:1;"><label>✍️ <b>학생 입력 (속기 결과)</b></label><textarea id="student"></textarea></div>
+    </div>
 
-        <button onclick="analyzeAndGrade()">💯 채점 및 분석 실행</button>
+    <button onclick="analyzeAndGrade()">💯 채점 및 실시간 성과 분석</button>
 
-        <div id="result" style="display:none;">
-            <div class="dashboard">
-                <div class="score-box">
-                    <div style="font-weight:bold; color:#7f8c8d;">최종 정확도</div>
-                    <div class="score-text"><span id="finalScore">0</span>%</div>
-                    <div id="scoreDesc" style="color:#95a5a6; font-size:16px;"></div>
-                    <div id="goalResult" style="margin-top:10px; font-weight:bold;"></div>
-                </div>
-                <div class="chart-container"><canvas id="scoreChart"></canvas></div>
-                <div class="diff-view" id="diffOutput"></div>
+    <div id="result" style="display:none;">
+        <div class="dashboard">
+            <div class="score-box">
+                <div style="font-weight:bold; color:#7f8c8d;">최종 정확도</div>
+                <div class="score-text"><span id="finalScore">0</span>%</div>
+                <div id="scoreDesc" style="color:#2c3e50; font-weight:bold; margin-top:10px;"></div>
+                <div id="goalResult" style="margin-top:15px; font-size:20px; font-weight:bold;"></div>
             </div>
+            <div class="chart-container"><canvas id="scoreChart"></canvas></div>
+            <div class="diff-view" id="diffOutput"></div>
         </div>
+    </div>
 
-        <div class="history-section"><h3>📜 나의 최근 기록</h3><div id="historyList"></div></div>
+    <div class="history-section" style="margin-top:40px;">
+        <h3>📜 나의 최근 채점 기록 (최근 10회)</h3>
+        <div id="historyList" style="background:#f9f9f9; border-radius:10px; border: 1px solid #eee;"></div>
     </div>
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbysfOdjVR8hmTRTOn7gwMc384TloH2qzur8XxOZTo4hune0V5ZBFn7tJZU3NktLYc8/exec";
-let currentUser = localStorage.getItem('shorthand_user') || "테스트학생"; 
+// [핀셋수정] 선생님이 주신 신규 배포 URL 적용 완료
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxLwxUakMt01MKJj8p3t5A0qQTTbq6tH2mS2EtCNMN9uK-mOsYvsf2iuOpFb_Bqxco/exec";
+
+// 사용자 이름 설정 (실제 서비스 시 로그인 시스템과 연동 가능)
+let currentUser = localStorage.getItem('shorthand_user') || "속기꿈나무";
 let scoreHistory = [];
 let myChart = null;
 
 function initApp() {
-    document.getElementById('userInfo').innerText = "사용자: " + currentUser;
+    document.getElementById('userInfo').innerText = "접속 사용자: " + currentUser;
     fetchData();
 }
 
+// 서버에서 데이터 가져오기 (히스토리 + 오늘의 랭킹)
 async function fetchData() {
     try {
         const res = await fetch(GAS_URL + "?action=getHistory&name=" + encodeURIComponent(currentUser));
@@ -96,45 +106,51 @@ async function fetchData() {
             scoreHistory = data.history;
             updateHistoryUI(); 
             updateChart();
-            updateKingRanking(data.allTodayHistory); // 서버에서 오늘 전체 기록을 받아와서 랭킹 산출
+            updateKingRanking(data.allTodayHistory);
         }
-    } catch (e) { console.error("데이터 로딩 실패"); }
+    } catch (e) { 
+        console.error("데이터 통신 오류:", e);
+        document.getElementById('kingList').innerText = "데이터 연결 실패";
+    }
 }
 
-// 👑 연습왕 랭킹 업데이트 로직 (핀셋 수정)
+// 1, 2, 3등 연습왕 시각화 업데이트
 function updateKingRanking(allHistory) {
+    const kingListEl = document.getElementById('kingList');
     if (!allHistory || allHistory.length === 0) {
-        document.getElementById('kingList').innerHTML = "오늘 첫 연습왕이 되어보세요!";
+        kingListEl.innerHTML = "<span style='opacity:0.7;'>아직 오늘의 연습 기록이 없습니다. 첫 주인공이 되어보세요! 👑</span>";
         return;
     }
+    const totals = {};
+    allHistory.forEach(h => { totals[h.name] = (totals[h.name] || 0) + Number(h.charCount || 0); });
+    const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 3);
     
-    // 이름별로 카운트 계산
-    const counts = {};
-    allHistory.forEach(h => { counts[h.name] = (counts[h.name] || 0) + 1; });
-    
-    // 정렬 후 상위 3명 추출
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    
-    document.getElementById('kingList').innerHTML = sorted.map((s, idx) => 
-        `<div class="ranking-item">${idx+1}위: ${s[0]} (${s[1]}회)</div>`
-    ).join('');
+    kingListEl.innerHTML = sorted.map((s, idx) => {
+        let style = "background: rgba(255,255,255,0.15); color: white;";
+        let label = (idx + 1) + "등";
+        if (idx === 0) { style = "background: #f1c40f; color: #d35400; transform: scale(1.05); box-shadow: 0 0 15px rgba(241, 196, 15, 0.4);"; label = "🥇 1등"; }
+        else if (idx === 1) { style = "background: #ecf0f1; color: #2c3e50;"; label = "🥈 2등"; }
+        else if (idx === 2) { style = "background: #e67e22; color: #fff;"; label = "🥉 3등"; }
+        return `<div class="ranking-item" style="${style}">${label} ${s[0]} (${s[1].toLocaleString()}자)</div>`;
+    }).join('');
 }
 
 function analyzeAndGrade() {
     let rawO = document.getElementById('original').value;
     let rawS = document.getElementById('student').value;
-    if(!rawO.trim()) return;
+    if(!rawO.trim()) { alert("정답 원문을 입력해주세요!"); return; }
 
-    // 순수 글자수 전처리 (30자 기준 로직)
+    // [핀셋수정] 순수 글자수 30자 기준 전처리 (공백 및 특수문자 제거)
     const preprocess = (t) => t.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, '').split('');
     let spaceMap = []; let pureIdx = 0;
     for (let i = 0; i < rawO.length; i++) { 
-        if (/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(rawO[i])) spaceMap[pureIdx] = true; 
-        else pureIdx++; 
+        if (/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(rawO[i])) spaceMap[pureIdx] = true; else pureIdx++; 
     }
 
     let oArr = preprocess(rawO), sArr = preprocess(rawS);
     let n = oArr.length, m = sArr.length;
+    
+    // LCS 알고리즘 기반 정밀 분석
     let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
     for (let i = 1; i <= n; i++) {
         for (let j = 1; j <= m; j++) {
@@ -160,57 +176,65 @@ function analyzeAndGrade() {
         else if (cur.t === 'added') { html += `<span class="d-added">${cur.c}</span>`; ad++; }
     }
 
-    let adPenalty = Math.floor(ad / 3); 
-    let totalPenalty = (w * 1) + (mi * 1) + adPenalty;
+    let adPenalty = Math.floor(ad / 3);
+    let totalPenalty = w + mi + adPenalty;
     let score = n > 0 ? Math.max(0, 100 - (totalPenalty / n * 100)).toFixed(1) : 0;
+    
+    const fName = document.getElementById('fileName').value || "미지정 지문";
+    const tScore = parseFloat(document.getElementById('targetScore').value) || 95;
+    const isPass = parseFloat(score) >= tScore;
 
+    // 결과 UI 출력
     document.getElementById('finalScore').innerText = score;
-    document.getElementById('scoreDesc').innerText = `총 글자수: ${n} / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad} (감점: ${adPenalty})`;
-    document.getElementById('result').style.display = 'block';
+    document.getElementById('scoreDesc').innerText = `📊 분석: 총 ${n}자 / 오자 ${w} / 탈자 ${mi} / 첨자 ${ad} (감점 ${adPenalty})`;
+    document.getElementById('goalResult').innerText = isPass ? "🎉 목표 달성 성공!" : "📉 목표 점수 미달";
+    document.getElementById('goalResult').style.color = isPass ? "#27ae60" : "#e74c3c";
     document.getElementById('diffOutput').innerHTML = html;
+    document.getElementById('result').style.display = 'block';
 
-    const fName = document.getElementById('fileName').value || "미지정";
-    scoreHistory.push({ date: new Date().toLocaleString(), title: fName, score: score, w: w, mi: mi, ad: ad, n: n });
-    updateHistoryUI(); updateChart();
-    sendDataToServer(score, w, mi, ad, fName);
+    // 히스토리 업데이트 및 서버 전송
+    scoreHistory.push({ date: new Date().toLocaleString(), title: fName, score: score, n: n, w: w, mi: mi, ad: ad });
+    updateHistoryUI(); 
+    updateChart();
+    sendDataToServer(score, w, mi, ad, fName, n);
 }
 
 function updateHistoryUI() {
     const list = document.getElementById('historyList');
     list.innerHTML = scoreHistory.slice(-10).reverse().map(item => `
-        <div style="padding:10px; border-bottom:1px solid #eee; font-size:13px;">
-            <b>${item.date} [${item.title}]</b> - <span class="pass">${item.score}%</span> 
-            (글자:${item.n} 오:${item.w} 탈:${item.mi} 첨:${item.ad})
+        <div class="history-item">
+            <span>📅 ${item.date} <b>[${item.title}]</b></span>
+            <span>정확도: <b style="color:#3498db;">${item.score}%</b> <small>(글자수: ${item.n})</small></span>
         </div>
     `).join('');
 }
 
 function updateChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
-    const labels = scoreHistory.slice(-15).map((item, index) => `${index + 1}회차`);
     const historyData = scoreHistory.slice(-15);
     if(myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
-            datasets: [{ label: '정확도 (%)', data: historyData.map(i => i.score), borderColor: '#3498db', backgroundColor: 'rgba(52,152,219,0.1)', tension: 0.3, fill: true }]
+            labels: historyData.map((_, i) => (i+1) + "회"),
+            datasets: [{ label: '정확도 (%)', data: historyData.map(i => i.score), borderColor: '#3498db', pointBackgroundColor: '#fff', tension: 0.3, fill: true, backgroundColor: 'rgba(52, 152, 219, 0.1)' }]
         },
-        options: { 
+        options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { tooltip: { callbacks: { afterLabel: function(context) { 
-                const d = historyData[context.dataIndex];
-                return [`총 글자: ${d.n}`, `오자: ${d.w}`, `탈자: ${d.mi}`, `첨자: ${d.ad}`];
+            plugins: { tooltip: { callbacks: { afterLabel: function(c) {
+                const d = historyData[c.dataIndex];
+                return [`파일명: ${d.title}`, `총 글자: ${d.n}`, `오자: ${d.w}`, `탈자: ${d.mi}`, `첨자: ${d.ad}`];
             } } } }
         }
     });
 }
 
-async function sendDataToServer(score, w, mi, ad, title) {
+// 서버(GAS)에 데이터 저장 및 실시간 랭킹 갱신 트리거
+async function sendDataToServer(score, w, mi, ad, title, n) {
     try { 
-        await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "save", name: currentUser, title: title, score: score, w: w, mi: mi, ad: ad }) });
-        fetchData(); // 채점 후 랭킹 갱신을 위해 다시 데이터 불러오기
-    } catch(e) {}
+        await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "save", name: currentUser, title: title, score: score, w: w, mi: mi, ad: ad, n: n }) });
+        fetchData(); // 저장 후 즉시 최신 랭킹 데이터를 다시 불러옴
+    } catch(e) { console.error("데이터 저장 실패"); }
 }
 </script>
 </body>
