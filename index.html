@@ -1,41 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHORTHAND MASTER | 학원 전용 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* [1] 공통 변수 및 테마 */
+        :root { 
+            --bg-color: #f4f7f9; --card-bg: #ffffff; --text-color: #2c3e50; 
+            --border-color: #e1e4e8; --main-blue: #3498db; --wrong-bg: #fff8f8;
+        }
+
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #2c3e50; margin: 0; padding: 0; overflow-x: hidden; }
+
+        /* [2] 로그인 화면 스타일 */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: white; padding: 50px; border-radius: 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 400px; }
+        .login-box h2 { color: #3498db; margin-bottom: 30px; font-size: 28px; }
+        .login-box input { width: 100%; padding: 15px; margin: 10px 0; border: 1.5px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .login-box button { width: 100%; padding: 18px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .login-box button:hover { background: #2980b9; }
+        #loginMsg { color: #e74c3c; font-size: 14px; margin-top: 15px; min-height: 20px; }
+
+        /* [3] 본 프로그램 스타일 */
+        #app-content { display: none; background-color: var(--bg-color); min-height: 100vh; padding: 40px 20px; box-sizing: border-box; }
+        .container { max-width: 1300px; margin: 0 auto; background: var(--card-bg); padding: 50px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 25px; margin-bottom: 40px; }
+        .info-bar { display: flex; gap: 20px; background: rgba(0,0,0,0.04); padding: 25px; border-radius: 12px; align-items: center; margin-bottom: 40px; }
+        .info-bar input { padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: white; font-size: 16px; flex: 1; }
+
+        .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+        label { font-weight: bold; font-size: 18px; color: var(--main-blue); margin-bottom: 10px; display: block; }
+        textarea { width: 100%; height: 300px; padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 18px; line-height: 1.8; box-sizing: border-box; }
+
+        .btn-group { display: flex; gap: 15px; margin-bottom: 50px; }
+        .main-btn { flex: 2; padding: 22px; background: var(--main-blue); color: white; font-size: 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .save-btn { flex: 1; padding: 22px; background: #27ae60; color: white; font-size: 18px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        
+        /* 결과 분석 창 */
+        .diff-view { background: #fff; padding: 40px; border: 1.5px solid var(--border-color); border-radius: 15px; font-size: 22px; line-height: 3.2; white-space: normal; word-wrap: break-word; margin-bottom: 40px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .d-missing { color: #e74c3c; font-weight: 900; background: rgba(231, 76, 60, 0.1); padding: 0 4px; border-radius: 4px; }
+        .d-added { color: #27ae60; font-weight: 900; text-decoration: underline; background: rgba(39, 174, 96, 0.1); padding: 0 4px; border-radius: 4px; }
+        .d-wrong { color: #2980b9; font-weight: 900; background: rgba(41, 128, 185, 0.1); padding: 0 4px; border-radius: 4px; }
+        .correction { font-size: 0.75em; color: #2980b9; vertical-align: super; margin-left: 4px; border: 1px solid #2980b9; padding: 1px 4px; border-radius: 3px; background: #fff; }
+
+        .wrong-note { background: var(--wrong-bg); padding: 30px; border-radius: 15px; border-left: 8px solid #e74c3c; margin-bottom: 40px; }
+        .wrong-tag { display: inline-block; background: #e74c3c; color: white; padding: 6px 14px; border-radius: 6px; margin: 5px; font-size: 15px; font-weight: bold; }
+
+        .bottom-section { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; }
+        .chart-container { background: white; padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); height: 450px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 16px; text-align: center; }
+        th, td { padding: 15px; border-bottom: 1px solid var(--border-color); }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>⌨️ 속기 MASTER 인증</h2>
+        <input type="text" id="loginName" placeholder="학생 성함">
+        <input type="password" id="loginPw" placeholder="비밀번호">
+        <button onclick="checkAuth()">시스템 접속하기</button>
+        <p id="loginMsg"></p>
+    </div>
+</div>
+
+<div id="app-content">
+    <div class="container">
+        <div class="header">
+            <h2>SHORTHAND MASTER <span style="font-weight: 300; font-size: 18px; color: #7f8c8d;">| 온라인 채점 시스템</span></h2>
+            <button onclick="location.reload()" style="background:none; border:1px solid #7f8c8d; color:#7f8c8d; cursor:pointer; padding:5px 10px; border-radius:5px;">로그아웃</button>
+        </div>
+
+        <div class="info-bar">
+            <strong>📌 지문</strong> <input type="text" id="docTitle" placeholder="지문 제목">
+            <strong>👤 학생</strong> <input type="text" id="studentName" readonly style="border:none; background:transparent; font-weight:bold; color:#3498db;">
+            <strong>🎯 목표</strong> <input type="number" id="targetScore" value="95" style="width: 60px;"> %
+        </div>
+
+        <div class="input-section">
+            <div class="box"><label>📄 정답 원문</label><textarea id="original"></textarea></div>
+            <div class="box"><label>✍️ 학생 입력</label><textarea id="student"></textarea></div>
+        </div>
+
+        <div class="btn-group">
+            <button class="main-btn" onclick="analyzeAndGrade()">💯 실시간 정밀 채점</button>
+            <button class="save-btn" onclick="addToHistory()">📥 성적 데이터 저장</button>
+        </div>
+
+        <div id="resultArea" style="display:none;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <div style="font-size: 70px; font-weight: 900; color: #3498db;" id="finalScoreDisplay">0</div>
+                <div id="scoreDesc" style="color: #7f8c8d; font-size: 18px;"></div>
+            </div>
+            
+            <div id="wrongWordsNote" class="wrong-note" style="display:none;">
+                <strong style="font-size: 18px;">📋 집중 보충 단어</strong>
+                <div id="wrongWordsList" style="margin-top:15px;"></div>
+            </div>
+
+            <label>🧐 문장 정밀 분석</label>
+            <div id="diffOutput" class="diff-view"></div>
+        </div>
+
+        <div class="bottom-section">
+            <div>
+                <label>📈 실력 향상 추이</label>
+                <div class="chart-container"><canvas id="scoreChart"></canvas></div>
+            </div>
+            <div>
+                <label>📋 연습 기록</label>
+                <table id="historyTable">
+                    <thead><tr><th>회차</th><th>오/탈/첨</th><th>정확도</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ⚠️ 선생님 설정 필수!
+const SHEET_ID = '17SFATNdgT0YFk9o3WzjEmKtk_BjrNPZfwBmJuaeB3s4'; 
+const SHEET_NAME = '시트1';
+
+let currentResult = null;
+let scoreChart = null;
+let savedData = [];
+
+// [보안] 구글 시트 연동 로그인
 async function checkAuth() {
-    const name = document.getElementById('loginName').value;
-    const pw = document.getElementById('loginPw').value;
+    const name = document.getElementById('loginName').value.trim();
+    const pw = document.getElementById('loginPw').value.trim();
     const msg = document.getElementById('loginMsg');
     
-    msg.innerText = "학생 정보 확인 중...";
+    if(!name || !pw) { msg.innerText = "이름과 비밀번호를 입력하세요."; return; }
+    msg.innerText = "인증 확인 중...";
 
     try {
         const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
         const response = await fetch(url);
-        const data = await response.text();
-        
-        // CSV 파싱
-        const rows = data.split('\n').map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
-        
-        let authOk = false;
-        for(let i = 1; i < rows.length; i++) {
-            // rows[i][0] : 이름 (A)
-            // rows[i][1] : 연락처 (B)
-            // rows[i][2] : 비밀번호 (C)
-            // rows[i][3] : 상태 (D)
-            
-            if(rows[i][0] === name && rows[i][2] === pw && rows[i][3] === '허용') {
-                authOk = true;
-                break;
-            }
-        }
+        const csvText = await response.text();
+        const rows = csvText.split('\n').map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
 
-        if(authOk) {
-            alert(name + " 학생, 로그인이 승인되었습니다.");
+        let user = rows.find(r => r[0] === name && r[2] === pw);
+
+        if(user && user[3] === '허용') {
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             document.getElementById('studentName').value = name;
+            
+            // 로컬 스토리지 데이터 불러오기 (해당 학생용)
+            savedData = JSON.parse(localStorage.getItem('sh_data_' + name)) || [];
             initChart();
         } else {
-            msg.innerText = "이름 또는 비밀번호를 확인하세요. (혹은 미등록 학생)";
+            msg.innerText = user && user[3] !== '허용' ? "접속이 차단된 학생입니다." : "정보가 일치하지 않습니다.";
         }
     } catch (e) {
-        msg.innerText = "로그인 서버 연결에 실패했습니다.";
+        msg.innerText = "서버 연결 실패. 시트 ID와 공유 설정을 확인하세요.";
     }
 }
+
+// [채점] 알고리즘 및 시각화
+function analyzeAndGrade() {
+    let rawO = document.getElementById('original').value;
+    let rawS = document.getElementById('student').value;
+    if(!rawO.trim() || !rawS.trim()) return;
+
+    let oArr = rawO.toLowerCase().replace(/[^a-z0-9가-힣]/g, '').split('');
+    let sArr = rawS.toLowerCase().replace(/[^a-z0-9가-힣]/g, '').split('');
+    let n = oArr.length, m = sArr.length;
+    let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
+    for(let i=1; i<=n; i++) {
+        for(let j=1; j<=m; j++) {
+            dp[i][j] = (oArr[i-1] === sArr[j-1]) ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+
+    let i=n, j=m, diffs = [];
+    while(i>0 || j>0) {
+        if(i>0 && j>0 && oArr[i-1] === sArr[j-1]) { diffs.push({t:'s', c:oArr[i-1]}); i--; j--; }
+        else if(j>0 && (i===0 || dp[i][j-1] >= dp[i-1][j])) { diffs.push({t:'a', c:sArr[j-1]}); j--; }
+        else { diffs.push({t:'m', c:oArr[i-1]}); i--; }
+    }
+    diffs.reverse();
+
+    let wrong=0, missing=0, added=0, html="", k=0, wrongWords=[];
+    while(k < diffs.length) {
+        let cur = diffs[k], next = diffs[k+1];
+        if(cur.t==='m' && next && next.t==='a') { 
+            wrong++; html+=`<span class="d-wrong">${next.c}<span class="correction">${cur.c}</span></span>`; 
+            wrongWords.push(`${cur.c}→${next.c}`); k+=2; 
+        } else if(cur.t==='a' && next && next.t==='m') {
+            wrong++; html+=`<span class="d-wrong">${cur.c}<span class="correction">${next.c}</span></span>`;
+            wrongWords.push(`${next.c}→${cur.c}`); k+=2;
+        } else {
+            if(cur.t==='s') html+=`<span>${cur.c}</span>`;
+            else if(cur.t==='m'){ missing++; html+=`<span class="d-missing">${cur.c}</span>`; }
+            else { added++; html+=`<span class="d-added">${cur.c}</span>`; }
+            k++;
+        }
+    }
+
+    let score = n > 0 ? Math.max(0, 100 - ((wrong + missing + added/3) / n * 100)).toFixed(1) : 0;
+    currentResult = { score, wrong, missing, added };
+    
+    document.getElementById('finalScoreDisplay').innerText = score + "%";
+    document.getElementById('scoreDesc').innerText = `총 ${n}자 중 감점요소: 오자 ${wrong} / 탈자 ${missing} / 첨자 ${added}`;
+    document.getElementById('diffOutput').innerHTML = html;
+    
+    if(wrongWords.length > 0) {
+        document.getElementById('wrongWordsNote').style.display = 'block';
+        document.getElementById('wrongWordsList').innerHTML = [...new Set(wrongWords)].map(w => `<span class="wrong-tag">${w}</span>`).join('');
+    }
+    document.getElementById('resultArea').style.display = 'block';
+    window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 50, behavior: 'smooth' });
+}
+
+// [데이터] 저장 및 차트
+function initChart() {
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    scoreChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [
+            { label: '내 정확도', data: [], borderColor: '#3498db', tension: 0.3, fill: true, backgroundColor: 'rgba(52, 152, 219, 0.1)', pointRadius: 5 },
+            { label: '합격선', data: [], borderColor: '#e74c3c', borderDash: [5, 5], fill: false, pointRadius: 0 }
+        ]},
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 70, max: 100 } } }
+    });
+    renderHistory();
+}
+
+function addToHistory() {
+    if(!currentResult) return;
+    const name = document.getElementById('studentName').value;
+    const target = parseFloat(document.getElementById('targetScore').value);
+    savedData.push({ target, score: currentResult.score, wrong: currentResult.wrong, missing: currentResult.missing, added: currentResult.added });
+    localStorage.setItem('sh_data_' + name, JSON.stringify(savedData));
+    renderHistory();
+}
+
+function renderHistory() {
+    let tbody = document.querySelector("#historyTable tbody");
+    tbody.innerHTML = "";
+    scoreChart.data.labels = [];
+    scoreChart.data.datasets[0].data = [];
+    scoreChart.data.datasets[1].data = [];
+
+    savedData.forEach((item, idx) => {
+        tbody.innerHTML += `<tr><td>${idx+1}회</td><td>${item.wrong}/${item.missing}/${item.added}</td><td><b>${item.score}%</b></td></tr>`;
+        scoreChart.data.labels.push(`${idx+1}회`);
+        scoreChart.data.datasets[0].data.push(item.score);
+        scoreChart.data.datasets[1].data.push(item.target);
+    });
+    scoreChart.update();
+}
+</script>
+</body>
+</html>
