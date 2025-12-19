@@ -2,95 +2,90 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>DDOKSORI S2 | Premium Fix</title>
+    <title>DDOKSORI S2 | 어절 단위 정밀 채점</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --main-blue: #3498db; --bg: #f4f7f9; --card: #ffffff; --text: #2c3e50; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #2c3e50; margin: 0; padding: 0; color: var(--text); }
         
-        /* 로그인/레이아웃 스타일 */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .login-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .login-box input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .login-box button { width: 100%; padding: 18px; background: var(--main-blue); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 350px; }
+        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .login-box button { width: 100%; padding: 15px; background: var(--main-blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
         #app-content { display: none; background: var(--bg); min-height: 100vh; padding: 20px; box-sizing: border-box; }
         .container { max-width: 1300px; margin: 0 auto; background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--main-blue); padding-bottom: 20px; margin-bottom: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main-blue); padding-bottom: 15px; margin-bottom: 20px; }
         
-        .info-bar { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap: 20px; background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
-        .info-bar input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .info-bar { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap: 15px; background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 25px; align-items: end; }
+        .info-bar input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
 
-        .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px; }
         textarea { width: 100%; height: 320px; padding: 20px; border: 1px solid #ddd; border-radius: 12px; font-size: 18px; line-height: 1.8; resize: none; box-sizing: border-box; }
 
-        .btn-group { display: flex; gap: 15px; margin-bottom: 40px; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 30px; }
         .main-btn { flex: 2; padding: 20px; background: var(--main-blue); color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; }
         .save-btn { flex: 1; padding: 20px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; display: none; }
 
-        /* 채점 결과창: 밀림 방지 핵심 */
+        /* 채점 결과: 박스 형태 제거 및 어절 단위 강조 */
         .diff-view { 
             background: #fff; padding: 40px; border: 1px solid #eee; border-radius: 15px; 
-            font-size: 22px; line-height: 2.8; white-space: pre-wrap; word-break: break-all;
+            font-size: 22px; line-height: 2.2; white-space: pre-wrap; word-break: keep-all;
         }
 
-        /* 강조 색상 - 가독성 향상 */
-        .d-missing { color: #e74c3c; font-weight: bold; background: rgba(231,76,60,0.1); padding: 0 2px; }
-        .d-added { color: #27ae60; font-weight: bold; text-decoration: underline; background: rgba(39,174,96,0.1); padding: 0 2px; }
-        .d-wrong { color: #2980b9; font-weight: bold; background: rgba(41,128,185,0.1); padding: 0 2px; }
-        .correction { font-size: 0.6em; vertical-align: super; color: #3498db; border: 1px solid #3498db; padding: 1px 3px; border-radius: 3px; background: #fff; margin-left: 2px; font-weight: normal; }
+        .word-wrong { color: #e74c3c; font-weight: bold; text-decoration: underline; background: rgba(231,76,60,0.05); padding: 2px 4px; border-radius: 4px; }
+        .word-correction { font-size: 0.6em; vertical-align: super; color: #3498db; margin-left: 2px; border: 1px solid #3498db; padding: 1px 3px; border-radius: 3px; background: #fff; font-weight: normal; }
+        .word-missing { color: #95a5a6; text-decoration: line-through; }
+        .word-added { color: #27ae60; font-weight: bold; font-style: italic; }
 
         .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px; }
-        .chart-container { height: 400px; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #eee; }
+        .chart-container { height: 350px; background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 15px; }
     </style>
 </head>
 <body>
 
 <div id="login-overlay">
     <div class="login-box">
-        <h2 style="color:var(--main-blue)">⌨️ DDOKSORI S2</h2>
+        <h2 style="color:var(--main-blue)">DDOKSORI Season 2</h2>
         <input type="text" id="loginName" placeholder="성함">
         <input type="password" id="loginPw" placeholder="연락처">
-        <button onclick="checkAuth()">시스템 접속</button>
-        <p id="loginMsg" style="color:red; font-size:13px; margin-top:10px;"></p>
+        <button onclick="checkAuth()">접속하기</button>
+        <p id="loginMsg" style="color:red; font-size:13px;"></p>
     </div>
 </div>
 
 <div id="app-content">
     <div class="container">
-        <div class="header">
-            <h2 style="margin:0">⌨️ SHORTHAND MASTER <span style="font-weight:300; font-size:18px; color:#888;">| 밀림 방지 엔진</span></h2>
-            <button onclick="logout()" style="padding:8px 15px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">로그아웃</button>
-        </div>
-
+        <div class="header"><h2>⌨️ SHORTHAND MASTER <span style="font-weight:300; font-size:18px; color:#888;">| 어절 단위 채점</span></h2></div>
+        
         <div class="info-bar">
             <div><strong>📌 연습 지문</strong><input type="text" id="docTitle" placeholder="지문명"></div>
-            <div><strong>👤 학생 정보</strong><input type="text" id="studentDisplay" readonly style="background:#fff;"></div>
-            <div><strong>🎯 목표 정확도</strong><input type="number" id="targetScore" value="95"></div>
+            <div><strong>👤 학생 정보</strong><input type="text" id="studentDisplay" readonly></div>
+            <div><strong>🎯 합격 목표</strong><input type="number" id="targetScore" value="95"></div>
             <input type="hidden" id="studentPhone">
         </div>
 
         <div class="input-section">
-            <textarea id="original" placeholder="정답 원문"></textarea>
-            <textarea id="student" placeholder="학생 입력"></textarea>
+            <textarea id="original" placeholder="정답 원문을 입력하세요"></textarea>
+            <textarea id="student" placeholder="학생 입력 내용을 입력하세요"></textarea>
         </div>
 
-        <div class="btn-group">
-            <button class="main-btn" onclick="analyzeAndGrade()">💯 정밀 채점 실행</button>
-            <button id="saveBtn" class="save-btn" onclick="saveToCloud()">📥 기록 저장</button>
-        </div>
+        <button class="main-btn" onclick="analyzeByWord()">💯 어절 단위 정밀 채점 시작</button>
+        <button id="saveBtn" class="save-btn" onclick="saveToCloud()">📥 서버 저장</button>
 
-        <div id="resultArea" style="display:none; text-align:center;">
-            <div style="font-size:70px; font-weight:900; color:var(--main-blue);" id="finalScore">0%</div>
-            <div id="scoreDesc" style="font-size:20px; color:#888; margin-bottom:30px;"></div>
-            <div class="diff-view" id="diffOutput" style="text-align:left;"></div>
+        <div id="resultArea" style="display:none; margin-top:30px;">
+            <div style="text-align:center; margin-bottom:20px;">
+                <div id="finalScore" style="font-size:60px; font-weight:900; color:var(--main-blue);">0%</div>
+                <div id="scoreDesc" style="font-size:18px; font-weight:bold; color:#7f8c8d;"></div>
+            </div>
+            <div class="diff-view" id="diffOutput"></div>
         </div>
 
         <div class="bottom-section">
             <div class="chart-container"><canvas id="scoreChart"></canvas></div>
-            <div style="background:#fff; border:1px solid #eee; padding:20px; border-radius:15px; overflow-y:auto;">
-                <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:center;">
-                    <thead style="background:#f8f9fa;"><tr><th style="padding:10px;">회차</th><th>지문</th><th>점수</th></tr></thead>
+            <div id="historyList" style="background:#fff; border:1px solid #eee; padding:20px; border-radius:15px; overflow-y:auto;">
+                <table style="width:100%; border-collapse:collapse; text-align:center; font-size:14px;">
+                    <thead><tr style="background:#f8f9fa;"><th style="padding:10px;">회차</th><th>지문</th><th>점수</th></tr></thead>
                     <tbody id="historyTable"></tbody>
                 </table>
             </div>
@@ -101,13 +96,12 @@
 <script>
 const SHEET_ID = '17SFATNdgT0YFk9o3WzjEmKtk_BjrNPZfwBmJuaeB3s4'; 
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxs0JKdgmCaRpLQqcTycQ-vnmei-VMqIGu9pIT-oKjSWoXH2T4M55jYtQKz4K4ob1s/exec';
-let currentResult = null; let scoreChart = null;
+let scoreChart = null;
 
 async function checkAuth() {
     const name = document.getElementById('loginName').value.trim();
     const pw = document.getElementById('loginPw').value.trim();
     if(!name || !pw) return;
-    document.getElementById('loginMsg').innerText = "인증 중...";
     try {
         const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=시트1`;
         const res = await fetch(url); const data = await res.text();
@@ -115,121 +109,82 @@ async function checkAuth() {
         let user = rows.find(r => r[0] === name && r[2] === pw);
         if(user && user[3] === '허용') {
             sessionStorage.setItem('sh_name', name); sessionStorage.setItem('sh_phone', pw);
-            enterApp(name, pw);
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('studentDisplay').value = name;
+            document.getElementById('studentPhone').value = pw;
+            initChart(); loadCloudData(pw);
         } else { document.getElementById('loginMsg').innerText = "인증 실패"; }
     } catch (e) { document.getElementById('loginMsg').innerText = "오류 발생"; }
 }
 
-function enterApp(name, pw) {
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-content').style.display = 'block';
-    document.getElementById('studentDisplay').value = name;
-    document.getElementById('studentPhone').value = pw;
-    initChart(); loadCloudData(pw);
-}
+function analyzeByWord() {
+    const rawO = document.getElementById('original').value.trim();
+    const rawS = document.getElementById('student').value.trim();
+    
+    // 띄어쓰기 기준으로 어절 분리
+    const wordsO = rawO.split(/\s+/);
+    const wordsS = rawS.split(/\s+/);
 
-function logout() { sessionStorage.clear(); location.reload(); }
-
-function analyzeAndGrade() {
-    const rawO = document.getElementById('original').value;
-    const rawS = document.getElementById('student').value;
-    if(!rawO.trim() || !rawS.trim()) return;
-
-    // 핵심: 모든 공백과 특수문자를 제거한 순수 글자열로만 '채점 순서'를 잡습니다.
-    const cleanO = rawO.replace(/[^a-z0-9가-힣]/gi, '').split('');
-    const cleanS = rawS.replace(/[^a-z0-9가-힣]/gi, '').split('');
-
-    // LCS 알고리즘 (밀림 방지용 최적 경로 계산)
-    let n = cleanO.length, m = cleanS.length;
+    let n = wordsO.length, m = wordsS.length;
     let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
+
     for(let i=1; i<=n; i++) {
         for(let j=1; j<=m; j++) {
-            dp[i][j] = (cleanO[i-1] === cleanS[j-1]) ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+            dp[i][j] = (wordsO[i-1] === wordsS[j-1]) ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
         }
     }
 
-    let i=n, j=m, diffs = [];
-    while(i>0 || j>0) {
-        if(i>0 && j>0 && cleanO[i-1] === cleanS[j-1]) { diffs.push({t:'s', c:cleanO[i-1]}); i--; j--; }
-        else if(i>0 && j>0) { diffs.push({t:'w', c:cleanS[j-1], o:cleanO[i-1]}); i--; j--; }
-        else if(j>0) { diffs.push({t:'a', c:cleanS[j-1]}); j--; }
-        else { diffs.push({t:'m', c:cleanO[i-1]}); i--; }
-    }
-    diffs.reverse();
+    let i=n, j=m, resultHtml = [];
+    let wrong = 0, missing = 0, added = 0;
 
-    // 출력 생성: 원문(rawO)을 한 글자씩 돌면서 '글자'일 때만 채점 데이터를 끼워넣습니다.
-    let html = ""; let dIdx = 0; let wrong=0, missing=0, added=0;
-    const originalChars = rawO.split('');
-
-    originalChars.forEach(char => {
-        // 공백, 줄바꿈, 특수기호는 채점하지 않고 그대로 유지
-        if (/[^a-z0-9가-힣]/i.test(char)) {
-            html += char;
+    while(i > 0 || j > 0) {
+        if(i > 0 && j > 0 && wordsO[i-1] === wordsS[j-1]) {
+            resultHtml.push(wordsO[i-1]);
+            i--; j--;
+        } else if(i > 0 && j > 0 && dp[i-1][j-1] >= dp[i-1][j] && dp[i-1][j-1] >= dp[i][j-1]) {
+            // 오자 (단어는 매칭되나 글자가 틀림)
+            resultHtml.push(`<span class="word-wrong">${wordsS[j-1]}<span class="word-correction">${wordsO[i-1]}</span></span>`);
+            wrong++; i--; j--;
+        } else if(j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+            // 첨자 (단어 추가)
+            resultHtml.push(`<span class="word-added">${wordsS[j-1]}</span>`);
+            added++; j--;
         } else {
-            let res = diffs[dIdx];
-            if (res) {
-                if (res.t === 's') html += res.c;
-                else if (res.t === 'w') { html += `<span class="d-wrong">${res.c}<span class="correction">${res.o}</span></span>`; wrong++; }
-                else if (res.t === 'm') { html += `<span class="d-missing">${res.c}</span>`; missing++; }
-                
-                // 첨자(글자 사이 불필요한 입력) 처리
-                let next = diffs[dIdx+1];
-                while(next && next.t === 'a') {
-                    html += `<span class="d-added">${next.c}</span>`;
-                    added++; dIdx++; next = diffs[dIdx+1];
-                }
-                dIdx++;
-            }
+            // 탈자 (단어 누락)
+            resultHtml.push(`<span class="word-missing">${wordsO[i-1]}</span>`);
+            missing++; i--;
         }
-    });
+    }
 
-    let score = n > 0 ? Math.max(0, 100 - ((wrong + missing + added) / n * 100)).toFixed(1) : 0;
-    currentResult = { score, wrong, missing, added };
-    
+    const finalHtml = resultHtml.reverse().join(" ");
+    const totalChars = rawO.replace(/\s/g, '').length;
+    const score = Math.max(0, 100 - ((wrong + missing + added) / n * 100)).toFixed(1);
+
+    document.getElementById('diffOutput').innerHTML = finalHtml;
     document.getElementById('finalScore').innerText = score + "%";
-    document.getElementById('scoreDesc').innerText = `오자 ${wrong} / 탈자 ${missing} / 첨자 ${added}`;
-    document.getElementById('diffOutput').innerHTML = html;
+    document.getElementById('scoreDesc').innerText = `어절 기준 - 오자: ${wrong} / 탈자: ${missing} / 첨자: ${added}`;
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('saveBtn').style.display = 'block';
-    document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
-}
-
-async function saveToCloud() {
-    const btn = document.getElementById('saveBtn'); btn.innerText = "저장 중..."; btn.disabled = true;
-    const payload = {
-        name: document.getElementById('studentPhone').value,
-        displayName: document.getElementById('studentDisplay').value,
-        title: document.getElementById('docTitle').value || "미지정",
-        score: currentResult.score, wrong: currentResult.wrong, missing: currentResult.missing, added: currentResult.added
-    };
-    try {
-        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-        alert("성공!"); btn.innerText = "저장 완료"; loadCloudData(payload.name);
-    } catch (e) { alert("실패"); btn.disabled = false; btn.innerText = "재시도"; }
 }
 
 function initChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
-    if(scoreChart) scoreChart.destroy();
     scoreChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: '정확도', data: [], borderColor: '#3498db', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
 }
 
 async function loadCloudData(phone) {
     try {
         const res = await fetch(`${WEB_APP_URL}?name=${encodeURIComponent(phone)}`);
-        const data = await res.json(); renderHistory(data);
+        const data = await res.json();
+        let tbody = document.getElementById("historyTable"); tbody.innerHTML = "";
+        data.slice(1).reverse().forEach((row, idx) => {
+            let s = parseFloat(row[6]); if(s <= 1) s *= 100;
+            tbody.innerHTML += `<tr><td style="padding:10px;">${data.length - idx - 1}회</td><td>${row[2]}</td><td><b>${s.toFixed(1)}%</b></td></tr>`;
+            scoreChart.data.labels.push(idx+1); scoreChart.data.datasets[0].data.push(s);
+        });
+        scoreChart.update();
     } catch (e) {}
-}
-
-function renderHistory(data) {
-    let tbody = document.getElementById("historyTable"); tbody.innerHTML = "";
-    scoreChart.data.labels = []; scoreChart.data.datasets[0].data = [];
-    data.slice(1).reverse().forEach((row, idx) => {
-        let s = parseFloat(row[6]); if(s <= 1) s *= 100;
-        tbody.innerHTML += `<tr><td style="padding:10px;">${data.length - idx - 1}회</td><td>${row[2]}</td><td><b>${s.toFixed(1)}%</b></td></tr>`;
-        scoreChart.data.labels.push(idx+1); scoreChart.data.datasets[0].data.push(s);
-    });
-    scoreChart.update();
 }
 </script>
 </body>
