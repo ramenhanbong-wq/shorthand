@@ -111,7 +111,7 @@ async function login() {
     const btn = document.getElementById('loginBtn');
     const name = document.getElementById('nameInput').value.trim();
     const pw = document.getElementById('pwInput').value;
-    if (!name || !pw) { alert("입력 필요"); return; }
+    if (!name || !pw) return;
     btn.innerText = "로그인 중..."; btn.disabled = true;
     try {
         const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name: name, pw: pw }) });
@@ -161,7 +161,6 @@ function analyzeAndGrade() {
         else if (cur.t === 'added') { html += `<span class="d-added">${cur.c}</span>`; ad++; }
     }
 
-    // [최종 핀셋 수정] 첨자 3개당 1점씩 묶음 감점 (몫 계산)
     let adPenalty = Math.floor(ad / 3); 
     let totalPenalty = (w * 1) + (mi * 1) + adPenalty;
     let score = n > 0 ? Math.max(0, 100 - (totalPenalty / n * 100)).toFixed(1) : 0;
@@ -171,7 +170,7 @@ function analyzeAndGrade() {
     const isPass = parseFloat(score) >= tScore;
 
     document.getElementById('finalScore').innerText = score;
-    document.getElementById('scoreDesc').innerText = `오자: ${w} / 탈자: ${mi} / 첨자: ${ad} (감점점수: ${adPenalty})`;
+    document.getElementById('scoreDesc').innerText = `오자: ${w} / 탈자: ${mi} / 첨자: ${ad} (감점: ${adPenalty})`;
     document.getElementById('goalResult').innerText = isPass ? "🎉 성공" : "📉 실패";
     document.getElementById('goalResult').className = isPass ? "pass" : "fail";
     document.getElementById('diffOutput').innerHTML = html;
@@ -190,13 +189,41 @@ function updateHistoryUI() {
     `).join('');
 }
 
+// 가로축 회차 정보로 핀셋 수정 완료
 function updateChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
+    const labels = scoreHistory.slice(-15).map((item, index) => `${index + 1}회차`);
+    const fileNames = scoreHistory.slice(-15).map(item => item.title);
+    const data = scoreHistory.slice(-15).map(item => item.score);
+
     if(myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: scoreHistory.slice(-15).map(i => i.title), datasets: [{ label: '정확도', data: scoreHistory.slice(-15).map(i => i.score), borderColor: '#3498db', fill: true }] },
-        options: { responsive: true, maintainAspectRatio: false }
+        data: {
+            labels: labels,
+            datasets: [{ 
+                label: '정확도 (%)', 
+                data: data, 
+                borderColor: '#3498db', 
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                tension: 0.3, 
+                fill: true,
+                pointRadius: 5
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            return `파일명: ${fileNames[context.dataIndex]}`;
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 
