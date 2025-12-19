@@ -130,10 +130,15 @@ function analyzeAndGrade() {
     let rawS = document.getElementById('student').value;
     if(!rawO.trim()) return;
 
+    // [핀셋수정] 순수 글자수 인식을 위해 공백 및 모든 특수문자/문장부호 제거 (30자 기준)
+    const preprocess = (t) => t.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, '').split('');
+    
     let spaceMap = []; let pureIdx = 0;
-    for (let i = 0; i < rawO.length; i++) { if (/\s/.test(rawO[i])) spaceMap[pureIdx] = true; else pureIdx++; }
+    for (let i = 0; i < rawO.length; i++) { 
+        if (/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(rawO[i])) spaceMap[pureIdx] = true; 
+        else pureIdx++; 
+    }
 
-    const preprocess = (t) => t.replace(/\s/g, '').split('');
     let oArr = preprocess(rawO), sArr = preprocess(rawS);
     let n = oArr.length, m = sArr.length;
     let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
@@ -170,20 +175,20 @@ function analyzeAndGrade() {
     const isPass = parseFloat(score) >= tScore;
 
     document.getElementById('finalScore').innerText = score;
-    // 결과창 총 글자수 표시 핀셋 수정
+    // 결과창 총 글자수 포함 핀셋 수정
     document.getElementById('scoreDesc').innerText = `총 글자수: ${n} / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad} (감점: ${adPenalty})`;
     document.getElementById('goalResult').innerText = isPass ? "🎉 성공" : "📉 실패";
     document.getElementById('goalResult').className = isPass ? "pass" : "fail";
     document.getElementById('diffOutput').innerHTML = html;
     document.getElementById('result').style.display = 'block';
 
-    // 히스토리에 총 글자수(n)도 함께 저장
     scoreHistory.push({ date: new Date().toLocaleString(), title: fName, score: score, target: tScore, pass: isPass, w: w, mi: mi, ad: ad, n: n });
     localStorage.setItem('shorthand_history', JSON.stringify(scoreHistory));
     sendDataToServer(score, w, mi, ad, fName);
     updateHistoryUI(); updateChart();
 }
 
+// 기록 리스트 상세 내역 및 총 글자수 핀셋 수정
 function updateHistoryUI() {
     const list = document.getElementById('historyList');
     list.innerHTML = scoreHistory.slice(-10).reverse().map(item => `
@@ -199,12 +204,11 @@ function updateHistoryUI() {
     `).join('');
 }
 
-// 툴팁에 상세 기록 표시 핀셋 수정 완료
+// 툴팁 상세 정보(오자, 탈자, 첨자, 글자수) 핀셋 수정
 function updateChart() {
     const ctx = document.getElementById('scoreChart').getContext('2d');
     const labels = scoreHistory.slice(-15).map((item, index) => `${index + 1}회차`);
     const historyData = scoreHistory.slice(-15);
-
     if(myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
