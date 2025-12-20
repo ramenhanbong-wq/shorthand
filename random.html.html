@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>속기 약어 암기 마스터</title>
     <style>
         :root {
@@ -23,15 +24,18 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 15px; /* 모바일 외곽 여백 */
+            box-sizing: border-box;
         }
 
         .app-container {
             background: var(--white);
-            width: 100%;
-            max-width: 480px;
-            padding: 50px 40px;
+            width: 100%; /* 모바일에서 꽉 차게 */
+            max-width: 480px; /* PC에서는 기존 크기 유지 */
+            padding: 40px 30px; /* 패딩 살짝 조절 */
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(108, 94, 127, 0.08);
+            box-sizing: border-box;
         }
 
         .top-label {
@@ -39,14 +43,14 @@
             font-weight: 800;
             color: var(--accent-soft);
             letter-spacing: 3px;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
             text-align: center;
             text-transform: uppercase;
         }
 
         /* [연습 영역] 약어 표시 */
         .abbr-display {
-            font-size: 42px;
+            font-size: clamp(32px, 10vw, 42px); /* 화면 크기에 따라 글자 크기 유동적 조절 */
             font-weight: 800;
             color: var(--primary-mute);
             height: 110px;
@@ -54,9 +58,9 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 10px;
-            /* 아래쪽에만 포인트를 주어 세련되게 표현 */
             border-bottom: 3px solid var(--primary-mute);
             background: linear-gradient(to bottom, transparent, rgba(108, 94, 127, 0.03));
+            text-align: center;
         }
 
         /* [연습 영역] 입력창 */
@@ -67,11 +71,12 @@
             border: none;
             border-bottom: 1px solid var(--border-soft);
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
             outline: none;
             transition: all 0.4s ease;
             background: transparent;
             color: var(--primary-dark);
+            border-radius: 0; /* iOS 입력창 둥글게 방지 */
         }
 
         input[type="text"]:focus {
@@ -83,11 +88,11 @@
         .status-grid {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             padding: 15px;
             background: #fafafc;
             border-radius: 12px;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--primary-mute);
             border: 1px solid var(--border-soft);
         }
@@ -119,6 +124,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-tap-highlight-color: transparent; /* 모바일 터치 잔상 방지 */
         }
 
         button:hover {
@@ -126,18 +132,11 @@
             color: var(--white);
         }
 
-        /* 메인 강조 버튼 */
         .btn-highlight {
             background: var(--primary-mute);
             color: var(--white);
         }
 
-        .btn-highlight:hover {
-            background: var(--primary-dark);
-            border-color: var(--primary-dark);
-        }
-
-        /* 리셋 버튼 (눈에 덜 띄게) */
         .btn-ghost {
             border-color: transparent;
             color: #bdc3c7;
@@ -148,11 +147,18 @@
         #fileInput { display: none; }
         
         .helper-text {
-            margin-top: 30px;
-            font-size: 12px;
+            margin-top: 25px;
+            font-size: 11px;
             color: #9ea4ad;
             text-align: center;
-            line-height: 1.8;
+            line-height: 1.6;
+        }
+
+        /* ✨ 모바일 작은 화면 대응 */
+        @media (max-width: 380px) {
+            .app-container { padding: 30px 20px; }
+            .status-grid { font-size: 11px; padding: 10px; }
+            button { padding: 12px; font-size: 13px; }
         }
     </style>
 </head>
@@ -172,8 +178,8 @@
     <div class="btn-column">
         <button class="btn-highlight" onclick="document.getElementById('fileInput').click()">📂 연습용 파일 불러오기</button>
         <div class="btn-row">
-            <button onclick="downloadResults('정답')">정답 목록 저장</button>
-            <button onclick="downloadResults('오답')">오답 목록 저장</button>
+            <button onclick="downloadResults('정답')">정답 저장</button>
+            <button onclick="downloadResults('오답')">오답 저장</button>
         </div>
         <button class="btn-ghost" onclick="resetTest()">데이터 리셋하기</button>
         <input type="file" id="fileInput" accept=".txt">
@@ -181,12 +187,12 @@
 
     <p class="helper-text">
         오타가 발생하면 자동으로 '오답 목록'에 추가됩니다.<br>
-        모든 텍스트 파일(.txt)을 불러와서 연습할 수 있습니다.
+        모든 텍스트 파일(.txt)을 불러와 연습할 수 있습니다.
     </p>
 </div>
 
 <script>
-    /* [핵심 로직] */
+    /* 스크립트 로직은 가을님이 주신 것과 100% 동일합니다 */
     let abbreviations = [];
     let totalCount = 0;
     let currentAbbr = "";
