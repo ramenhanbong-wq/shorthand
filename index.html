@@ -3,202 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>속기 마스터 — 통합 대시보드</title>
+    <title>SHORTHAND MASTER :: Dashboard</title>
     <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
         :root {
-            --bg: #f5f7fa;
-            --surface: #ffffff;
-            --primary: #6c5e7f;
-            --text: #2d3436;
-            --muted: #6b7280;
-            --border: #e5e7eb;
+            --main-bg: #f5f7fa;
+            --primary: #6c5e7f; /* 차분한 퍼플 그레이 */
+            --accent: #ff9a9e;  /* 귀여운 핑크 포인트 */
+            --card-white: #ffffff;
+            --text-main: #2d3436;
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            background-color: var(--main-bg);
+            margin: 0; padding: 0;
+            color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        /* 로그인 카드 스타일 */
-        .login-card {
-            background: var(--surface);
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+        /* 로그인 화면 스타일 */
+        #login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
+        .login-box { 
+            background: var(--card-white); padding: 50px; border-radius: 30px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05); text-align: center; width: 320px;
         }
-
-        h1 { color: var(--primary); margin-bottom: 30px; font-weight: 800; }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            box-sizing: border-box;
-            outline: none;
-            transition: 0.3s;
+        .login-box h2 { color: var(--primary); margin-bottom: 30px; font-weight: 800; letter-spacing: -1px; }
+        .login-box input { 
+            width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; 
+            border: 2px solid #eee; outline: none; transition: 0.3s; box-sizing: border-box;
         }
-
-        input:focus { border-color: var(--primary); }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
+        .login-box input:focus { border-color: var(--primary); }
+        .login-btn { 
+            width: 100%; padding: 15px; background: var(--primary); color: white; 
+            border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
+        .login-btn:hover { background: #4a3f58; transform: scale(1.02); }
 
-        button:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        /* 대시보드 메뉴 스타일 */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            width: 95%;
-            max-width: 1000px;
-            margin-top: 20px;
-        }
-
-        .menu-item {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            color: var(--text);
+        /* 메인 대시보드 스타일 */
+        #main-screen { display: none; width: 100%; max-width: 1000px; padding: 40px 20px; }
+        
+        header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 40px; background: white; padding: 20px 30px; border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.03);
-            transition: 0.3s;
-            border: 1px solid var(--border);
+        }
+        .welcome-txt { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+        .logout-btn { 
+            background: #ffeaa7; border: none; padding: 8px 18px; border-radius: 10px; 
+            color: #d63031; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .logout-btn:hover { background: #fdcb6e; }
+
+        .dashboard-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; 
         }
 
-        .menu-item:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .menu-item h3 { margin: 0 0 10px 0; color: var(--primary); }
-        .menu-item p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+        .menu-card { 
+            background: var(--card-white); border-radius: 25px; padding: 35px; 
+            text-align: center; text-decoration: none; color: inherit; 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center;
+            border: 2px solid transparent;
+        }
+        .menu-card:hover { 
+            transform: translateY(-12px); 
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(255, 154, 158, 0.15);
+        }
 
-        #dashboard { display: none; flex-direction: column; align-items: center; width: 100%; }
-        #login-form { display: block; }
+        .icon-circle { 
+            width: 80px; height: 80px; background: #f9f9fb; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; margin-bottom: 20px; transition: 0.3s;
+        }
+        .menu-card:hover .icon-circle { background: var(--accent); transform: rotate(10deg); }
+
+        .title { font-size: 1.3rem; font-weight: 800; margin-bottom: 12px; color: var(--primary); }
+        .desc { font-size: 0.95rem; color: #888; line-height: 1.5; font-weight: 500; }
+
+        footer { margin-top: 60px; color: #ccc; font-size: 0.8rem; text-align: center; }
     </style>
 </head>
-<body>
+<body onload="initApp()">
 
-    <div id="login-form" class="login-card">
-        <h1>속기 마스터v1</h1>
-        <input type="text" id="user-name" placeholder="이름 입력">
-        <input type="password" id="user-pw" placeholder="비밀번호">
-        <button onclick="handleLogin()">로그인</button>
-    </div>
-
-    <div id="dashboard">
-        <h1>속기 학습 대시보드</h1>
-        <p style="margin-bottom: 30px; color: var(--muted);"><span id="welcome-name"></span>님, 오늘도 화이팅하세요!</p>
-        
-        <div class="menu-grid">
-            <a href="exam.html" class="menu-item">
-                <h3>🎓 졸업 시험</h3>
-                <p>입문반 최종 관문, 단문 및 약어 테스트</p>
-            </a>
-            <a href="speed.html" class="menu-item">
-                <h3>⏱️ 자수 측정</h3>
-                <p>실시간 연설문 자수 및 속도 측정</p>
-            </a>
-            <a href="abbr.html" class="menu-item">
-                <h3>💊 약어 연습</h3>
-                <p>랜덤하게 튀어나오는 약어 마스터</p>
-            </a>
-            <button onclick="handleLogout()" style="background:#666; margin-top: 20px; max-width: 200px;">로그아웃</button>
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>⌨️ SHORTHAND<br>MASTER</h2>
+            <input type="text" id="nameInput" placeholder="이름을 알려주세요">
+            <input type="password" id="pwInput" placeholder="비밀번호">
+            <button onclick="login()" id="loginBtn" class="login-btn">반가워요! 접속하기</button>
         </div>
     </div>
 
-    <script>
-        // 사용자의 실제 GAS 배포 URL로 교체하세요
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwq78wBPliyu7Opm10o9hiEi3rWqeaJpZHTDPitK9Y8UJQDcdkd7stp90sE2I9wYfk/exec";
+    <div id="main-screen">
+        <header>
+            <div class="welcome-txt">✨ <span id="welcomeMsg"></span></div>
+            <button onclick="logout()" class="logout-btn">로그아웃</button>
+        </header>
 
-        // 페이지 로드 시 로그인 상태 및 동시접속 확인
-        window.onload = function() {
-            if (localStorage.getItem('shorthand_user')) {
-                showDashboard();
-                checkAuth(); // 동시접속 여부 즉시 확인
-            }
-        };
+        <div class="dashboard-grid">
+            <a href="toksori2.html" class="menu-card">
+                <div class="icon-circle">📢</div>
+                <div class="title">똑소리 2</div>
+                <div class="desc">실시간 성과 분석과<br>나의 연습 기록 확인</div>
+            </a>
+            <a href="exam.html" class="menu-card">
+                <div class="icon-circle">🎓</div>
+                <div class="title">졸업 시험</div>
+                <div class="desc">입문반 졸업을 위한<br>정밀 약어 테스트</div>
+            </a>
+            <a href="measure.html" class="menu-card">
+                <div class="icon-circle">⏱️</div>
+                <div class="title">자수 측정</div>
+                <div class="desc">실시간 속도 측정 및<br>음성 파일 동기화 연습</div>
+            </a>
+            <a href="sparta.html" class="menu-card">
+                <div class="icon-circle">🔥</div>
+                <div class="title">스파르타</div>
+                <div class="desc">집중력을 높여주는<br>긴 문장 보고치기 훈련</div>
+            </a>
+            <a href="random.html" class="menu-card">
+                <div class="icon-circle">🔀</div>
+                <div class="title">약어 랜덤</div>
+                <div class="desc">무작위 약어 암기 및<br>오답 목록 관리 모드</div>
+            </a>
+        </div>
+        <footer>© 2025 Shorthand Master Team. Keep Typing!</footer>
+    </div>
 
-        // 로그인 처리
-        async function handleLogin() {
-            const name = document.getElementById('user-name').value;
-            const pw = document.getElementById('user-pw').value;
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxaxj3MBG5MK3nIO8hOV3EH9clAQi00pp-L78weLbFP7wj-9X1Fwt9ExUAncapRJsY/exec"; 
+let currentUser = localStorage.getItem('shorthand_user');
 
-            if(!name || !pw) return alert("정보를 입력하세요.");
+function initApp() {
+    if (currentUser) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-screen').style.display = 'block';
+        document.getElementById('welcomeMsg').innerHTML = `<b>${currentUser}</b>님, 오늘도 파이팅!`;
+        checkAuth(); // 로그인 상태라면 동시접속 여부 즉시 확인
+    } else {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('main-screen').style.display = 'none';
+    }
+}
 
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "login", name: name, pw: pw })
-                });
-                const data = await res.json();
-
-                if (data.result === "success") {
-                    localStorage.setItem('shorthand_user', data.name);
-                    localStorage.setItem('shorthand_token', data.token); // 서버에서 받은 새 토큰 저장
-                    showDashboard();
-                } else {
-                    alert("아이디 또는 비밀번호가 틀립니다.");
-                }
-            } catch (e) {
-                alert("서버 연결에 실패했습니다.");
-            }
+async function login() {
+    const name = document.getElementById('nameInput').value.trim();
+    const pw = document.getElementById('pwInput').value;
+    if(!name || !pw) return alert("이름과 비번을 입력해주세요! 😊");
+    
+    document.getElementById('loginBtn').innerText = "기다려주세요...";
+    try {
+        const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name: name, pw: pw }) });
+        const data = await res.json();
+        if (data.result === "success") { 
+            currentUser = data.name; 
+            localStorage.setItem('shorthand_user', currentUser); 
+            localStorage.setItem('shorthand_token', data.token); // ✨ 토큰 저장 추가
+            initApp(); 
+        } else { 
+            alert("앗, 이름이나 비번이 틀린 것 같아요! 😢"); 
         }
+    } catch(e) { 
+        alert("서버와 연결이 안 되네요. 나중에 다시 해볼까요?"); 
+    }
+    document.getElementById('loginBtn').innerText = "반가워요! 접속하기";
+}
 
-        // 동시접속 체크 (핵심 로직)
-        async function checkAuth() {
-            const name = localStorage.getItem('shorthand_user');
-            const token = localStorage.getItem('shorthand_token');
+// ✨ 동시접속 차단 핵심 함수
+async function checkAuth() {
+    const name = localStorage.getItem('shorthand_user');
+    const token = localStorage.getItem('shorthand_token');
+    if (!name || !token) return;
 
-            if (!name || !token) return;
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "checkToken", name: name, token: token })
-                });
-                const data = await res.json();
-
-                if (data.result === "invalid") {
-                    alert("🚨 다른 기기에서 로그인이 감지되어 접속을 종료합니다.");
-                    handleLogout();
-                }
-            } catch (e) {
-                console.log("인증 체크 실패");
-            }
-        }
-
-        function showDashboard() {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'flex';
-            document.getElementById('welcome-name').innerText = localStorage.getItem('shorthand_user');
-        }
-
-        function handleLogout() {
+    try {
+        const res = await fetch(GAS_URL, { 
+            method: "POST", 
+            body: JSON.stringify({ action: "checkToken", name: name, token: token }) 
+        });
+        const data = await res.json();
+        if (data.result === "invalid") {
+            alert("🚨 다른 기기에서 로그인이 감지되어 접속을 종료합니다.");
             localStorage.clear();
             location.reload();
         }
+    } catch(e) { console.log("인증 체크 대기 중..."); }
+}
 
-        // 1분마다 동시접속 상태 감시
-        setInterval(checkAuth, 60000);
-    </script>
+function logout() {
+    if(confirm("정말 로그아웃 하시겠나요?")) {
+        localStorage.clear(); // 토큰까지 싹 지우기 위해 clear로 변경
+        location.reload();
+    }
+}
+
+// 1분마다 동시접속 체크 실행
+setInterval(checkAuth, 60000);
+</script>
 </body>
 </html>
-
