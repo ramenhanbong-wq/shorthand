@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>스파르타 타자 연습</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --accent: #007bff;
+            --text-dark: #333333;
+            --text-dim: #888888;
+            --correct: #28a745;
+            --incorrect: #e30000;
+        }
+
+        body { 
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-dark); 
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0;
+        }
+
+        /* 핀셋 수정: 고정 너비 900px를 유연한 max-width로 변경 */
+        .container { 
+            width: 95%; 
+            max-width: 900px; 
+            background: var(--card-bg); 
+            padding: 40px; border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; padding-bottom: 20px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+
+        .stats-bar { display: flex; gap: 30px; }
+        .stat-unit { text-align: center; }
+        .stat-label { font-size: 0.8rem; color: var(--text-dim); font-weight: 600; margin-bottom: 5px; }
+        .stat-val { font-size: 1.4rem; font-weight: 700; display: block; }
+
+        .target-box { 
+            background: #f9f9f9; 
+            padding: 45px; border-radius: 15px; 
+            font-size: 2rem; font-weight: 600;
+            line-height: 1.6; min-height: 120px;
+            margin-bottom: 30px; border: 1px solid #eee;
+            word-break: keep-all; transition: all 0.2s ease;
+        }
+
+        .char { color: #cccccc; }
+        .correct { color: #000000; }
+        .incorrect { color: var(--incorrect); background: rgba(227, 0, 0, 0.1); border-radius: 5px; }
+
+        .input-area { position: relative; }
+        input[type="text"] { 
+            width: 100%; padding: 25px; font-size: 1.7rem;
+            background: #ffffff; border: 3px solid #ddd;
+            border-radius: 15px; outline: none; box-sizing: border-box;
+            transition: all 0.2s; text-align: center;
+        }
+        input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 5px 15px rgba(0,123,255,0.1); }
+
+        .controls { 
+            margin-top: 35px; display: flex; justify-content: space-between;
+            align-items: center; font-size: 1rem; flex-wrap: wrap; gap: 15px;
+        }
+
+        .file-btn {
+            background: #007bff; color: #fff; padding: 12px 20px;
+            border-radius: 10px; font-weight: 600; cursor: pointer;
+            border: none; display: inline-block;
+        }
+        .file-btn:hover { background: #0056b3; }
+
+        select { 
+            padding: 10px 15px; border-radius: 8px; border: 2px solid #ddd;
+            background: white; font-weight: 600; cursor: pointer; font-size: 1rem;
+        }
+
+        /* 반응형 대응: 화면이 작아질 때 UI 조정 */
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .header { flex-direction: column; gap: 15px; }
+            .target-box { font-size: 1.4rem; padding: 25px; min-height: 80px; }
+            input[type="text"] { font-size: 1.3rem; padding: 15px; }
+            .stats-bar { gap: 15px; }
+            .controls { justify-content: center; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="logo">스파르타 타자 연습 📝</div>
+        <div class="stats-bar">
+            <div class="stat-unit"><span class="stat-label">진행 시간</span><span id="timer" class="stat-val">0초</span></div>
+            <div class="stat-unit"><span class="stat-label">현재 자수(CPM)</span><span id="current-cpm" class="stat-val">0</span></div>
+            <div class="stat-unit"><span class="stat-label">남은 글자</span><span id="remain-count" class="stat-val">0</span></div>
+        </div>
+    </div>
+
+    <div id="target-box" class="target-box"></div>
+    
+    <div class="input-area">
+        <input type="text" id="input-field" placeholder="여기에 따라 적으세요!" autofocus autocomplete="off">
+    </div>
+    
+    <div class="controls">
+        <div>
+            <label class="file-btn">📁 연습 파일 불러오기 <input type="file" id="file-selector" style="display:none"></label>
+            <span style="margin-left: 10px; font-weight: 600;">줄 제한:</span>
+            <select id="line-limit">
+                <option value="10">10자</option>
+                <option value="20">20자</option>
+                <option value="30" selected>30자</option>
+                <option value="40">40자</option>
+                <option value="50">50자</option>
+            </select>
+        </div>
+        <div style="color: var(--text-dim); font-weight: 500;">자동 줄바꿈 작동 중</div>
+    </div>
+</div>
+
+<script>
+    let sentences = ["파일을 불러와 시작해 주세요."]; 
+    let curIdx = 0, curLineIdx = 0, startTime = null, timerInt = null, cumLen = 0; 
+    const box = document.getElementById('target-box'), inp = document.getElementById('input-field');
+
+    const clean = (t) => t.split('').filter(c => /[ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(c)).join('');
+
+    function getLines() {
+        const text = sentences[curIdx] || "";
+        const limit = parseInt(document.getElementById('line-limit').value);
+        const words = text.split(' ');
+        let lines = [], cur = "";
+        words.forEach(w => {
+            if ((cur + w).length > limit && cur !== "") { lines.push(cur.trim()); cur = w + " "; }
+            else { cur += w + " "; }
+        });
+        lines.push(cur.trim());
+        return lines;
+    }
+
+    function showResult() {
+        const finalTime = document.getElementById('timer').innerText;
+        const finalCpm = document.getElementById('current-cpm').innerText;
+        clearInterval(timerInt);
+        alert(`🎉 연습이 완료되었습니다!\n\n최종 시간: ${finalTime}\n최종 타수: ${finalCpm} CPM`);
+        location.reload();
+    }
+
+    function render() {
+        const lines = getLines();
+        const activeText = lines[curLineIdx];
+        if (!activeText) return;
+
+        const typedVal = inp.value;
+        const typedC = clean(typedVal);
+        const activeC = clean(activeText);
+
+        if (typedC.length >= activeC.length) {
+            if (typedVal.endsWith(' ') || typedC.length > activeC.length) {
+                if (curLineIdx < lines.length - 1) {
+                    cumLen += activeC.length;
+                    curLineIdx++;
+                    inp.value = typedC.length > activeC.length ? typedVal.slice(-1) : "";
+                    render(); return;
+                } else if (curIdx === sentences.length - 1) {
+                    showResult(); return;
+                }
+            }
+        }
+
+        box.innerHTML = '';
+        activeText.split('').forEach((char, i) => {
+            const span = document.createElement('span');
+            span.innerText = char;
+            const isAlpha = /[ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(char);
+            span.className = isAlpha ? 'char' : 'ignored';
+            if (isAlpha) {
+                const cIdx = clean(activeText.substring(0, i)).length;
+                const tChar = typedC[cIdx];
+                if (tChar != null) span.classList.add(tChar === char ? 'correct' : 'incorrect');
+            }
+            box.appendChild(span);
+        });
+        updateStats();
+    }
+
+    inp.addEventListener('input', () => {
+        if (!startTime && inp.value.length > 0) {
+            startTime = new Date();
+            timerInt = setInterval(updateStats, 500);
+        }
+        render();
+    });
+
+    inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') e.preventDefault(); 
+        if (e.key === 'Enter') {
+            const lines = getLines();
+            if (clean(lines[curLineIdx]) === clean(inp.value)) {
+                if (curLineIdx === lines.length - 1) {
+                    if (curIdx === sentences.length - 1) { showResult(); } 
+                    else { curIdx++; fullReset(); }
+                } else {
+                    cumLen += clean(lines[curLineIdx]).length;
+                    curLineIdx++; inp.value = ""; render();
+                }
+            } else { inp.value = ""; render(); }
+        }
+    });
+
+    function updateStats() {
+        if (startTime) {
+            const elapsed = (new Date() - startTime) / 1000;
+            document.getElementById('timer').innerText = Math.floor(elapsed) + "초";
+            const totalLen = cumLen + clean(inp.value).length;
+            document.getElementById('current-cpm').innerText = elapsed > 0 ? Math.floor(totalLen / (elapsed/60)) : 0;
+        }
+        const total = clean(sentences[curIdx] || "").length;
+        document.getElementById('remain-count').innerText = Math.max(0, total - (cumLen + clean(inp.value).length));
+    }
+
+    document.getElementById('file-selector').addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => { 
+            sentences = ev.target.result.split(/\n/).filter(s => s.trim()); 
+            curIdx = 0;
+            fullReset(); 
+        };
+        reader.readAsText(e.target.files[0], 'utf-8');
+    });
+
+    document.getElementById('line-limit').addEventListener('change', fullReset);
+
+    function fullReset() {
+        inp.value = ""; curLineIdx = 0; cumLen = 0; startTime = null;
+        if (timerInt) clearInterval(timerInt);
+        document.getElementById('timer').innerText = '0초'; 
+        document.getElementById('current-cpm').innerText = '0';
+        render(); inp.focus();
+    }
+
+    render();
+</script>
+</body>
+</html>

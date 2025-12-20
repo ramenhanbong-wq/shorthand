@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>단문연습 v1 — 입문 졸업 시험 (최종본)</title>
+    <style>
+        :root {
+            --bg: #f6f7fb; --surface: #ffffff; --border: #e5e7eb;
+            --text: #111827; --muted: #6b7280; --accent: #2563eb;
+            --header-bg: #111827; --header-fg: #ffffff; --danger: #ef4444; --success: #10b981;
+        }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { background-color: var(--header-bg); color: var(--header-fg); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+        main { flex: 1; padding: 30px; max-width: 900px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; overflow-y: auto; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .hint-label { color: var(--muted); font-size: 0.85rem; margin-bottom: 10px; display: block; }
+        #text-display { font-size: 1.5rem; font-weight: 500; min-height: 60px; padding: 15px; background: #f9fafb; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 5px; word-break: keep-all; }
+        input[type="text"] { width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid var(--border); border-radius: 6px; box-sizing: border-box; outline: none; }
+        input[type="text"]:focus { border-color: var(--accent); }
+        
+        #quiz-overlay {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98); z-index: 100; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center;
+        }
+        #quiz-sentence { font-size: 1.4rem; color: #4b5563; margin-bottom: 10px; }
+        #quiz-feedback { margin-top: 15px; min-height: 120px; visibility: hidden; width: 100%; }
+        .status-msg { font-size: 1.8rem; font-weight: 900; margin-bottom: 10px; }
+        .diff-text { font-size: 1.3rem; margin: 5px 0; }
+        .wrong { color: var(--danger); text-decoration: line-through; font-weight: bold; }
+        .correct-info { color: var(--success); font-weight: bold; font-size: 1.5rem; margin-top: 10px; }
+        
+        #history-section { display: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+        .toolbar { display: flex; gap: 10px; margin-top: 10px; }
+        button, select { padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; font-weight: bold; }
+        .btn-accent { background: var(--accent); color: white; border: none; }
+
+        /* 모바일 반응형 디자인 */
+        @media (max-width: 768px) {
+            header { padding: 10px 15px; font-size: 0.8rem; }
+            main { padding: 15px; }
+            #text-display { font-size: 1.2rem; min-height: 50px; padding: 12px; }
+            input[type="text"] { font-size: 1.2rem; padding: 12px; }
+            #quiz-overlay { padding: 20px; }
+            #quiz-sentence { font-size: 1.1rem; }
+            .status-msg { font-size: 1.5rem; }
+            .toolbar { flex-wrap: wrap; }
+            .toolbar select, .toolbar button { flex: 1 1 calc(50% - 10px); font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><h1 style="font-size: 1.2rem; margin:0;">단문연습 v1 — 입문 졸업 시험</h1></div>
+    <div id="stat-progress" style="font-size: 0.9rem;">[세트를 선택하세요]</div>
+</header>
+
+<main>
+    <div id="quiz-overlay">
+        <h2>💊 약어 정밀 퀴즈 (<span id="quiz-count">1/10</span>)</h2>
+        <p style="color:var(--muted); font-size: 0.9rem;">약어를 입력하세요 (띄어쓰기 무관, 문장부호 포함)</p>
+        <p id="quiz-sentence"></p>
+        <input type="text" id="quiz-input" placeholder="약어 정답 입력..." autocomplete="off">
+        <div id="quiz-feedback">
+            <div id="status-text" class="status-msg"></div>
+            <div class="diff-text" id="user-diff-display"></div>
+            <div class="correct-info" id="quiz-correct-ans"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <span class="hint-label">연습 문장</span>
+        <div id="text-display">세트를 선택하고 연습 시작을 눌러주세요.</div>
+    </div>
+    <div class="card">
+        <span class="hint-label">입력 (Enter를 누르면 제출)</span>
+        <input type="text" id="typing-input" disabled autocomplete="off">
+    </div>
+    <div class="toolbar">
+        <select id="set-selector">
+            <option value="1">제 1세트</option><option value="2">제 2세트</option><option value="3">제 3세트</option>
+            <option value="4">제 4세트</option><option value="5">제 5세트</option><option value="6">제 6세트</option>
+            <option value="7">제 7세트</option><option value="8">제 8세트</option><option value="9">제 9세트</option>
+        </select>
+        <button onclick="startPractice()">연습 시작</button>
+        <button class="btn-accent" onclick="toggleHistory()">결과 보기</button>
+    </div>
+    <div id="history-section" class="card">
+        <table id="result-table"><thead><tr><th>세트</th><th>평균속도</th><th>약어정확도</th><th>최종결과</th></tr></thead><tbody></tbody></table>
+    </div>
+</main>
+
+<script>
+    const ALL_SETS = {
+        "1": [ {s:"사회는 하나의 배와 같은 것이다.", a:"회는 의 와 같은 것이다."}, {s:"이 세상에 악이 없다면 선도 없을 것이다.", a:"에 이 없다면 도 없을 것이다."}, {s:"눈에서 멀어지면 마음에서 멀어진다.", a:"에서 지면 에서 진다."}, {s:"우리는 부정부패 척결에 나서고 있습니다.", a:"리는 에 고 있습니다."}, {s:"우리는 시인하지 않을 수 없습니다.", a:"리는 하지 않을 수 없습니다."}, {s:"얼굴은 결코 거짓말을 하지 않는다.", a:"은 을 하지 않는다."}, {s:"새로운 세계를 창조해내고 있습니다.", a:"를 고 있습니다."}, {s:"위기를 맞고 있는 것은 우리 민주주의입니다.", a:"를 고 있는 것은 입니다."}, {s:"도덕적 승리는 셈을 하지 않는 것이다.", a:"리는 을 하지 않는 것이다."}, {s:"희망이 없다면 아무것도 성공하지 못한다.", a:"이 없다면 것도 하지 한다."} ],
+        "2": [ {s:"사랑은 아낌없이 뺏는 것이다.", a:"은 없이 는 것이다."}, {s:"우리가 건설하고자 하는 국가입니다.", a:"가 하고자 하는 입니다."}, {s:"더불어 손잡고 사는 사회를 건설하는 일입니다.", a:"고 사는 를 하는 입니다."}, {s:"새로운 세계질서가 모색되고 있습니다.", a:"가 되고 있습니다."}, {s:"무엇보다 인간성을 회복해야 합니다.", a:"을 합니다."}, {s:"국가와 민족을 위해 우리 함께 노력해야 합니다.", a:"와 을 합니다."}, {s:"한국은 수준 높은 민주정치를 실현했습니다.", a:"은 은 를 했습니다."}, {s:"에너지 절약하는 길밖에 없습니다.", a:"하는 에 없습니다."}, {s:"대통령 선거가 눈앞에 다가왔습니다.", a:"가 에 습니다."}, {s:"새로운 사고를 요구하고 있습니다.", a:"를 하고 있습니다."} ],
+        "3": [ {s:"수출의욕의 회생이 중요합니다.", a:"의 이 합니다."}, {s:"나라의 중심은 중소기업입니다.", a:"의 은 입니다."}, {s:"우리와 함께 평화통일로 가는 것입니다.", a:"와 로 가는 것입니다."}, {s:"새로운 국제질서가 형성되고 있습니다.", a:"가 되고 있습니다."}, {s:"여러분을 자랑스럽게 생각하고 있습니다.", a:"을 게 하고 있습니다."}, {s:"지원과 협력을 아끼지 않을 것입니다.", a:"과 을 지 않을 것입니다."}, {s:"고위공직자들이 재산을 공개했습니다.", a:"이 을 했습니다."}, {s:"우리는 더불어 사는 공동체입니다.", a:"리는 사는 입니다."}, {s:"고난 속에서 좌절하지 않았습니다.", a:"에서 하지 않았습니다."}, {s:"우리는 목도하고 있지 않습니까?", a:"리는 하고 있 지 않습니까?"} ],
+        "4": [ {s:"여자에게 가장 엄격한 것은 여자이다.", a:"에게 한 것은 이다."}, {s:"시련을 극복할 수 있었습니다.", a:"을 할 수 있었습니다."}, {s:"국민에게 그것을 호소할 수 있습니다.", a:"에게 을 할 수 있습니다."}, {s:"다음은 노사문제에 대해 묻겠습니다.", a:"은 에 습니다."}, {s:"대비를 튼튼히 하지 않을 수 없다.", a:"를 하지 않을 수 없다."}, {s:"그것은 나라 바로 세우기인 것입니다.", a:"은 로 것입니다."}, {s:"우리 국민은 자신감을 가져야 합니다.", a:"은 을 합니다."}, {s:"사회는 거대화된 정보체계를 이룬다.", a:"회는 를 룬다."}, {s:"북방정책을 적극적으로 추진해야 한다.", a:"을 적으로 한다."}, {s:"우리는 지금 강력한 정부를 애써 이룩했다.", a:"리는 한 를 했다."} ],
+        "5": [ {s:"국회는 민주주의의 전당인 것입니다.", a:"회는 의 것입니다."}, {s:"어린이 사랑은 나라 사랑입니다.", a:"은 입니다."}, {s:"깨어 있다는 것은 살아 있다는 것이다.", a:"있다는 것은 있다는 것이다."}, {s:"위대한 사람은 위대한 사랑을 한다.", a:"한 은 한 을 한다."}, {s:"국민 모두의 자발적인 참여가 필요합니다.", a:"의 적인 가 합니다."}, {s:"높은 도덕성이 중시되어야 할 것입니다.", a:"은 이 되어야 것입니다."}, {s:"형식적인 지적으로 그치는 경우가 많다.", a:"적인 으로 치는 가 많다."}, {s:"내일을 향한 이정표이기도 합니다.", a:"을 한 도 합니다."}, {s:"아시아 태평양 시대는 저절로 오지 않습니다.", a:"대는 로 지 않습니다."}, {s:"환경은 인간이 생존하는 바탕입니다.", a:"은 이 하는 입니다."} ],
+        "6": [ {s:"모두의 힘을 모아 풍요로운 사회를 만듭시다.", a:"의 을 를 다."}, {s:"법과 도덕의 중요성을 재인식해야 합니다.", a:"과 의 을 합니다."}, {s:"경제력만으로 선진국이 될 수 없습니다.", a:"으로 이 될 수 없습니다."}, {s:"학교의 자율은 최대한 존중되어야 한다.", a:"의 은 한 되어야 한다."}, {s:"새로운 시대 열어가야 한다고 봅니다.", a:"다고 봅니다."}, {s:"정부는 안정과 편의를 도모하고 있습니다.", a:"부는 과 를 하고 있습니다."}, {s:"크게 기여하는 나라를 만들고자 합니다.", a:"게 하는 를 고자 합니다."}, {s:"이것이 미래로 나아가는 한국의 이야기입니다.", a:"이 로 가는 의 입니다."}, {s:"우리 두 나라는 가장 가까운 벗이 되었습니다.", a:"라는 이 되었습니다."}, {s:"미래를 이끌어가는 지도자가 될 것입니다.", a:"를 가는 가 것입니다."} ],
+        "7": [ {s:"개혁은 민족의 생존을 위해 피할 수 없습니다.", a:"은 의 을 할 수 없습니다."}, {s:"경쟁력을 높이기에 앞장서 주시기 바랍니다.", a:"을 에 랍니다."}, {s:"우리는 때때로 역경을 겪게 된다.", a:"리는 로 을 게 된다."}, {s:"한국의 성공은 무엇보다도 평화의 결실입니다.", a:"의 은 도 의 입니다."}, {s:"앞으로 보다 강력한 동반자가 될 것입니다.", a:"으로 한 가 것입니다."}, {s:"각국의 공동노력과 협력이 필요합니다.", a:"의 과 이 합니다."}, {s:"모든 문제를 분명히 인식하였습니다.", a:"를 하였습니다."}, {s:"국가와 민족을 위해 다 함께 뜁시다.", a:"와 을 다."}, {s:"한반도 역사의 발전을 가로막고 있습니다.", a:"의 을 고 있습니다."}, {s:"그 어느 때보다 바삐 움직여야 했습니다.", a:"했습니다."} ],
+        "8": [ {s:"정부의 예산을 깨끗하고 바르게 써야 한다.", a:"의 을 하고 르게 한다."}, {s:"중소기업의 투자가 활기를 띠고 있습니다.", a:"의 가 를 고 있습니다."}, {s:"이제 여러분도 피부로 느낄 것입니다.", a:"도 로 것입니다."}, {s:"세계가 하나의 공동체가 되었습니다.", a:"가 의 가 되었습니다."}, {s:"반드시 남과 북은 통일이 되어야 합니다.", a:"과 은 이 되어야 합니다."}, {s:"아시아에는 한국이 버티고 있다.", a:"에는 이 고 있다."}, {s:"버려진 섬마다 꽃이 피었다.", a:"이 었다."}, {s:"두 나라 국민에게 의미 있는 날입니다.", a:"에게 있는 입니다."}, {s:"함께 달려온 장정을 보람되게 생각합니다.", a:"을 되게 합니다."}, {s:"한반도 정세는 아직 냉전 상태입니다.", a:"세는 입니다."} ],
+        "9": [ {s:"의미 있는 한 달을 보내야 하겠습니다.", a:"있는 을 습니다."}, {s:"우리의 국제적 위상을 실감할 수 있었습니다.", a:"의 적 을 할 수 있었습니다."}, {s:"우리 모두가 다 영웅이 될 수 없다.", a:"가 이 될 수 없다."}, {s:"내 사랑은 생명의 꽃이다.", a:"은 의 이다."}, {s:"빈곤은 재앙이 아니라 불편이다.", a:"은 이 이다."}, {s:"결혼은 사랑의 무덤이 아닙니다.", a:"은 의 이 닙니다."}, {s:"돌아본 과거의 삶은 순간들의 연속이다.", a:"의 은 의 이다."}, {s:"적극 검토하여 이루어질 수 있도록 노력하겠습니다.", a:"하여 질 수 있도록 습니다."}, {s:"육아휴직 의무화를 반드시 성사시키겠습니다.", a:"를 습니다."}, {s:"한꺼번에 제도적 장치를 마련할 수는 없습니까?", a:"에 적 를 할 수 는 없습니까?"} ]
+    };
+
+    let currentIndex = 0, currentSentences = [], lineStartTime = null, speeds = [];
+    let isQuizMode = false, quizIndex = 0, totalAbbrChars = 0, correctAbbrChars = 0;
+    let backspaceCount = 0;
+
+    const inputEl = document.getElementById('typing-input'), displayEl = document.getElementById('text-display');
+    const quizOverlay = document.getElementById('quiz-overlay'), quizInput = document.getElementById('quiz-input');
+
+    function normalizeForQuiz(s) {
+        if (!s) return "";
+        return s.replace(/\s/g, "").replace(/으로는/g, "므로").replace(/를/g, "을").replace(/과/g, "와");
+    }
+
+    function startPractice() {
+        currentSentences = ALL_SETS[document.getElementById('set-selector').value];
+        currentIndex = 0; speeds = []; backspaceCount = 0;
+        quizOverlay.style.display = 'none'; isQuizMode = false;
+        inputEl.disabled = false; loadSentence();
+    }
+
+    function loadSentence() {
+        if (currentIndex < 10) {
+            displayEl.innerText = currentSentences[currentIndex].s;
+            inputEl.value = ""; lineStartTime = null;
+            document.getElementById('stat-progress').innerText = `[연습 중: ${currentIndex+1}/10]`;
+            inputEl.focus();
+            inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else { startQuizMode(); }
+    }
+
+    inputEl.addEventListener('keydown', (e) => { 
+        if (!lineStartTime && e.key !== "Enter") lineStartTime = Date.now(); 
+        if (e.key === "Backspace") backspaceCount++;
+    });
+
+    inputEl.addEventListener('input', () => {
+        if (!lineStartTime) return;
+        const now = Date.now();
+        const sec = (now - lineStartTime) / 1000;
+        const currentLen = inputEl.value.replace(/\s/g, "").length;
+        const currentCpm = sec > 0 ? (currentLen / sec) * 60 : 0;
+        document.getElementById('stat-progress').innerText = `[연습 중: ${currentIndex+1}/10] | 실시간: ${Math.floor(currentCpm)} CPM | BS: ${backspaceCount}`;
+    });
+
+    inputEl.addEventListener('keypress', (e) => {
+        if (e.key === "Enter") {
+            const entered = inputEl.value;
+            if (currentSentences[currentIndex].s.replace(/\s/g, "") !== entered.replace(/\s/g, "")) {
+                alert("오타가 있습니다!"); inputEl.value = ""; return;
+            }
+            const sec = (Date.now() - lineStartTime) / 1000;
+            speeds.push((entered.replace(/\s/g, "").length / sec) * 60);
+            currentIndex++; loadSentence();
+        }
+    });
+
+    function startQuizMode() {
+        isQuizMode = true; quizIndex = 0; totalAbbrChars = 0; correctAbbrChars = 0;
+        currentSentences.forEach(item => totalAbbrChars += normalizeForQuiz(item.a).length);
+        quizOverlay.style.display = 'flex'; loadQuizQuestion();
+    }
+
+    function loadQuizQuestion() {
+        if (quizIndex < 10) {
+            document.getElementById('quiz-count').innerText = `${quizIndex + 1}/10`;
+            document.getElementById('quiz-sentence').innerText = currentSentences[quizIndex].s;
+            quizInput.value = ""; quizInput.disabled = false;
+            document.getElementById('quiz-feedback').style.visibility = 'hidden';
+            quizInput.focus();
+            quizInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else { finishAll(); }
+    }
+
+    quizInput.addEventListener('keypress', (e) => {
+        if (e.key === "Enter" && !quizInput.disabled) {
+            const correctRaw = currentSentences[quizIndex].a;
+            const userRaw = quizInput.value;
+            const normCorrect = normalizeForQuiz(correctRaw);
+            const normUser = normalizeForQuiz(userRaw);
+            const feedback = document.getElementById('quiz-feedback');
+            const statusText = document.getElementById('status-text');
+
+            feedback.style.visibility = 'visible';
+            quizInput.disabled = true;
+
+            if (normCorrect === normUser) {
+                correctAbbrChars += normCorrect.length;
+                statusText.innerText = "● 정답입니다!";
+                statusText.style.color = "var(--success)";
+                document.getElementById('user-diff-display').innerHTML = "";
+                document.getElementById('quiz-correct-ans').innerText = "";
+                setTimeout(() => { quizIndex++; loadQuizQuestion(); }, 1000);
+            } else {
+                statusText.innerText = "X 오답입니다";
+                statusText.style.color = "var(--danger)";
+                let matches = 0;
+                for(let i=0; i<Math.min(normCorrect.length, normUser.length); i++) {
+                    if(normCorrect[i] === normUser[i]) matches++;
+                }
+                correctAbbrChars += matches;
+                showWrongFeedback(userRaw, correctRaw);
+                setTimeout(() => { quizIndex++; loadQuizQuestion(); }, 2500);
+            }
+        }
+    });
+
+    function showWrongFeedback(user, correct) {
+        const userDiffArea = document.getElementById('user-diff-display');
+        const correctArea = document.getElementById('quiz-correct-ans');
+        let diffHtml = "나의 입력: ";
+        for (let i = 0; i < user.length; i++) {
+            if (!correct.includes(user[i])) diffHtml += `<span class="wrong">${user[i]}</span>`;
+            else diffHtml += `<span>${user[i]}</span>`;
+        }
+        userDiffArea.innerHTML = diffHtml;
+        correctArea.innerText = `정답: ${correct}`;
+    }
+
+    function finishAll() {
+        quizOverlay.style.display = 'none';
+        const avgCpm = speeds.reduce((a, b) => a + b, 0) / 10;
+        const finalRatio = correctAbbrChars / totalAbbrChars;
+        const passed = (avgCpm >= 70 && finalRatio >= 0.90);
+
+        alert(`[시험 결과]\n평균 속도: ${avgCpm.toFixed(1)} CPM\n약어 정확도: ${(finalRatio*100).toFixed(1)}%\n백스페이스: ${backspaceCount}회\n결과: ${passed ? '합격' : '불합격'}`);
+        const row = `<tr><td>${document.getElementById('set-selector').value}</td><td>${avgCpm.toFixed(1)}</td><td>${(finalRatio*100).toFixed(1)}%</td><td>${passed?'합격':'불합격'}</td></tr>`;
+        document.querySelector('#result-table tbody').innerHTML = row + document.querySelector('#result-table tbody').innerHTML;
+    }
+
+    function toggleHistory() {
+        const s = document.getElementById('history-section');
+        s.style.display = s.style.display === 'block' ? 'none' : 'block';
+    }
+</script>
+</body>
+</html>

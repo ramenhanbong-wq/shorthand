@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>속기 약어 암기 마스터</title>
+    <style>
+        :root {
+            --primary-mute: #6c5e7f;    /* 톤다운된 보라 */
+            --primary-dark: #4a3f58;    /* 깊은 보라색 그레이 */
+            --accent-soft: #9b8bad;     /* 연한 보라 회색 */
+            --bg-neutral: #f4f4f7;      /* 아주 연한 보라빛 회색 배경 */
+            --white: #ffffff;
+            --border-soft: #e2e2e8;
+            --error-red: #d63031;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-neutral);
+            color: var(--primary-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .app-container {
+            background: var(--white);
+            width: 100%;
+            max-width: 480px;
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(108, 94, 127, 0.08);
+        }
+
+        .top-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--accent-soft);
+            letter-spacing: 3px;
+            margin-bottom: 35px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        /* [연습 영역] 약어 표시 */
+        .abbr-display {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--primary-mute);
+            height: 110px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            /* 아래쪽에만 포인트를 주어 세련되게 표현 */
+            border-bottom: 3px solid var(--primary-mute);
+            background: linear-gradient(to bottom, transparent, rgba(108, 94, 127, 0.03));
+        }
+
+        /* [연습 영역] 입력창 */
+        input[type="text"] {
+            width: 100%;
+            padding: 18px 0;
+            font-size: 24px;
+            border: none;
+            border-bottom: 1px solid var(--border-soft);
+            text-align: center;
+            margin-bottom: 40px;
+            outline: none;
+            transition: all 0.4s ease;
+            background: transparent;
+            color: var(--primary-dark);
+        }
+
+        input[type="text"]:focus {
+            border-bottom-color: var(--primary-mute);
+            border-bottom-width: 2px;
+        }
+
+        /* 상태 바 */
+        .status-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            padding: 15px;
+            background: #fafafc;
+            border-radius: 12px;
+            font-size: 14px;
+            color: var(--primary-mute);
+            border: 1px solid var(--border-soft);
+        }
+
+        .status-grid b {
+            color: var(--primary-dark);
+        }
+
+        /* 메뉴 버튼 구성 */
+        .btn-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            border: 1px solid var(--primary-mute);
+            background: transparent;
+            color: var(--primary-mute);
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        button:hover {
+            background: var(--primary-mute);
+            color: var(--white);
+        }
+
+        /* 메인 강조 버튼 */
+        .btn-highlight {
+            background: var(--primary-mute);
+            color: var(--white);
+        }
+
+        .btn-highlight:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        /* 리셋 버튼 (눈에 덜 띄게) */
+        .btn-ghost {
+            border-color: transparent;
+            color: #bdc3c7;
+            font-weight: 400;
+            font-size: 12px;
+        }
+
+        #fileInput { display: none; }
+        
+        .helper-text {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #9ea4ad;
+            text-align: center;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="top-label">Shorthand Mastery</div>
+    
+    <div class="abbr-display" id="abbrDisplay">준비 완료</div>
+    <input type="text" id="userInput" placeholder="입력 후 엔터" autocomplete="off">
+    
+    <div class="status-grid">
+        <span>진행 시간 <b id="timerLabel">0초</b></span>
+        <span>학습 현황 <b id="counterLabel">0 / 0</b></span>
+    </div>
+    
+    <div class="btn-column">
+        <button class="btn-highlight" onclick="document.getElementById('fileInput').click()">📂 연습용 파일 불러오기</button>
+        <div class="btn-row">
+            <button onclick="downloadResults('정답')">정답 목록 저장</button>
+            <button onclick="downloadResults('오답')">오답 목록 저장</button>
+        </div>
+        <button class="btn-ghost" onclick="resetTest()">데이터 리셋하기</button>
+        <input type="file" id="fileInput" accept=".txt">
+    </div>
+
+    <p class="helper-text">
+        오타가 발생하면 자동으로 '오답 목록'에 추가됩니다.<br>
+        모든 텍스트 파일(.txt)을 불러와서 연습할 수 있습니다.
+    </p>
+</div>
+
+<script>
+    /* [핵심 로직] */
+    let abbreviations = [];
+    let totalCount = 0;
+    let currentAbbr = "";
+    let totalStartTime = null;
+    let isFinished = false;
+    let hasCurrentError = false;
+    let correctList = []; 
+    let wrongList = [];   
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            abbreviations = e.target.result.split('\n').map(s => s.trim()).filter(s => s !== "");
+            totalCount = abbreviations.length;
+            resetTest();
+        };
+        reader.readAsText(file);
+    });
+
+    function resetTest() {
+        if (totalCount === 0) return;
+        totalStartTime = null;
+        isFinished = false;
+        correctList = [];
+        wrongList = [];
+        loadNewAbbr();
+        updateUI();
+    }
+
+    function loadNewAbbr() {
+        if (abbreviations.length > 0) {
+            currentAbbr = abbreviations[Math.floor(Math.random() * abbreviations.length)];
+            document.getElementById('abbrDisplay').innerText = currentAbbr;
+            document.getElementById('userInput').value = "";
+            document.getElementById('userInput').focus();
+            hasCurrentError = false;
+        } else {
+            isFinished = true;
+            document.getElementById('abbrDisplay').innerText = "학습 종료";
+            alert("수고하셨습니다! 연습이 모두 끝났습니다.");
+        }
+    }
+
+    document.getElementById('userInput').addEventListener('input', function() {
+        if (!totalStartTime) totalStartTime = Date.now();
+    });
+
+    document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') checkEntry();
+    });
+
+    function checkEntry() {
+        if (!currentAbbr || isFinished) return;
+        const clean = (s) => s.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, "");
+        const user = clean(document.getElementById('userInput').value);
+        const target = clean(currentAbbr);
+        
+        let alt = target;
+        if (target.startsWith('을')) alt = '를' + target.substring(1);
+        else if (target.startsWith('를')) alt = '을' + target.substring(1);
+
+        if (user === target || user === alt) {
+            if (!hasCurrentError) correctList.push(currentAbbr);
+            abbreviations = abbreviations.filter(a => a !== currentAbbr);
+            updateUI();
+            loadNewAbbr();
+        } else {
+            if (!wrongList.includes(currentAbbr)) wrongList.push(currentAbbr);
+            hasCurrentError = true;
+            document.getElementById('userInput').style.borderBottomColor = "var(--error-red)";
+            setTimeout(() => document.getElementById('userInput').style.borderBottomColor = "", 600);
+            document.getElementById('userInput').value = "";
+        }
+    }
+
+    function downloadResults(type) {
+        const list = type === '정답' ? correctList : wrongList;
+        if (list.length === 0) return alert("데이터가 없습니다.");
+        const blob = new Blob([[...new Set(list)].join('\n')], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${type}.txt`;
+        a.click();
+    }
+
+    setInterval(() => {
+        if (totalStartTime && !isFinished) {
+            const elapsed = Math.floor((Date.now() - totalStartTime) / 1000);
+            document.getElementById('timerLabel').innerText = `${elapsed}초`;
+        }
+    }, 1000);
+
+    function updateUI() {
+        document.getElementById('counterLabel').innerText = `${totalCount - abbreviations.length} / ${totalCount}`;
+    }
+</script>
+</body>
+</html>
