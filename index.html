@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHORTHAND MASTER | 대시보드</title>
+    <title>SHORTHAND MASTER 대시보드</title>
     <style>
         :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; --fail: #e74c3c; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); margin: 0; padding: 0; color: #333; }
         
-        /* 로그인 화면 스타일 */
-        #login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center; }
-        .login-box { max-width: 350px; width: 90%; background: #f8f9fa; padding: 40px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        /* 1. 로그인 영역 */
+        #login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-box { max-width: 350px; width: 90%; background: #f8f9fa; padding: 40px; border-radius: 15px; border: 1px solid #ddd; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; }
         input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
         .login-btn { width: 100%; padding: 15px; background: var(--main-blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* 대시보드 화면 스타일 */
+        /* 2. 대시보드 메뉴 영역 */
         #main-screen { display: none; padding: 20px; }
         header { max-width: 1000px; margin: 0 auto 30px; display: flex; justify-content: space-between; align-items: center; color: white; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
         .logout-btn { background: var(--fail); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-
+        
         .dashboard-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-        .menu-card { background: white; border-radius: 15px; padding: 30px; text-align: center; text-decoration: none; color: #333; transition: 0.3s; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .menu-card { background: white; border-radius: 15px; padding: 30px; text-align: center; text-decoration: none; color: #333; transition: 0.3s; display: flex; flex-direction: column; align-items: center; }
         .menu-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         .icon { font-size: 40px; margin-bottom: 15px; }
         .title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
-        .desc { font-size: 0.9rem; color: #666; line-height: 1.4; }
+        .desc { font-size: 0.8rem; color: #666; line-height: 1.4; }
     </style>
 </head>
 <body onload="initApp()">
@@ -40,44 +40,36 @@
 
     <div id="main-screen">
         <header>
-            <div><span id="welcomeMsg" style="font-size: 1.2rem;"></span></div>
+            <div><span id="welcomeMsg"></span></div>
             <button onclick="logout()" class="logout-btn">로그아웃</button>
         </header>
 
         <div class="dashboard-container">
             <a href="toksori2.html" class="menu-card">
-                <div class="icon">📢</div>
-                <div class="title">똑소리 2</div>
-                <div class="desc">실시간 성과 분석 및<br>기본 연습 모드</div>
+                <div class="icon">📢</div><div class="title">똑소리 2</div>
+                <div class="desc">기존의 실시간 성과 분석 및 연습</div>
             </a>
-
             <a href="exam.html" class="menu-card">
-                <div class="icon">🎓</div>
-                <div class="title">졸업 시험</div>
-                <div class="desc">입문반 졸업을 위한<br>정밀 약어 퀴즈</div>
+                <div class="icon">🎓</div><div class="title">졸업 시험</div>
+                <div class="desc">입문반 졸업 정밀 약어 퀴즈</div>
             </a>
-
             <a href="measure.html" class="menu-card">
-                <div class="icon">⏱️</div>
-                <div class="title">자수 측정</div>
-                <div class="desc">실시간 속도 측정 및<br>음성 파일 동기화</div>
+                <div class="icon">⏱️</div><div class="title">자수 측정</div>
+                <div class="desc">실시간 속도 측정 및 음성 동기화</div>
             </a>
-
             <a href="sparta.html" class="menu-card">
-                <div class="icon">🔥</div>
-                <div class="title">스파르타</div>
-                <div class="desc">긴 문장 보고치기<br>집중 강화 훈련</div>
+                <div class="icon">🔥</div><div class="title">스파르타</div>
+                <div class="desc">긴 문장 집중 강화 훈련</div>
             </a>
-
             <a href="random.html" class="menu-card">
-                <div class="icon">🔀</div>
-                <div class="title">약어 랜덤</div>
-                <div class="desc">무작위 약어 암기 및<br>오답 목록 관리</div>
+                <div class="icon">🔀</div><div class="title">약어 랜덤</div>
+                <div class="desc">무작위 약어 암기 모드</div>
             </a>
         </div>
     </div>
 
 <script>
+// 선생님의 구글 앱 스크립트 주소 (그대로 유지)
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxaxj3MBG5MK3nIO8hOV3EH9clAQi00pp-L78weLbFP7wj-9X1Fwt9ExUAncapRJsY/exec"; 
 let currentUser = localStorage.getItem('shorthand_user');
 
