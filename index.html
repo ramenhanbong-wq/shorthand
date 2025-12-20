@@ -46,15 +46,28 @@
         
         header { 
             display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 40px; background: white; padding: 20px 30px; border-radius: 20px;
+            margin-bottom: 25px; background: white; padding: 20px 30px; border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.03);
         }
-        .welcome-txt { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+        .welcome-txt { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
         .logout-btn { 
             background: #ffeaa7; border: none; padding: 8px 18px; border-radius: 10px; 
             color: #d63031; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
         .logout-btn:hover { background: #fdcb6e; }
+
+        /* ✨ 소리자바 아카데미 배너 스타일 추가 */
+        .academy-banner {
+            display: flex; align-items: center; justify-content: space-between;
+            background: linear-gradient(135deg, #6c5e7f 0%, #4a3f58 100%);
+            color: white; padding: 18px 25px; border-radius: 20px;
+            margin-bottom: 30px; text-decoration: none;
+            transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(108, 94, 127, 0.15);
+        }
+        .academy-banner:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(108, 94, 127, 0.25); }
+        .banner-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; display: block; }
+        .banner-sub { font-size: 0.85rem; opacity: 0.9; font-weight: 500; }
+        .banner-icon { font-size: 1.5rem; }
 
         .dashboard-grid { 
             display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; 
@@ -103,6 +116,14 @@
             <button onclick="logout()" class="logout-btn">로그아웃</button>
         </header>
 
+        <a href="https://www.sorizavaacademy.com/" target="_blank" class="academy-banner">
+            <div>
+                <span class="banner-title">🎓 소리자바 아카데미 바로가기</span>
+                <span class="banner-sub">실력을 더 키우고 싶다면 클릭하세요!</span>
+            </div>
+            <div class="banner-icon">➔</div>
+        </a>
+
         <div class="dashboard-grid">
             <a href="toksori2.html" class="menu-card">
                 <div class="icon-circle">📢</div>
@@ -141,8 +162,11 @@ function initApp() {
     if (currentUser) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
-        document.getElementById('welcomeMsg').innerHTML = `<b>${currentUser}</b>님, 오늘도 파이팅!`;
-        checkAuth(); // 로그인 상태라면 동시접속 여부 즉시 확인
+        
+        // ✨ 아줌마들을 위한 "빛나는 당신" 후킹 문구 적용
+        document.getElementById('welcomeMsg').innerHTML = `오늘도 빛나는 <b>${currentUser}</b>님! 누군가의 아내보다 '나'로 성장할 오늘을 응원합니다. 🌸`;
+        
+        checkAuth(); 
     } else {
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('main-screen').style.display = 'none';
@@ -161,7 +185,7 @@ async function login() {
         if (data.result === "success") { 
             currentUser = data.name; 
             localStorage.setItem('shorthand_user', currentUser); 
-            localStorage.setItem('shorthand_token', data.token); // ✨ 토큰 저장 추가
+            localStorage.setItem('shorthand_token', data.token); 
             initApp(); 
         } else { 
             alert("앗, 이름이나 비번이 틀린 것 같아요! 😢"); 
@@ -172,7 +196,6 @@ async function login() {
     document.getElementById('loginBtn').innerText = "반가워요! 접속하기";
 }
 
-// ✨ 동시접속 차단 핵심 함수
 async function checkAuth() {
     const name = localStorage.getItem('shorthand_user');
     const token = localStorage.getItem('shorthand_token');
@@ -194,15 +217,12 @@ async function checkAuth() {
 
 function logout() {
     if(confirm("정말 로그아웃 하시겠나요?")) {
-        localStorage.clear(); // 토큰까지 싹 지우기 위해 clear로 변경
+        localStorage.clear(); 
         location.reload();
     }
 }
 
-// 1분마다 동시접속 체크 실행
 setInterval(checkAuth, 60000);
 </script>
 </body>
 </html>
-
-
