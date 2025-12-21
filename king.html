@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>SHORTHAND MASTER :: 내가 바로 속기왕</title>
+    <title>SHORTHAND MASTER :: 오늘의 속기왕</title>
     <style>
         :root {
             --bg-color: #f0f2f5; --card-bg: #ffffff; --accent: #6c5e7f;
@@ -59,7 +59,7 @@
 
 <div class="container">
     <div class="header">
-        <div><b>지문:</b> <span id="file-name-display" style="color:var(--accent)">아직 대결 파일이 업로드되지 않았어요>아직>아직></div>
+        <div><b>지문:</b> <span id="file-name-display" style="color:var(--accent)">아직 대결 파일이 업로드되지 않았어요</span></div>
         <div style="text-align: right;">⏱ <span id="timer">0초</span> | 🚀 <span id="current-cpm" style="color:var(--accent)">0 CPM</span></div>
     </div>
 
@@ -81,20 +81,57 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYAfDv6U9FMOX5lI9VdY9F3_NnhuyY1SbvYRReo2WqsT7mIY_RPKeNKfiGWJKxP_o/exec";
+    // [선생님께서 주신 URL 반영]
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjrgTPGg0j9ZjJJS_R0uwNs4_BoCq3_dUQaVgZE9c5yforvdKGwH4NK_twXIa8Cx0/exec";
     
     const adminNames = ["가을", "한솔", "지훈", "도현", "신윤경", "진경은", "황아율"];
     const currentUser = sessionStorage.getItem('shorthand_user');
+
+    let rawText = "", displayChunks = [], curIdx = 0, startTime = null, timerInt = null, totalTypedLength = 0, isTransitioning = false;
+    const box = document.getElementById('target-box');
+    const inp = document.getElementById('input-field');
+
+    // 실시간 서버 동기화 함수
+    async function syncContent() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            
+            // 1. 지문 동기화
+            if (data.target && data.target.fileName !== document.getElementById('file-name-display').innerText) {
+                document.getElementById('file-name-display').innerText = data.target.fileName;
+                rawText = data.target.content;
+                displayChunks = sliceText(rawText);
+                resetGame();
+            }
+            // 2. 랭킹 동기화
+            if (data.ranks) updateRankingUI(data.ranks);
+        } catch(e) { console.log("서버 확인 중..."); }
+    }
+
+    function updateRankingUI(ranks) {
+        const fName = document.getElementById('file-name-display').innerText;
+        const today = new Date().toISOString().slice(0, 10);
+        const filtered = ranks.filter(d => d.date === today && d.fileName === fName).sort((a,b) => b.cpm - a.cpm);
+
+        ['p1','p2','p3'].forEach(id => { 
+            document.getElementById(`${id}-name`).innerText = "-"; 
+            document.getElementById(`${id}-cpm`).innerText = "0 CPM"; 
+        });
+        filtered.slice(0, 3).forEach((d, i) => {
+            document.getElementById(`p${i+1}-name`).innerText = d.name;
+            document.getElementById(`p${i+1}-cpm`).innerText = d.cpm + " CPM";
+        });
+        document.getElementById('rank-list').innerHTML = filtered.map((r,i) => `
+            <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm} CPM</span></div>
+        `).join('') || "기록이 없습니다.";
+    }
 
     function checkPermission() {
         if (adminNames.includes(currentUser)) {
             document.getElementById('admin-upload-btn').style.display = 'flex';
         }
     }
-
-    let rawText = "", displayChunks = [], curIdx = 0, startTime = null, timerInt = null, totalTypedLength = 0, isTransitioning = false;
-    const box = document.getElementById('target-box');
-    const inp = document.getElementById('input-field');
 
     function cleanText(str) { return str.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, ""); }
 
@@ -113,7 +150,7 @@
 
     function render() {
         if (isTransitioning) return;
-        const targetText = displayChunks[curIdx] || "파일을 선택하면 지문이 나타납니다.";
+        const targetText = displayChunks[curIdx] || "대결 지문을 기다리고 있습니다...";
         const cleanTarget = cleanText(targetText);
         const cleanTyped = cleanText(inp.value);
         box.innerHTML = '';
@@ -134,7 +171,7 @@
             }
             box.appendChild(span);
         });
-        if (cleanTyped === cleanTarget && cleanTarget.length > 0 && cleanTarget !== "") moveToNext();
+        if (cleanTyped === cleanTarget && cleanTarget.length > 0) moveToNext();
     }
 
     function moveToNext() {
@@ -161,33 +198,9 @@
                 })
             });
             alert(`대결 종료! ${finalCpm} CPM 기록이 저장되었습니다.`);
-            loadRanking();
+            syncContent();
         }
         resetGame();
-    }
-
-    async function loadRanking() {
-        const fName = document.getElementById('file-name-display').innerText;
-        if(fName.includes("대기하세요") || fName === "") return;
-        try {
-            const response = await fetch(SCRIPT_URL);
-            const data = await response.json();
-            const today = new Date().toISOString().slice(0, 10);
-            const filtered = data.filter(d => d.date === today && d.fileName === fName).sort((a,b) => b.cpm - a.cpm);
-
-            ['p1','p2','p3'].forEach(id => { 
-                document.getElementById(`${id}-name`).innerText = "-"; 
-                document.getElementById(`${id}-cpm`).innerText = "0 CPM"; 
-            });
-            filtered.slice(0, 3).forEach((d, i) => {
-                document.getElementById(`p${i+1}-name`).innerText = d.name;
-                document.getElementById(`p${i+1}-cpm`).innerText = d.cpm + " CPM";
-            });
-
-            document.getElementById('rank-list').innerHTML = filtered.map((r,i) => `
-                <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm} CPM</span></div>
-            `).join('') || "기록이 없습니다.";
-        } catch(e) {}
     }
 
     function resetGame() {
@@ -204,7 +217,7 @@
         const o = document.getElementById('overlay');
         const isV = m.style.display === 'block';
         m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block';
-        if(!isV) loadRanking();
+        if(!isV) syncContent();
     }
 
     inp.addEventListener('input', () => {
@@ -220,24 +233,26 @@
         render();
     });
 
-    // [중요 수정] 파일 선택 시 즉시 텍스트를 처리하고 화면을 그리도록 변경
     document.getElementById('file-selector').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if(!file) return;
-        document.getElementById('file-name-display').innerText = file.name;
         const reader = new FileReader();
-        reader.onload = (ev) => { 
-            rawText = ev.target.result; 
-            displayChunks = sliceText(rawText); // 텍스트를 조각으로 나누기
-            resetGame(); // 게임 상태 초기화 및 화면 그리기(render 호출됨)
-            loadRanking(); // 해당 지문의 랭킹 불러오기
+        reader.onload = async (ev) => { 
+            const content = ev.target.result;
+            document.getElementById('file-name-display').innerText = "지문 배포 중...";
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "saveTargetText", fileName: file.name, content: content })
+            });
+            syncContent(); 
         };
         reader.readAsText(file, 'utf-8');
     });
 
     checkPermission();
+    syncContent(); // 접속 즉시 서버 지문 확인
+    setInterval(syncContent, 5000); // 5초마다 자동 동기화
     render();
 </script>
 </body>
 </html>
-
