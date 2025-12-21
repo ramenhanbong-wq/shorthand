@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>SHORTHAND MASTER :: 오늘의 속기왕</title>
+    <title>SHORTHAND MASTER :: 내가 바로 속기왕</title>
     <style>
         :root {
             --bg-color: #f0f2f5; --card-bg: #ffffff; --accent: #6c5e7f;
@@ -11,6 +11,7 @@
         }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         
+        /* 실시간 전광판 스타일 */
         .podium {
             display: flex; justify-content: space-around; align-items: flex-end;
             width: 100%; max-width: 900px; background: #2d3436; color: white;
@@ -30,6 +31,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .target-box { background: #f8f9fa; padding: 40px; border-radius: 15px; font-size: 1.8rem; font-weight: 600; min-height: 80px; margin-bottom: 25px; line-height: 1.5; text-align: center; }
         
+        /* 글자 색상 피드백 */
         .char { color: #d1d8e0; }
         .correct { color: #2d3436; }
         .incorrect { color: #ff7675; background: rgba(255,118,117,0.1); border-radius: 4px; }
@@ -52,24 +54,24 @@
 <body>
 
 <div class="podium">
-    <div class="podium-item p-2">🥈 2위<span id="p2-name" class="name">-</span><span id="p2-cpm" class="cpm">0 CPM</span></div>
-    <div class="podium-item p-1">👑 1위<span id="p1-name" class="name">대기 중</span><span id="p1-cpm" class="cpm">0 CPM</span></div>
-    <div class="podium-item p-3">🥉 3위<span id="p3-name" class="name">-</span><span id="p3-cpm" class="cpm">0 CPM</span></div>
+    <div class="podium-item p-2">🥈 2위<span id="p2-name" class="name">-</span><span id="p2-cpm" class="cpm">0 자</span></div>
+    <div class="podium-item p-1">👑 1위<span id="p1-name" class="name">대기 중</span><span id="p1-cpm" class="cpm">0 자</span></div>
+    <div class="podium-item p-3">🥉 3위<span id="p3-name" class="name">-</span><span id="p3-cpm" class="cpm">0 자</span></div>
 </div>
 
 <div class="container">
     <div class="header">
-        <div><b>지문:</b> <span id="file-name-display" style="color:var(--accent)">아직 대결 파일이 업로드되지 않았어요</span></div>
-        <div style="text-align: right;">⏱ <span id="timer">0초</span> | 🚀 <span id="current-cpm" style="color:var(--accent)">0 CPM</span></div>
+        <div><b>지문:</b> <span id="file-name-display" style="color:var(--accent)">로딩 중...</span></div>
+        <div style="text-align: right;">⏱ <span id="timer">0초</span> | 🚀 <span id="current-cpm" style="color:var(--accent)">0 자</span></div>
     </div>
 
-    <div id="target-box" class="target-box">대기 중...</div>
+    <div id="target-box" class="target-box">데이터를 불러오고 있습니다...</div>
     <input type="text" id="input-field" placeholder="타이핑을 시작하세요!" autofocus autocomplete="off">
 
     <div class="btn-group">
         <label id="admin-upload-btn" class="btn btn-file">📁 파일 업로드 <input type="file" id="file-selector" style="display:none"></label>
         <button class="btn btn-reset" onclick="resetGame()">🔄 리셋</button>
-        <button class="btn btn-rank" onclick="toggleRank()">🏆 실시간 랭킹</button>
+        <button class="btn btn-rank" onclick="toggleRank()">🏆 실시간 순위</button>
     </div>
 </div>
 
@@ -81,8 +83,8 @@
 </div>
 
 <script>
-    // [선생님께서 주신 URL 반영]
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZMkokZZus1f3FRq5hsv2skxJfWZCrZ6UPl2z9OPjPnqWAH4Jq0bQNL4mSrn1sV5I/exec";
+    // 선생님의 새로운 SCRIPT_URL 적용
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyF4LnF-NeJx6DTfYLRYXTdAutlZS_7dlDUnWluMmkHERkJ3h1DbhYQspBfoliHyI/exec";
     
     const adminNames = ["가을", "한솔", "지훈", "도현", "신윤경", "진경은", "황아율"];
     const currentUser = sessionStorage.getItem('shorthand_user');
@@ -91,22 +93,20 @@
     const box = document.getElementById('target-box');
     const inp = document.getElementById('input-field');
 
-    // 실시간 서버 동기화 함수
+    // 서버 동기화 (지문 & 랭킹)
     async function syncContent() {
         try {
             const res = await fetch(SCRIPT_URL);
             const data = await res.json();
             
-            // 1. 지문 동기화
             if (data.target && data.target.fileName !== document.getElementById('file-name-display').innerText) {
                 document.getElementById('file-name-display').innerText = data.target.fileName;
                 rawText = data.target.content;
                 displayChunks = sliceText(rawText);
                 resetGame();
             }
-            // 2. 랭킹 동기화
             if (data.ranks) updateRankingUI(data.ranks);
-        } catch(e) { console.log("서버 확인 중..."); }
+        } catch(e) { console.error("Sync Error"); }
     }
 
     function updateRankingUI(ranks) {
@@ -116,21 +116,19 @@
 
         ['p1','p2','p3'].forEach(id => { 
             document.getElementById(`${id}-name`).innerText = "-"; 
-            document.getElementById(`${id}-cpm`).innerText = "0 CPM"; 
+            document.getElementById(`${id}-cpm`).innerText = "0 자"; 
         });
         filtered.slice(0, 3).forEach((d, i) => {
             document.getElementById(`p${i+1}-name`).innerText = d.name;
-            document.getElementById(`p${i+1}-cpm`).innerText = d.cpm + " CPM";
+            document.getElementById(`p${i+1}-cpm`).innerText = d.cpm + " 자";
         });
         document.getElementById('rank-list').innerHTML = filtered.map((r,i) => `
-            <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm} CPM</span></div>
+            <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm} 자</span></div>
         `).join('') || "기록이 없습니다.";
     }
 
     function checkPermission() {
-        if (adminNames.includes(currentUser)) {
-            document.getElementById('admin-upload-btn').style.display = 'flex';
-        }
+        if (adminNames.includes(currentUser)) document.getElementById('admin-upload-btn').style.display = 'flex';
     }
 
     function cleanText(str) { return str.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, ""); }
@@ -150,7 +148,7 @@
 
     function render() {
         if (isTransitioning) return;
-        const targetText = displayChunks[curIdx] || "대결 지문을 기다리고 있습니다...";
+        const targetText = displayChunks[curIdx] || "지문이 없습니다.";
         const cleanTarget = cleanText(targetText);
         const cleanTyped = cleanText(inp.value);
         box.innerHTML = '';
@@ -175,18 +173,18 @@
     }
 
     function moveToNext() {
-        isTransitioning = true; inp.readOnly = true; inp.value = "";
+        isTransitioning = true; inp.readOnly = true;
         totalTypedLength += displayChunks[curIdx].length;
         setTimeout(() => {
             if (curIdx < displayChunks.length - 1) {
-                curIdx++; isTransitioning = false; inp.readOnly = false; render(); inp.focus();
+                curIdx++; isTransitioning = false; inp.readOnly = false; inp.value = ""; render(); inp.focus();
             } else { finishGame(); }
         }, 50);
     }
 
     async function finishGame() {
         clearInterval(timerInt);
-        const finalCpm = document.getElementById('current-cpm').innerText.replace(' CPM', '');
+        const finalCpm = document.getElementById('current-cpm').innerText.replace(' 자', '');
         if (currentUser && finalCpm > 0) {
             await fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -197,7 +195,7 @@
                     cpm: parseInt(finalCpm)
                 })
             });
-            alert(`대결 종료! ${finalCpm} CPM 기록이 저장되었습니다.`);
+            alert(`대결 종료! 기록: ${finalCpm} 자`);
             syncContent();
         }
         resetGame();
@@ -208,7 +206,7 @@
         if (timerInt) clearInterval(timerInt);
         inp.value = ""; inp.readOnly = false;
         document.getElementById('timer').innerText = '0초';
-        document.getElementById('current-cpm').innerText = '0 CPM';
+        document.getElementById('current-cpm').innerText = '0 자';
         render();
     }
 
@@ -227,7 +225,7 @@
                 const elap = (new Date() - startTime) / 1000;
                 document.getElementById('timer').innerText = Math.floor(elap) + "초";
                 const total = totalTypedLength + inp.value.length;
-                document.getElementById('current-cpm').innerText = elap > 0 ? Math.floor(total/(elap/60)) + " CPM" : "0 CPM";
+                document.getElementById('current-cpm').innerText = elap > 0 ? Math.floor(total/(elap/60)) + " 자" : "0 자";
             }, 500);
         }
         render();
@@ -239,7 +237,7 @@
         const reader = new FileReader();
         reader.onload = async (ev) => { 
             const content = ev.target.result;
-            document.getElementById('file-name-display').innerText = "지문 배포 중...";
+            document.getElementById('file-name-display').innerText = "배포 중...";
             await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "saveTargetText", fileName: file.name, content: content })
@@ -250,10 +248,9 @@
     });
 
     checkPermission();
-    syncContent(); // 접속 즉시 서버 지문 확인
-    setInterval(syncContent, 5000); // 5초마다 자동 동기화
+    syncContent();
+    setInterval(syncContent, 10000);
     render();
 </script>
 </body>
 </html>
-
