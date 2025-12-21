@@ -56,7 +56,6 @@
         }
         .logout-btn:hover { background: #fdcb6e; }
 
-        /* ✨ 소리자바 아카데미 배너 스타일 추가 */
         .academy-banner {
             display: flex; align-items: center; justify-content: space-between;
             background: linear-gradient(135deg, #6c5e7f 0%, #4a3f58 100%);
@@ -156,14 +155,14 @@
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxaxj3MBG5MK3nIO8hOV3EH9clAQi00pp-L78weLbFP7wj-9X1Fwt9ExUAncapRJsY/exec"; 
-let currentUser = localStorage.getItem('shorthand_user');
+// 변경: localStorage 대신 sessionStorage 사용
+let currentUser = sessionStorage.getItem('shorthand_user');
 
 function initApp() {
     if (currentUser) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
         
-        // ✨ 아줌마들을 위한 "빛나는 당신" 후킹 문구 적용
         document.getElementById('welcomeMsg').innerHTML = ` <b>${currentUser}</b>님! 오늘도 응원합니다. 🌸`;
         
         checkAuth(); 
@@ -184,8 +183,9 @@ async function login() {
         const data = await res.json();
         if (data.result === "success") { 
             currentUser = data.name; 
-            localStorage.setItem('shorthand_user', currentUser); 
-            localStorage.setItem('shorthand_token', data.token); 
+            // 변경: sessionStorage에 저장
+            sessionStorage.setItem('shorthand_user', currentUser); 
+            sessionStorage.setItem('shorthand_token', data.token); 
             initApp(); 
         } else { 
             alert("앗, 이름이나 비번이 틀린 것 같아요! 😢"); 
@@ -197,8 +197,9 @@ async function login() {
 }
 
 async function checkAuth() {
-    const name = localStorage.getItem('shorthand_user');
-    const token = localStorage.getItem('shorthand_token');
+    // 변경: sessionStorage에서 가져오기
+    const name = sessionStorage.getItem('shorthand_user');
+    const token = sessionStorage.getItem('shorthand_token');
     if (!name || !token) return;
 
     try {
@@ -209,7 +210,7 @@ async function checkAuth() {
         const data = await res.json();
         if (data.result === "invalid") {
             alert("🚨 다른 기기에서 로그인이 감지되어 접속을 종료합니다.");
-            localStorage.clear();
+            sessionStorage.clear(); // 변경
             location.reload();
         }
     } catch(e) { console.log("인증 체크 대기 중..."); }
@@ -217,7 +218,7 @@ async function checkAuth() {
 
 function logout() {
     if(confirm("정말 로그아웃 하시겠나요?")) {
-        localStorage.clear(); 
+        sessionStorage.clear(); // 변경
         location.reload();
     }
 }
@@ -226,5 +227,3 @@ setInterval(checkAuth, 60000);
 </script>
 </body>
 </html>
-
-
