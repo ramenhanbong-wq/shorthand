@@ -104,7 +104,7 @@
         <div class="login-box">
             <h2>⌨️ SHORTHAND<br>MASTER</h2>
             <input type="text" id="nameInput" placeholder="이름을 알려주세요">
-            <input type="password" id="pwInput" placeholder="비밀번호">
+            <input type="password" id="pwInput" placeholder="비밀번호" onkeypress="if(event.keyCode==13) login()">
             <button onclick="login()" id="loginBtn" class="login-btn">접속하기</button>
         </div>
     </div>
@@ -149,22 +149,26 @@
                 <div class="title">약어 랜덤</div>
                 <div class="desc">무작위 약어 암기 및<br>오답 목록 관리 모드</div>
             </a>
+            <a href="king.html" class="menu-card">
+                <div class="icon-circle">👑</div>
+                <div class="title">나는야 타자왕</div>
+                <div class="desc">실시간 전광판 랭킹 대결!<br>오늘의 타자왕은 누구?</div>
+            </a>
         </div>
         <footer>© 2025 Created by <b>Gaeul</b>. Keep Typing!</footer>
     </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxaxj3MBG5MK3nIO8hOV3EH9clAQi00pp-L78weLbFP7wj-9X1Fwt9ExUAncapRJsY/exec"; 
-// 변경: localStorage 대신 sessionStorage 사용
+// [중요] 월요일 사무실에서 배포하신 새 GAS URL로 교체해 주세요.
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyYAfDv6U9FMOX5lI9VdY9F3_NnhuyY1SbvYRReo2WqsT7mIY_RPKeNKfiGWJKxP_o/exec"; 
+
 let currentUser = sessionStorage.getItem('shorthand_user');
 
 function initApp() {
     if (currentUser) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
-        
         document.getElementById('welcomeMsg').innerHTML = ` <b>${currentUser}</b>님! 오늘도 응원합니다. 🌸`;
-        
         checkAuth(); 
     } else {
         document.getElementById('login-screen').style.display = 'flex';
@@ -183,7 +187,6 @@ async function login() {
         const data = await res.json();
         if (data.result === "success") { 
             currentUser = data.name; 
-            // 변경: sessionStorage에 저장
             sessionStorage.setItem('shorthand_user', currentUser); 
             sessionStorage.setItem('shorthand_token', data.token); 
             initApp(); 
@@ -197,7 +200,6 @@ async function login() {
 }
 
 async function checkAuth() {
-    // 변경: sessionStorage에서 가져오기
     const name = sessionStorage.getItem('shorthand_user');
     const token = sessionStorage.getItem('shorthand_token');
     if (!name || !token) return;
@@ -210,7 +212,7 @@ async function checkAuth() {
         const data = await res.json();
         if (data.result === "invalid") {
             alert("🚨 다른 기기에서 로그인이 감지되어 접속을 종료합니다.");
-            sessionStorage.clear(); // 변경
+            sessionStorage.clear(); 
             location.reload();
         }
     } catch(e) { console.log("인증 체크 대기 중..."); }
@@ -218,7 +220,7 @@ async function checkAuth() {
 
 function logout() {
     if(confirm("정말 로그아웃 하시겠나요?")) {
-        sessionStorage.clear(); // 변경
+        sessionStorage.clear(); 
         location.reload();
     }
 }
