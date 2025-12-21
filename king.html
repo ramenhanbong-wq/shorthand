@@ -49,7 +49,7 @@
         <div><b>지문:</b> <span id="file-name-display" style="color:var(--accent)">로딩 중...</span></div>
         <div style="text-align: right;">⏱ <span id="timer">0초</span> | 🚀 <span id="current-cpm" style="color:var(--accent)">0 자</span></div>
     </div>
-    <div id="target-box" class="target-box">데이터를 불러오고 있습니다...</div>
+    <div id="target-box" class="target-box">준비 중...</div>
     <input type="text" id="input-field" placeholder="타이핑을 시작하세요!" autofocus autocomplete="off">
     <div class="btn-group">
         <label id="admin-upload-btn" class="btn btn-file">📁 파일 업로드 <input type="file" id="file-selector" style="display:none"></label>
@@ -60,13 +60,14 @@
 
 <div class="overlay" id="overlay" onclick="toggleRank()"></div>
 <div id="rank-modal">
-    <h3 style="margin-top:0">📊 오늘의 실시간 순위</h3>
+    <h3 style="margin-top:0">📊 오늘의 순위 (1인 1기록)</h3>
     <div id="rank-list" style="max-height: 350px; overflow-y: auto;"></div>
     <button class="btn btn-reset" style="width:100%; margin-top:20px;" onclick="toggleRank()">닫기</button>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygQWqXiXEbw7gUOUan-wz5Clw4G9bRsiIZT0K-x6iesAQKWpGjDTv632ZrDBZ9W9Q/exec";
+    // [중요] 여기에 선생님의 웹 앱 URL을 넣으세요!
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEH1uan0uOZbnVWzWeKovAFuua3bj59GlWb9Tu8UuD89gvdzgQkgRHbzARV4juQCM/exec";
     
     const adminNames = ["가을", "한솔", "지훈", "도현", "신윤경", "진경은", "황아율"];
     const currentUser = sessionStorage.getItem('shorthand_user');
@@ -91,29 +92,23 @@
 
     function updateRankingUI(ranks) {
         const fName = document.getElementById('file-name-display').innerText;
-        const now = new Date();
-        const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-        const todayStr = kstDate.toISOString().split('T')[0];
+        const todayStr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0];
 
-        const filtered = ranks.filter(r => r.date === todayStr && r.fileName === fName).sort((a, b) => b.cpm - a.cpm);
-
-        ['p1','p2','p3'].forEach(id => { 
-            document.getElementById(`${id}-name`).innerText = "-"; 
-            document.getElementById(`${id}-cpm`).innerText = "0 자"; 
+        // 1. 오늘 날짜/현재 지문 필터링 + 1인 1최고기록 로직
+        const bestScores = {};
+        ranks.filter(r => r.date === todayStr && r.fileName === fName).forEach(r => {
+            if (!bestScores[r.name] || r.cpm > bestScores[r.name].cpm) bestScores[r.name] = r;
         });
+        const uniqueRanks = Object.values(bestScores).sort((a, b) => b.cpm - a.cpm);
 
-        filtered.slice(0, 3).forEach((d, i) => {
+        ['p1','p2','p3'].forEach(id => { document.getElementById(`${id}-name`).innerText = "-"; document.getElementById(`${id}-cpm`).innerText = "0 자"; });
+        uniqueRanks.slice(0, 3).forEach((d, i) => {
             document.getElementById(`p${i+1}-name`).innerText = d.name;
             document.getElementById(`p${i+1}-cpm`).innerText = d.cpm + " 자";
         });
-
-        document.getElementById('rank-list').innerHTML = filtered.map((r, i) => `
+        document.getElementById('rank-list').innerHTML = uniqueRanks.map((r, i) => `
             <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm} 자</span></div>
         `).join('') || "기록이 없습니다.";
-    }
-
-    function checkPermission() {
-        if (adminNames.includes(currentUser)) document.getElementById('admin-upload-btn').style.display = 'flex';
     }
 
     function cleanText(str) { return str.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, ""); }
@@ -137,14 +132,12 @@
         const cleanTarget = cleanText(targetText);
         const cleanTyped = cleanText(inp.value);
         box.innerHTML = '';
-        
         let tPtr = 0, dPtr = 0;
         targetText.split('').forEach(char => {
             const span = document.createElement('span');
             span.innerText = char;
-            if (/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(char)) {
-                span.className = 'char ignored';
-            } else {
+            if (/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(char)) span.className = 'char ignored';
+            else {
                 span.className = 'char';
                 if (dPtr < cleanTyped.length) {
                     span.classList.add(cleanTyped[dPtr] === cleanTarget[tPtr] ? 'correct' : 'incorrect');
@@ -154,7 +147,6 @@
             }
             box.appendChild(span);
         });
-
         if (cleanTyped.length > 0 && cleanTyped === cleanTarget) moveToNext();
     }
 
@@ -163,10 +155,19 @@
         isTransitioning = true;
         totalTypedLength += cleanText(displayChunks[curIdx]).length;
         
-        inp.value = "";
+        // [버그 방지 핵심] 입력창을 비우고 이벤트를 차단한 뒤 다음 지문으로
+        const oldVal = inp.value;
+        inp.value = ""; 
+        inp.style.pointerEvents = "none"; 
+
         if (curIdx < displayChunks.length - 1) {
             curIdx++;
-            setTimeout(() => { isTransitioning = false; render(); }, 20); 
+            setTimeout(() => {
+                isTransitioning = false;
+                inp.style.pointerEvents = "auto";
+                render();
+                inp.focus();
+            }, 50); // 50ms의 여유를 두어 이전 지문의 글자가 섞이지 않게 함
         } else {
             finishGame();
         }
@@ -184,7 +185,7 @@
                     cpm: parseInt(finalCpm)
                 })
             });
-            alert(`대결 종료! ${finalCpm} 자 기록이 저장되었습니다.`);
+            alert(`완료! 기록: ${finalCpm} 자`);
             syncContent();
         }
         resetGame();
@@ -193,7 +194,7 @@
     function resetGame() {
         curIdx = 0; totalTypedLength = 0; startTime = null; isTransitioning = false;
         if (timerInt) clearInterval(timerInt);
-        inp.value = ""; 
+        inp.value = ""; inp.style.pointerEvents = "auto";
         document.getElementById('timer').innerText = '0초';
         document.getElementById('current-cpm').innerText = '0 자';
         render();
@@ -207,7 +208,8 @@
         if(!isV) syncContent();
     }
 
-    inp.addEventListener('input', () => {
+    inp.addEventListener('input', (e) => {
+        if (isTransitioning) { e.preventDefault(); inp.value = ""; return; }
         if (!startTime && inp.value.length > 0 && displayChunks.length > 0) { 
             startTime = new Date(); 
             timerInt = setInterval(() => {
@@ -225,18 +227,18 @@
         if(!file) return;
         const reader = new FileReader();
         reader.onload = async (ev) => { 
-            const content = ev.target.result;
             document.getElementById('file-name-display').innerText = "배포 중...";
             await fetch(SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: "saveTargetText", fileName: file.name, content: content })
+                body: JSON.stringify({ action: "saveTargetText", fileName: file.name, content: ev.target.result })
             });
             syncContent(); 
         };
         reader.readAsText(file, 'utf-8');
     });
 
-    checkPermission(); syncContent(); setInterval(syncContent, 10000); render();
+    if (adminNames.includes(currentUser)) document.getElementById('admin-upload-btn').style.display = 'flex';
+    syncContent(); setInterval(syncContent, 10000); render();
 </script>
 </body>
 </html>
