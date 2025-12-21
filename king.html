@@ -2,66 +2,89 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHORTHAND MASTER :: 내가 바로 속기왕</title>
     <style>
         :root {
             --bg-color: #f0f2f5; --card-bg: #ffffff; --accent: #6c5e7f;
             --gold: #f1c40f; --silver: #bdc3c7; --bronze: #cd7f32;
         }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .podium { display: flex; justify-content: space-around; align-items: flex-end; width: 100%; max-width: 900px; background: #2d3436; color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .podium-item { text-align: center; flex: 1; transition: 0.3s; }
-        .p-1 { color: var(--gold); font-size: 1.4rem; font-weight: 800; order: 2; border-top: 3px solid var(--gold); padding-top: 5px; }
-        .p-2 { color: var(--silver); order: 1; }
-        .p-3 { color: var(--bronze); order: 3; }
-        .podium-item .name { display: block; font-size: 1.1rem; margin-top: 5px; color: #fff; }
-        .podium-item .cpm { font-size: 0.9rem; opacity: 0.8; }
-        .container { width: 95%; max-width: 900px; background: var(--card-bg); padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        .target-box { background: #f8f9fa; padding: 40px; border-radius: 15px; font-size: 1.8rem; font-weight: 600; min-height: 80px; margin-bottom: 25px; line-height: 1.5; text-align: center; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; box-sizing: border-box; }
+        
+        /* 반응형 포디움 */
+        .podium { display: flex; justify-content: space-around; align-items: flex-end; width: 100%; max-width: 900px; background: #2d3436; color: white; padding: 15px 5px; border-radius: 20px; margin-bottom: 15px; }
+        .podium-item { text-align: center; flex: 1; min-width: 0; }
+        .p-1 { color: var(--gold); font-size: 1.2rem; font-weight: 800; order: 2; border-top: 3px solid var(--gold); }
+        .p-2 { color: var(--silver); order: 1; font-size: 0.9rem; }
+        .p-3 { color: var(--bronze); order: 3; font-size: 0.9rem; }
+        .podium-item .name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 5px; }
+        
+        .container { width: 100%; max-width: 900px; background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); box-sizing: border-box; }
+        
+        /* 글자 수 조절 설정 */
+        .settings { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 10px; font-size: 0.9rem; }
+        input[type="range"] { flex: 1; max-width: 200px; cursor: pointer; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.85rem; }
+        .target-box { background: #f8f9fa; padding: 25px 15px; border-radius: 15px; font-size: 1.4rem; font-weight: 600; min-height: 60px; margin-bottom: 20px; line-height: 1.6; text-align: center; word-break: keep-all; }
+        
         .char { color: #d1d8e0; }
         .correct { color: #2d3436; }
         .incorrect { color: #ff7675; background: rgba(255,118,117,0.1); border-radius: 4px; }
         .ignored { color: #dfe6e9; }
-        .typing-input { width: 100%; padding: 20px; font-size: 1.6rem; border: 3px solid #dfe6e9; border-radius: 15px; outline: none; text-align: center; box-sizing: border-box; transition: 0.2s; }
-        .typing-input:focus { border-color: var(--accent); }
-        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
-        .btn { padding: 15px 25px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; flex: 1; font-size: 1rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        #rank-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.3); z-index: 1000; width: 85%; max-width: 450px; }
+        
+        .typing-input { width: 100%; padding: 15px; font-size: 1.3rem; border: 3px solid #dfe6e9; border-radius: 12px; outline: none; text-align: center; box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+        .btn { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; flex: 1; min-width: 100px; font-size: 0.9rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+
+        /* 모바일 최적화 미디어 쿼리 */
+        @media (max-width: 600px) {
+            .target-box { font-size: 1.1rem; padding: 20px 10px; }
+            .typing-input { font-size: 1.1rem; }
+            .podium-item .name { font-size: 0.8rem; }
+            .container { padding: 15px; }
+        }
+
+        #rank-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 15px; z-index: 1000; width: 90%; max-width: 400px; }
         .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; }
-        .rank-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
 <div class="podium">
-    <div class="podium-item p-2">🥈 2위<span id="p2-name" class="name">-</span><span id="p2-cpm" class="cpm">0 자</span></div>
-    <div class="podium-item p-1">👑 1위<span id="p1-name" class="name">대기 중</span><span id="p1-cpm" class="cpm">0 자</span></div>
-    <div class="podium-item p-3">🥉 3위<span id="p3-name" class="name">-</span><span id="p3-cpm" class="cpm">0 자</span></div>
+    <div class="podium-item p-2">🥈 2위<span id="p2-name" class="name">-</span><span id="p2-cpm">0</span></div>
+    <div class="podium-item p-1">👑 1위<span id="p1-name" class="name">대기 중</span><span id="p1-cpm">0</span></div>
+    <div class="podium-item p-3">🥉 3위<span id="p3-name" class="name">-</span><span id="p3-cpm">0</span></div>
 </div>
 
 <div class="container">
-    <div class="header">
-        <div><b>지문:</b> <span id="file-name-display" style="color:var(--accent)">로딩 중...</span></div>
-        <div style="text-align: right;">⏱ <span id="timer">0초</span> | 🚀 <span id="current-cpm" style="color:var(--accent)">0 자</span></div>
+    <div class="settings">
+        <span>표시 글자 수:</span>
+        <input type="range" id="chunk-slider" min="10" max="50" value="30" oninput="updateChunkSize(this.value)">
+        <span id="chunk-val">30자</span>
     </div>
+
+    <div class="header">
+        <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><b>지문:</b> <span id="file-name-display">-</span></div>
+        <div style="margin-left:10px;">⏱<span id="timer">0초</span> | 🚀<span id="current-cpm">0자</span></div>
+    </div>
+
     <div id="target-box" class="target-box">데이터 로딩 중...</div>
-    
-    <div id="input-wrapper">
-        </div>
+    <div id="input-wrapper"></div>
 
     <div class="btn-group">
-        <label id="admin-upload-btn" class="btn" style="background:#54a0ff; color:white; display:none;">📁 파일 업로드 <input type="file" id="file-selector" style="display:none"></label>
+        <label id="admin-upload-btn" class="btn" style="background:#54a0ff; color:white; display:none;">📁 업로드 <input type="file" id="file-selector" style="display:none"></label>
         <button class="btn" style="background:#ee5253; color:white;" onclick="resetGame()">🔄 리셋</button>
-        <button class="btn" style="background:#10ac84; color:white;" onclick="toggleRank()">🏆 실시간 순위</button>
+        <button class="btn" style="background:#10ac84; color:white;" onclick="toggleRank()">🏆 순위</button>
     </div>
 </div>
 
 <div class="overlay" id="overlay" onclick="toggleRank()"></div>
 <div id="rank-modal">
     <h3 style="margin-top:0">📊 오늘의 순위 (1인 1기록)</h3>
-    <div id="rank-list" style="max-height: 350px; overflow-y: auto;"></div>
-    <button class="btn" style="background:#eee; width:100%; margin-top:20px;" onclick="toggleRank()">닫기</button>
+    <div id="rank-list" style="max-height: 300px; overflow-y: auto;"></div>
+    <button class="btn" style="background:#eee; width:100%; margin-top:15px;" onclick="toggleRank()">닫기</button>
 </div>
 
 <script>
@@ -70,17 +93,44 @@
     const currentUser = sessionStorage.getItem('shorthand_user');
 
     let rawText = "", displayChunks = [], curIdx = 0, startTime = null, timerInt = null, totalTypedLength = 0, isTransitioning = false;
+    let chunkSize = 30;
 
-    // [핵심] 입력창을 물리적으로 파괴하고 새로 만드는 함수 (한글 끌림 현상 방지)
+    function updateChunkSize(val) {
+        chunkSize = parseInt(val);
+        document.getElementById('chunk-val').innerText = val + "자";
+        if(rawText) {
+            displayChunks = sliceTextByEojeol(rawText, chunkSize);
+            resetGame();
+        }
+    }
+
+    // 어절 단위로 자르는 핵심 로직
+    function sliceTextByEojeol(text, limit) {
+        if(!text) return [];
+        let result = [];
+        let str = text.replace(/\s+/g, ' ').trim();
+        
+        while (str.length > 0) {
+            if (str.length <= limit) {
+                result.push(str);
+                break;
+            }
+            let cutPos = str.lastIndexOf(' ', limit); // 지정 길이 내 마지막 공백 찾기
+            if (cutPos === -1) cutPos = str.indexOf(' ', limit); // 없으면 그 다음 공백 찾기
+            if (cutPos === -1) cutPos = str.length; // 그래도 없으면 끝까지
+            
+            result.push(str.substring(0, cutPos).trim());
+            str = str.substring(cutPos).trim();
+        }
+        return result;
+    }
+
     function createNewInput() {
         const wrapper = document.getElementById('input-wrapper');
-        wrapper.innerHTML = ''; // 이전 입력창과 한글 조합 상태를 메모리에서 삭제
+        wrapper.innerHTML = '';
         const newInp = document.createElement('input');
-        newInp.type = 'text';
-        newInp.id = 'input-field';
-        newInp.className = 'typing-input';
-        newInp.placeholder = '타이핑을 시작하세요!';
-        newInp.autocomplete = 'off';
+        newInp.type = 'text'; newInp.id = 'input-field'; newInp.className = 'typing-input';
+        newInp.placeholder = '입력하세요...'; newInp.autocomplete = 'off';
         newInp.addEventListener('input', handleTyping);
         wrapper.appendChild(newInp);
         newInp.focus();
@@ -93,7 +143,7 @@
             if (data.target && data.target.fileName !== document.getElementById('file-name-display').innerText) {
                 document.getElementById('file-name-display').innerText = data.target.fileName;
                 rawText = data.target.content;
-                displayChunks = sliceText(rawText);
+                displayChunks = sliceTextByEojeol(rawText, chunkSize);
                 resetGame();
             }
             if (data.ranks) updateRankingUI(data.ranks);
@@ -102,36 +152,20 @@
 
     function updateRankingUI(ranks) {
         const fName = document.getElementById('file-name-display').innerText;
-        const todayStr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0];
-        
-        // [랭킹 로직] 동일 이름은 최고 CPM 기록 1개만 남김
-        const bestScores = {};
-        ranks.filter(r => r.date === todayStr && r.fileName === fName).forEach(r => {
-            if (!bestScores[r.name] || r.cpm > bestScores[r.name].cpm) bestScores[r.name] = r;
+        const today = new Date(new Date().getTime() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0];
+        const bests = {};
+        ranks.filter(r => r.date === today && r.fileName === fName).forEach(r => {
+            if (!bests[r.name] || r.cpm > bests[r.name].cpm) bests[r.name] = r;
         });
-        const uniqueRanks = Object.values(bestScores).sort((a, b) => b.cpm - a.cpm);
-
+        const sorted = Object.values(bests).sort((a, b) => b.cpm - a.cpm);
         ['p1','p2','p3'].forEach((id, i) => {
-            const d = uniqueRanks[i];
+            const d = sorted[i];
             document.getElementById(`${id}-name`).innerText = d ? d.name : "-";
-            document.getElementById(`${id}-cpm`).innerText = d ? d.cpm + " 자" : "0 자";
+            document.getElementById(`${id}-cpm`).innerText = d ? d.cpm : "0";
         });
-        document.getElementById('rank-list').innerHTML = uniqueRanks.map((r, i) => `
-            <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm} 자</span></div>
-        `).join('') || "기록이 없습니다.";
-    }
-
-    function sliceText(text) {
-        if(!text) return [];
-        const words = text.replace(/\s+/g, ' ').split(' ');
-        let chunks = [], currentChunk = "";
-        words.forEach(word => {
-            if ((currentChunk + word).length > 30 && currentChunk !== "") {
-                chunks.push(currentChunk.trim()); currentChunk = word + " ";
-            } else { currentChunk += word + " "; }
-        });
-        if (currentChunk) chunks.push(currentChunk.trim());
-        return chunks;
+        document.getElementById('rank-list').innerHTML = sorted.map((r, i) => `
+            <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm}자</span></div>
+        `).join('') || "기록 없음";
     }
 
     function render() {
@@ -162,18 +196,11 @@
         if (cleanTyped.length > 0 && cleanTyped === cleanTarget) {
             isTransitioning = true;
             totalTypedLength += cleanTarget.length;
-            document.getElementById('input-wrapper').innerHTML = ""; // 즉시 삭제
-            
+            document.getElementById('input-wrapper').innerHTML = "";
             if (curIdx < displayChunks.length - 1) {
                 curIdx++;
-                setTimeout(() => {
-                    isTransitioning = false;
-                    createNewInput();
-                    render();
-                }, 50); 
-            } else {
-                finishGame();
-            }
+                setTimeout(() => { isTransitioning = false; createNewInput(); render(); }, 50);
+            } else { finishGame(); }
         }
     }
 
@@ -184,9 +211,8 @@
             timerInt = setInterval(() => {
                 const elap = (new Date() - startTime) / 1000;
                 document.getElementById('timer').innerText = Math.floor(elap) + "초";
-                const currentTyped = cleanText(document.getElementById('input-field').value).length;
-                const total = totalTypedLength + currentTyped;
-                document.getElementById('current-cpm').innerText = elap > 0 ? Math.floor(total/(elap/60)) + " 자" : "0 자";
+                const total = totalTypedLength + cleanText(document.getElementById('input-field').value).length;
+                document.getElementById('current-cpm').innerText = elap > 0 ? Math.floor(total/(elap/60)) + "자" : "0자";
             }, 500);
         }
         render();
@@ -194,29 +220,23 @@
 
     async function finishGame() {
         clearInterval(timerInt);
-        const finalCpm = document.getElementById('current-cpm').innerText.replace(' 자', '');
+        const finalCpm = document.getElementById('current-cpm').innerText.replace('자', '');
         if (currentUser && finalCpm > 0) {
             await fetch(SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({
-                    action: "saveScore", name: currentUser,
-                    fileName: document.getElementById('file-name-display').innerText,
-                    cpm: parseInt(finalCpm)
-                })
+                body: JSON.stringify({ action: "saveScore", name: currentUser, fileName: document.getElementById('file-name-display').innerText, cpm: parseInt(finalCpm) })
             });
             syncContent();
         }
-        alert("모든 지문을 입력했습니다!");
-        resetGame();
+        alert("완료!"); resetGame();
     }
 
     function resetGame() {
         curIdx = 0; totalTypedLength = 0; startTime = null; isTransitioning = false;
         if (timerInt) clearInterval(timerInt);
         document.getElementById('timer').innerText = '0초';
-        document.getElementById('current-cpm').innerText = '0 자';
-        createNewInput();
-        render();
+        document.getElementById('current-cpm').innerText = '0자';
+        createNewInput(); render();
     }
 
     function cleanText(str) { return str.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, ""); }
@@ -233,10 +253,7 @@
         if(!file) return;
         const reader = new FileReader();
         reader.onload = async (ev) => { 
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "saveTargetText", fileName: file.name, content: ev.target.result })
-            });
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "saveTargetText", fileName: file.name, content: ev.target.result }) });
             syncContent(); 
         };
         reader.readAsText(file, 'utf-8');
