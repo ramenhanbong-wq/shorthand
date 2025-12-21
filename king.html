@@ -10,42 +10,27 @@
             --gold: #f1c40f; --silver: #bdc3c7; --bronze: #cd7f32;
         }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        /* 실시간 전광판 스타일 */
-        .podium {
-            display: flex; justify-content: space-around; align-items: flex-end;
-            width: 100%; max-width: 900px; background: #2d3436; color: white;
-            padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
+        .podium { display: flex; justify-content: space-around; align-items: flex-end; width: 100%; max-width: 900px; background: #2d3436; color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .podium-item { text-align: center; flex: 1; transition: 0.3s; }
         .p-1 { color: var(--gold); font-size: 1.4rem; font-weight: 800; order: 2; border-top: 3px solid var(--gold); padding-top: 5px; }
         .p-2 { color: var(--silver); order: 1; }
         .p-3 { color: var(--bronze); order: 3; }
         .podium-item .name { display: block; font-size: 1.1rem; margin-top: 5px; color: #fff; }
         .podium-item .cpm { font-size: 0.9rem; opacity: 0.8; }
-
-        .container { 
-            width: 95%; max-width: 900px; background: var(--card-bg); padding: 40px; 
-            border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-        }
+        .container { width: 95%; max-width: 900px; background: var(--card-bg); padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .target-box { background: #f8f9fa; padding: 40px; border-radius: 15px; font-size: 1.8rem; font-weight: 600; min-height: 80px; margin-bottom: 25px; line-height: 1.5; text-align: center; }
-        
-        /* 글자 색상 피드백 */
         .char { color: #d1d8e0; }
         .correct { color: #2d3436; }
         .incorrect { color: #ff7675; background: rgba(255,118,117,0.1); border-radius: 4px; }
         .ignored { color: #dfe6e9; }
-
         input[type="text"] { width: 100%; padding: 20px; font-size: 1.6rem; border: 3px solid #dfe6e9; border-radius: 15px; outline: none; text-align: center; transition: 0.3s; box-sizing: border-box; }
         input[type="text"]:focus { border-color: var(--accent); }
-
         .btn-group { display: flex; gap: 10px; margin-top: 25px; }
         .btn { padding: 15px 25px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; flex: 1; font-size: 1rem; transition: 0.2s; text-decoration: none; display: flex; align-items: center; justify-content: center; }
         .btn-rank { background: #10ac84; color: white; }
         .btn-reset { background: #ee5253; color: white; }
         .btn-file { background: #54a0ff; color: white; display: none; }
-        
         .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; }
         #rank-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.3); z-index: 1000; width: 85%; max-width: 450px; }
         .rank-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
@@ -64,10 +49,8 @@
         <div><b>지문:</b> <span id="file-name-display" style="color:var(--accent)">로딩 중...</span></div>
         <div style="text-align: right;">⏱ <span id="timer">0초</span> | 🚀 <span id="current-cpm" style="color:var(--accent)">0 자</span></div>
     </div>
-
     <div id="target-box" class="target-box">데이터를 불러오고 있습니다...</div>
     <input type="text" id="input-field" placeholder="타이핑을 시작하세요!" autofocus autocomplete="off">
-
     <div class="btn-group">
         <label id="admin-upload-btn" class="btn btn-file">📁 파일 업로드 <input type="file" id="file-selector" style="display:none"></label>
         <button class="btn btn-reset" onclick="resetGame()">🔄 리셋</button>
@@ -83,8 +66,7 @@
 </div>
 
 <script>
-    // 선생님의 새로운 SCRIPT_URL 적용
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzyF4LnF-NeJx6DTfYLRYXTdAutlZS_7dlDUnWluMmkHERkJ3h1DbhYQspBfoliHyI/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygQWqXiXEbw7gUOUan-wz5Clw4G9bRsiIZT0K-x6iesAQKWpGjDTv632ZrDBZ9W9Q/exec";
     
     const adminNames = ["가을", "한솔", "지훈", "도현", "신윤경", "진경은", "황아율"];
     const currentUser = sessionStorage.getItem('shorthand_user');
@@ -93,12 +75,10 @@
     const box = document.getElementById('target-box');
     const inp = document.getElementById('input-field');
 
-    // 서버 동기화 (지문 & 랭킹)
     async function syncContent() {
         try {
             const res = await fetch(SCRIPT_URL);
             const data = await res.json();
-            
             if (data.target && data.target.fileName !== document.getElementById('file-name-display').innerText) {
                 document.getElementById('file-name-display').innerText = data.target.fileName;
                 rawText = data.target.content;
@@ -106,23 +86,28 @@
                 resetGame();
             }
             if (data.ranks) updateRankingUI(data.ranks);
-        } catch(e) { console.error("Sync Error"); }
+        } catch(e) {}
     }
 
     function updateRankingUI(ranks) {
         const fName = document.getElementById('file-name-display').innerText;
-        const today = new Date().toISOString().slice(0, 10);
-        const filtered = ranks.filter(d => d.date === today && d.fileName === fName).sort((a,b) => b.cpm - a.cpm);
+        const now = new Date();
+        const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const todayStr = kstDate.toISOString().split('T')[0];
+
+        const filtered = ranks.filter(r => r.date === todayStr && r.fileName === fName).sort((a, b) => b.cpm - a.cpm);
 
         ['p1','p2','p3'].forEach(id => { 
             document.getElementById(`${id}-name`).innerText = "-"; 
             document.getElementById(`${id}-cpm`).innerText = "0 자"; 
         });
+
         filtered.slice(0, 3).forEach((d, i) => {
             document.getElementById(`p${i+1}-name`).innerText = d.name;
             document.getElementById(`p${i+1}-cpm`).innerText = d.cpm + " 자";
         });
-        document.getElementById('rank-list').innerHTML = filtered.map((r,i) => `
+
+        document.getElementById('rank-list').innerHTML = filtered.map((r, i) => `
             <div class="rank-row"><span><b>${i+1}위</b> ${r.name}</span><span>${r.cpm} 자</span></div>
         `).join('') || "기록이 없습니다.";
     }
@@ -148,12 +133,12 @@
 
     function render() {
         if (isTransitioning) return;
-        const targetText = displayChunks[curIdx] || "지문이 없습니다.";
+        const targetText = displayChunks[curIdx] || "";
         const cleanTarget = cleanText(targetText);
         const cleanTyped = cleanText(inp.value);
         box.innerHTML = '';
+        
         let tPtr = 0, dPtr = 0;
-
         targetText.split('').forEach(char => {
             const span = document.createElement('span');
             span.innerText = char;
@@ -169,17 +154,22 @@
             }
             box.appendChild(span);
         });
-        if (cleanTyped === cleanTarget && cleanTarget.length > 0) moveToNext();
+
+        if (cleanTyped.length > 0 && cleanTyped === cleanTarget) moveToNext();
     }
 
     function moveToNext() {
-        isTransitioning = true; inp.readOnly = true;
-        totalTypedLength += displayChunks[curIdx].length;
-        setTimeout(() => {
-            if (curIdx < displayChunks.length - 1) {
-                curIdx++; isTransitioning = false; inp.readOnly = false; inp.value = ""; render(); inp.focus();
-            } else { finishGame(); }
-        }, 50);
+        if (isTransitioning) return;
+        isTransitioning = true;
+        totalTypedLength += cleanText(displayChunks[curIdx]).length;
+        
+        inp.value = "";
+        if (curIdx < displayChunks.length - 1) {
+            curIdx++;
+            setTimeout(() => { isTransitioning = false; render(); }, 20); 
+        } else {
+            finishGame();
+        }
     }
 
     async function finishGame() {
@@ -189,13 +179,12 @@
             await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
-                    action: "saveScore",
-                    name: currentUser,
+                    action: "saveScore", name: currentUser,
                     fileName: document.getElementById('file-name-display').innerText,
                     cpm: parseInt(finalCpm)
                 })
             });
-            alert(`대결 종료! 기록: ${finalCpm} 자`);
+            alert(`대결 종료! ${finalCpm} 자 기록이 저장되었습니다.`);
             syncContent();
         }
         resetGame();
@@ -204,7 +193,7 @@
     function resetGame() {
         curIdx = 0; totalTypedLength = 0; startTime = null; isTransitioning = false;
         if (timerInt) clearInterval(timerInt);
-        inp.value = ""; inp.readOnly = false;
+        inp.value = ""; 
         document.getElementById('timer').innerText = '0초';
         document.getElementById('current-cpm').innerText = '0 자';
         render();
@@ -224,7 +213,7 @@
             timerInt = setInterval(() => {
                 const elap = (new Date() - startTime) / 1000;
                 document.getElementById('timer').innerText = Math.floor(elap) + "초";
-                const total = totalTypedLength + inp.value.length;
+                const total = totalTypedLength + cleanText(inp.value).length;
                 document.getElementById('current-cpm').innerText = elap > 0 ? Math.floor(total/(elap/60)) + " 자" : "0 자";
             }, 500);
         }
@@ -247,10 +236,7 @@
         reader.readAsText(file, 'utf-8');
     });
 
-    checkPermission();
-    syncContent();
-    setInterval(syncContent, 10000);
-    render();
+    checkPermission(); syncContent(); setInterval(syncContent, 10000); render();
 </script>
 </body>
 </html>
