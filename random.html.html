@@ -192,7 +192,6 @@
 </div>
 
 <script>
-    /* 스크립트 로직은 가을님이 주신 것과 100% 동일합니다 */
     let abbreviations = [];
     let totalCount = 0;
     let currentAbbr = "";
@@ -255,6 +254,8 @@
         let alt = target;
         if (target.startsWith('을')) alt = '를' + target.substring(1);
         else if (target.startsWith('를')) alt = '을' + target.substring(1);
+        else if (target.startsWith('와')) alt = '과' + target.substring(1);
+        else if (target.startsWith('과')) alt = '와' + target.substring(1);
 
         if (user === target || user === alt) {
             if (!hasCurrentError) correctList.push(currentAbbr);
