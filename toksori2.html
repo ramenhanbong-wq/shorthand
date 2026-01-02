@@ -81,23 +81,26 @@
         </div>
     </div>
 </div>
-
 <script>
-// ⚠️ 선생님 구글 앱 스크립트 URL은 그대로 사용하세요.
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxaxj3MBG5MK3nIO8hOV3EH9clAQi00pp-L78weLbFP7wj-9X1Fwt9ExUAncapRJsY/exec"; 
+// [수정 1] 대시보드(index.html)와 동일한 최신 GAS 주소로 통일했습니다.
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyYAfDv6U9FMOX5lI9VdY9F3_NnhuyY1SbvYRReo2WqsT7mIY_RPKeNKfiGWJKxP_o/exec"; 
 
-// 앞 페이지에서 로그인했다면 localStorage에 이름이 있을 것입니다. 없으면 "학생"으로 표시.
-let currentUser = localStorage.getItem('shorthand_user') || "학생";
+// [수정 2] localStorage를 sessionStorage로 변경 (대시보드와 주머니 통일)
+let currentUser = sessionStorage.getItem('shorthand_user');
 let scoreHistory = [];
 let myChart = null;
 
-// [변경] initApp에서 로그인 체크 로직 삭제 -> 바로 실행
 function initApp() {
-    document.getElementById('welcomeMsg').innerHTML = `👋 <b>${currentUser}</b>님 환영합니다!`;
-    fetchData(); // 데이터 불러오기 바로 시작
-}
+    // [추가] 문지기 역할: 로그인 안 한 사람이 오면 대시보드로 돌려보냄
+    if (!currentUser) {
+        alert("로그인을 먼저 해주세요! 🙅‍♀️");
+        location.href = 'index.html'; 
+        return;
+    }
 
-// [삭제] login() 함수는 더 이상 필요 없으므로 제거했습니다.
+    document.getElementById('welcomeMsg').innerHTML = `👋 <b>${currentUser}</b>님 환영합니다!`;
+    fetchData(); // 데이터 불러오기
+}
 
 async function fetchData() {
     try {
@@ -177,6 +180,7 @@ function analyzeAndGrade() {
 
 async function sendDataToServer(score, w, mi, ad, title, n) {
     try { 
+        // name: currentUser가 이제 sessionStorage에서 가져온 올바른 이름을 사용합니다.
         await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "save", name: currentUser, title: title, score: score, w: w, mi: mi, ad: ad, n: n }) });
         fetchData();
     } catch(e) {}
@@ -215,7 +219,14 @@ function checkAttendance(history) {
     }
 }
 
-function logout() { if(confirm("로그아웃 하시겠습니까?")) { localStorage.removeItem('shorthand_user'); location.reload(); } }
+function logout() { 
+    if(confirm("로그아웃 하시겠습니까?")) { 
+        // [수정 3] 로그아웃 시 sessionStorage를 비우고 대시보드로 이동
+        sessionStorage.clear(); 
+        location.href = 'index.html'; 
+    } 
+}
+
 function closeReport() { document.getElementById('overlay').style.display = 'none'; document.getElementById('report-modal').style.display = 'none'; }
 function generateReport() {
     if (!scoreHistory || scoreHistory.length === 0) {
@@ -233,7 +244,7 @@ function generateReport() {
     });
 
     if (monthlyData.length === 0) {
-        alert("이번 달(12월)에 기록된 데이터가 없습니다.");
+        alert("이번 달 기록된 데이터가 없습니다.");
         return;
     }
 
@@ -261,3 +272,4 @@ function generateReport() {
 </script>
 </body>
 </html>
+
