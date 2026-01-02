@@ -9,8 +9,10 @@
         :root { --main-blue: #3498db; --bg: #2c3e50; --card: #ffffff; --fail: #e74c3c; --success: #27ae60; --gold: #f1c40f; }
         body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg); padding: 10px; color: #333; margin: 0; }
         .container { max-width: 1200px; margin: 10px auto; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        #login-screen { text-align: center; padding: 80px 0; }
-        #main-screen { display: none; }
+        
+        /* 로그인 화면 관련 스타일 삭제됨 */
+        #main-screen { display: block; } /* 항상 보이도록 설정 */
+        
         .ranking-banner { background: #1a2a3a; color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center; }
         .ranking-list { display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .ranking-item { padding: 8px 15px; border-radius: 20px; font-weight: 900; font-size: 14px; }
@@ -39,15 +41,6 @@
 </div>
 
 <div class="container">
-    <div id="login-screen">
-        <h2 style="color:var(--bg)">⌨️ SHORTHAND MASTER S2</h2>
-        <div style="max-width:350px; margin:auto; background:#f8f9fa; padding:40px; border-radius:15px; border:1px solid #ddd;">
-            <input type="text" id="nameInput" placeholder="성함 입력" style="width:100%; padding:15px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing:border-box;">
-            <input type="password" id="pwInput" placeholder="비밀번호" style="width:100%; padding:15px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing:border-box;">
-            <button onclick="login()" id="loginBtn" style="width:100%; padding:15px; background:var(--main-blue); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">시스템 접속</button>
-        </div>
-    </div>
-
     <div id="main-screen">
         <div id="streakMsg" class="toast-msg"></div> 
         <div id="recordMsg" class="toast-msg" style="background:var(--success); color:white;"></div>
@@ -90,45 +83,21 @@
 </div>
 
 <script>
-// ⚠️ 주의: 반드시 선생님의 구글 앱 스크립트 [새 배포] URL로 교체하세요!
+// ⚠️ 선생님 구글 앱 스크립트 URL은 그대로 사용하세요.
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxaxj3MBG5MK3nIO8hOV3EH9clAQi00pp-L78weLbFP7wj-9X1Fwt9ExUAncapRJsY/exec"; 
 
-let currentUser = localStorage.getItem('shorthand_user');
+// 앞 페이지에서 로그인했다면 localStorage에 이름이 있을 것입니다. 없으면 "학생"으로 표시.
+let currentUser = localStorage.getItem('shorthand_user') || "학생";
 let scoreHistory = [];
 let myChart = null;
 
+// [변경] initApp에서 로그인 체크 로직 삭제 -> 바로 실행
 function initApp() {
-    if (currentUser) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-screen').style.display = 'block';
-        document.getElementById('welcomeMsg').innerHTML = `👋 <b>${currentUser}</b>님 환영합니다!`;
-        fetchData();
-    } else {
-        document.getElementById('login-screen').style.display = 'block';
-        document.getElementById('main-screen').style.display = 'none';
-    }
+    document.getElementById('welcomeMsg').innerHTML = `👋 <b>${currentUser}</b>님 환영합니다!`;
+    fetchData(); // 데이터 불러오기 바로 시작
 }
 
-async function login() {
-    const name = document.getElementById('nameInput').value.trim();
-    const pw = document.getElementById('pwInput').value;
-    if(!name || !pw) return alert("정보를 입력하세요.");
-    document.getElementById('loginBtn').innerText = "접속 중...";
-    try {
-        const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name: name, pw: pw }) });
-        const data = await res.json();
-        if (data.result === "success") { 
-            currentUser = data.name; 
-            localStorage.setItem('shorthand_user', currentUser); 
-            initApp(); 
-        } else { 
-            alert("로그인 실패: 이름이나 비밀번호를 확인하세요."); 
-        }
-    } catch(e) { 
-        alert("연결 오류: GAS URL이 정확한지, 배포 설정이 '모든 사용자'인지 확인하세요."); 
-    }
-    document.getElementById('loginBtn').innerText = "시스템 접속";
-}
+// [삭제] login() 함수는 더 이상 필요 없으므로 제거했습니다.
 
 async function fetchData() {
     try {
@@ -255,10 +224,9 @@ function generateReport() {
     }
 
     const now = new Date();
-    const thisMonth = now.getMonth(); // 0(1월) ~ 11(12월)
+    const thisMonth = now.getMonth(); 
     const thisYear = now.getFullYear();
 
-    // 1. 이번 달 데이터만 추출
     const monthlyData = scoreHistory.filter(h => {
         const hDate = new Date(h.date);
         return hDate.getMonth() === thisMonth && hDate.getFullYear() === thisYear;
@@ -269,13 +237,11 @@ function generateReport() {
         return;
     }
 
-    // 2. 지표 계산
     const totalSessions = monthlyData.length;
     const avgScore = (monthlyData.reduce((acc, cur) => acc + parseFloat(cur.score), 0) / totalSessions).toFixed(1);
     const totalChars = monthlyData.reduce((acc, cur) => acc + parseInt(cur.n || 0), 0);
     const maxScore = Math.max(...monthlyData.map(h => parseFloat(h.score)));
 
-    // 3. 리포트 HTML 생성
     const reportHtml = `
         <div style="background:#f8f9fa; padding:15px; border-radius:10px; border-left:5px solid var(--main-blue); margin-bottom:15px;">
             <p style="margin:5px 0;">📊 <b>총 연습 횟수:</b> ${totalSessions}회</p>
@@ -291,7 +257,7 @@ function generateReport() {
     document.getElementById('report-content').innerHTML = reportHtml;
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('report-modal').style.display = 'block';
-}</script>
+}
+</script>
 </body>
 </html>
-
