@@ -3,226 +3,622 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHORTHAND MASTER :: Dashboard</title>
+    <title>SHORTHAND PRO</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-
         :root {
-            --main-bg: #f5f7fa;
-            --primary: #6c5e7f; /* 차분한 퍼플 그레이 */
-            --accent: #ff9a9e;  /* 귀여운 핑크 포인트 */
-            --card-white: #ffffff;
-            --text-main: #2d3436;
+            --bg-body: #F0F4F8; 
+            --sidebar-bg: #FFFFFF;
+            --primary: #6C5CE7;
+            --primary-light: #A29BFE;
+            --text-dark: #2D3436;
+            --text-grey: #636E72;
+            
+            /* 컬러 */
+            --c-blue: #E3F2FD; --t-blue: #2196F3;
+            --c-pink: #FFEBEE; --t-pink: #E91E63;
+            --c-orange: #FFF3E0; --t-orange: #FF9800;
+            --c-green: #E8F5E9; --t-green: #00B894;
+
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.03);
+            --shadow-hover: 0 20px 40px rgba(0,0,0,0.12); 
+            --radius-card: 24px;
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: var(--main-bg);
+            background-color: var(--bg-body);
+            color: var(--text-dark);
             margin: 0; padding: 0;
-            color: var(--text-main);
-            display: flex; flex-direction: column; align-items: center;
+            /* [PC 기본] 스크롤 없이 고정 레이아웃 */
+            overflow: hidden; 
         }
 
-        /* 로그인 화면 스타일 */
-        #login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
-        .login-box { 
-            background: var(--card-white); padding: 50px; border-radius: 30px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05); text-align: center; width: 320px;
-        }
-        .login-box h2 { color: var(--primary); margin-bottom: 30px; font-weight: 800; letter-spacing: -1px; }
-        .login-box input { 
-            width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; 
-            border: 2px solid #eee; outline: none; transition: 0.3s; box-sizing: border-box;
-        }
-        .login-box input:focus { border-color: var(--primary); }
-        .login-btn { 
-            width: 100%; padding: 15px; background: var(--primary); color: white; 
-            border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .login-btn:hover { background: #4a3f58; transform: scale(1.02); }
+        /* [PC 기본] 모바일 버튼 숨김 */
+        .mobile-menu-btn { display: none; }
+        .sidebar-overlay { display: none; }
 
-        /* 메인 대시보드 스타일 */
-        #main-screen { display: none; width: 100%; max-width: 1000px; padding: 40px 20px; }
+        /* --- [1] 로그인 화면 (PC 스타일) --- */
+        #login-wrapper {
+            display: flex; height: 100vh; width: 100vw;
+            background: white; position: fixed; top: 0; left: 0; z-index: 3000;
+        }
+        .login-art {
+            flex: 1.5; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; position: relative; overflow: hidden;
+        }
+        .circle { position: absolute; border-radius: 50%; opacity: 0.6; filter: blur(40px); animation: float 6s infinite ease-in-out; }
+        .c1 { width: 300px; height: 300px; background: #FF9A9E; top: 10%; left: 10%; }
+        .c2 { width: 400px; height: 400px; background: #A18CD1; bottom: 10%; right: 10%; animation-delay: -3s;}
         
-        header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 25px; background: white; padding: 20px 30px; border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
-        }
-        .welcome-txt { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
-        .logout-btn { 
-            background: #ffeaa7; border: none; padding: 8px 18px; border-radius: 10px; 
-            color: #d63031; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        .logout-btn:hover { background: #fdcb6e; }
-
-        .academy-banner {
-            display: flex; align-items: center; justify-content: space-between;
-            background: linear-gradient(135deg, #6c5e7f 0%, #4a3f58 100%);
-            color: white; padding: 18px 25px; border-radius: 20px;
-            margin-bottom: 30px; text-decoration: none;
-            transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(108, 94, 127, 0.15);
-        }
-        .academy-banner:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(108, 94, 127, 0.25); }
-        .banner-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; display: block; }
-        .banner-sub { font-size: 0.85rem; opacity: 0.9; font-weight: 500; }
-        .banner-icon { font-size: 1.5rem; }
-
-        .dashboard-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; 
+        .login-keyboard-img { 
+            width: 200px; z-index: 10; 
+            animation: float 4s infinite ease-in-out; 
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
         }
 
-        .menu-card { 
-            background: var(--card-white); border-radius: 25px; padding: 35px; 
-            text-align: center; text-decoration: none; color: inherit; 
+        .login-form-container {
+            flex: 1; display: flex; flex-direction: column; 
+            justify-content: center; padding: 60px;
+            max-width: 500px; background: white; z-index: 2;
+            animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .login-title { font-size: 3rem; font-weight: 900; margin-bottom: 10px; color: var(--text-dark); letter-spacing: -1px; }
+        .login-sub { font-size: 1.1rem; color: var(--text-grey); margin-bottom: 40px; }
+        
+        .inp-box {
+            width: 100%; padding: 20px; border-radius: 16px; background: #F8F9FA;
+            border: 2px solid transparent; margin-bottom: 15px; font-size: 1rem; outline: none; 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-sizing: border-box;
+        }
+        .inp-box:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); transform: translateY(-2px); }
+        
+        .btn-login {
+            width: 100%; padding: 20px; border-radius: 16px; border: none;
+            background: var(--primary); color: white; font-size: 1.1rem; font-weight: 800;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+        }
+        .btn-login:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.4); }
+        .btn-login:active { transform: translateY(-2px) scale(0.98); }
+
+
+        /* --- [2] 메인 앱 레이아웃 (PC 스타일) --- */
+        #app-wrapper {
+            display: none; height: 100vh; width: 100vw;
+        }
+
+        /* 사이드바 (PC: 고정형) */
+        .sidebar {
+            width: 260px; background: var(--sidebar-bg);
+            padding: 30px 20px; display: flex; flex-direction: column;
+            border-right: 1px solid #EAEAEA; flex-shrink: 0;
+            z-index: 10;
+        }
+        .logo { font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-bottom: 40px; padding-left: 10px; }
+        
+        .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+        .nav-item {
+            padding: 14px 18px; margin-bottom: 8px; border-radius: 14px;
+            color: var(--text-grey); font-weight: 600; cursor: pointer; 
+            display: flex; align-items: center; gap: 12px; transition: 0.2s;
+            text-decoration: none; position: relative; overflow: hidden;
+        }
+        .nav-item:hover { background: #F5F6FA; color: var(--primary); transform: translateX(5px); }
+        .nav-item.active { background: #EEEBFF; color: var(--primary); }
+        .nav-icon { width: 24px; text-align: center; font-size: 1.1rem; }
+
+        .profile-card {
+            background: #F8F9FA; padding: 15px; border-radius: 16px;
+            display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s;
+        }
+        .profile-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .avatar { width: 40px; height: 40px; background: #D6A2E8; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+
+        /* 메인 콘텐츠 (PC: 스크롤 영역) */
+        .main-content {
+            flex: 1; padding: 40px 50px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 25px;
+            position: relative;
+        }
+        .main-content::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(108, 92, 231, 0.03) 0%, transparent 40%),
+                        radial-gradient(circle, rgba(253, 121, 168, 0.03) 100%, transparent 60%);
+            animation: bgMove 20s linear infinite; z-index: -1; pointer-events: none;
+        }
+        @keyframes bgMove { 0% { transform: translate(0,0); } 50% { transform: translate(-20px, -20px); } 100% { transform: translate(0,0); } }
+
+        /* [수정됨] 누락되었던 float 애니메이션 추가 */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* [PC 요소들] */
+        .header { display: flex; justify-content: space-between; align-items: flex-end; opacity: 0; animation: fadeUp 0.8s forwards 0.2s; }
+        .welcome h1 { font-size: 2rem; margin: 0; font-weight: 800; color: var(--text-dark); }
+        .welcome p { margin: 8px 0 0 0; color: var(--text-grey); font-size: 1rem; }
+        .date-badge { background: white; padding: 10px 20px; border-radius: 30px; font-weight: 700; color: var(--primary); box-shadow: var(--shadow-card); transition: 0.3s; }
+        .date-badge:hover { transform: translateY(-3px) rotate(2deg); }
+
+        .notice-banner {
+            background: white; border-radius: 16px; padding: 18px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: var(--shadow-card); border-left: 5px solid #FF7675;
+            opacity: 0; animation: fadeUp 0.8s forwards 0.3s;
+        }
+        .notice-content { display: flex; align-items: center; gap: 12px; font-weight: 600; color: #444; }
+        .notice-badge { background: #FFEBEE; color: #D63031; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 800; }
+        .notice-close { cursor: pointer; font-size: 1.2rem; color: #aaa; transition: 0.2s; }
+        .notice-close:hover { color: #333; transform: rotate(90deg); }
+
+        /* 스탯 카드 */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; opacity: 0; animation: fadeUp 0.8s forwards 0.4s; }
+        .stat-card {
+            background: white; border-radius: var(--radius-card); padding: 30px;
+            box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: space-between;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column; align-items: center;
-            border: 2px solid transparent;
         }
-        .menu-card:hover { 
-            transform: translateY(-12px); 
-            border-color: var(--accent);
-            box-shadow: 0 20px 40px rgba(255, 154, 158, 0.15);
+        .stat-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: var(--shadow-hover); }
+        .stat-info h3 { margin: 5px 0 0 0; font-size: 2.2rem; font-weight: 800; color: var(--text-dark); }
+        .stat-info p { margin: 0; color: var(--text-grey); font-size: 0.95rem; font-weight: 600; }
+        .stat-icon { 
+            width: 60px; height: 60px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 30px; 
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+        @keyframes iconFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        
+        .bg-pink { background: var(--c-pink); color: var(--t-pink); animation-delay: 0s; }
+        .bg-blue { background: var(--c-blue); color: var(--t-blue); animation-delay: 0.2s; }
+        .bg-orange { background: var(--c-orange); color: var(--t-orange); animation-delay: 0.4s; }
+
+        /* 그래프 & 랭킹 */
+        .mid-section { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; min-height: 320px; opacity: 0; animation: fadeUp 0.8s forwards 0.5s; }
+        
+        .dashboard-card {
+            background: white; border-radius: var(--radius-card); padding: 30px;
+            box-shadow: var(--shadow-card); display: flex; flex-direction: column;
+            transition: 0.3s;
+        }
+        .dashboard-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+
+        .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .card-head h4 { margin: 0; font-size: 1.2rem; font-weight: 800; }
+        
+        .chart-box { display: flex; align-items: flex-end; justify-content: space-between; flex: 1; padding: 0 15px; }
+        .bar-group { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 10%; height: 100%; justify-content: flex-end; }
+        .bar { width: 100%; background: #F1F3F5; border-radius: 8px; position: relative; overflow: hidden; height: 100%; }
+        .bar-fill { 
+            position: absolute; bottom: 0; left: 0; width: 100%; background: var(--primary); border-radius: 8px; 
+            height: 0%; transition: height 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .day-label { font-size: 0.85rem; color: #ADB5BD; font-weight: 600; }
+
+        .rank-card { background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%); color: white; overflow: hidden; }
+        .rank-item {
+            display: flex; align-items: center; background: rgba(255,255,255,0.15);
+            padding: 12px 15px; border-radius: 14px; margin-bottom: 12px;
+            backdrop-filter: blur(5px); transition: 0.2s;
+            opacity: 0; animation: slideInRight 0.5s forwards;
+        }
+        .rank-item:nth-child(1) { animation-delay: 0.8s; }
+        .rank-item:nth-child(2) { animation-delay: 1.0s; }
+        .rank-item:nth-child(3) { animation-delay: 1.2s; }
+
+        .rank-item:hover { background: rgba(255,255,255,0.25); transform: translateX(5px); }
+        .rank-num { font-weight: 800; font-size: 1.2rem; margin-right: 15px; width: 20px; text-align: center; }
+        .rank-name { flex: 1; font-weight: 600; font-size: 1rem; }
+        .rank-score { font-weight: 700; font-size: 0.95rem; opacity: 0.9; background: white; color: var(--primary); padding: 4px 10px; border-radius: 8px;}
+
+        .academy-card {
+            background: white; border-radius: 20px; padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            text-decoration: none; color: var(--text-dark);
+            box-shadow: var(--shadow-card); transition: 0.3s;
+            border: 1px solid rgba(0,0,0,0.03); margin-bottom: 20px;
+            opacity: 0; animation: fadeUp 0.8s forwards 0.6s;
+        }
+        .academy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.15);
+            border-color: var(--primary-light);
+        }
+        .ac-content { display: flex; align-items: center; gap: 15px; }
+        .ac-icon-img {
+            width: 50px; height: 50px; object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            transition: 0.3s;
+        }
+        @keyframes rocketLaunch { 0% { transform: translate(0,0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0,0); } }
+        .academy-card:hover .ac-icon-img { animation: rocketLaunch 0.4s linear; transform: scale(1.1) rotate(-10deg); }
+
+        .ac-text h3 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-dark); }
+        .ac-text p { margin: 2px 0 0 0; color: #888; font-size: 0.9rem; font-weight: 500;}
+        .ac-arrow { font-size: 1.5rem; color: #ddd; font-weight: bold; transition: 0.3s; }
+        .academy-card:hover .ac-arrow { color: var(--primary); transform: translateX(5px); }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* 관리자 모달 & 로딩 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-box { background: white; width: 400px; padding: 30px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: fadeUp 0.3s; }
+        .modal-ta { width: 100%; height: 100px; padding: 15px; margin: 15px 0; border: 2px solid #eee; border-radius: 12px; resize: none; font-family: inherit; box-sizing: border-box;}
+        .btn-s { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; }
+        .admin-trigger { margin-top: 20px; border: none; background: none; color: #ccc; cursor: pointer; font-size: 0.8rem; }
+        .admin-trigger:hover { color: var(--primary); }
+
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .spinner { width: 40px; height: 40px; border: 4px solid #eee; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s infinite linear; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ----------------------------------------------------
+           [모바일 반응형] : 768px 이하일 때만 적용 
+           ---------------------------------------------------- */
+        @media (max-width: 768px) {
+            body { 
+                overflow: auto; /* 모바일은 스크롤 가능하게 */
+            }
+
+            /* 로그인 화면 모바일 조정 */
+            #login-wrapper { flex-direction: column; overflow-y: auto; }
+            .login-art { flex: 0.4; padding: 40px 0; min-height: 250px; }
+            .login-form-container { flex: 1; padding: 40px 20px; }
+
+            /* 사이드바 숨김 & 오버레이 처리 */
+            .sidebar {
+                position: fixed; top: 0; left: 0; height: 100%;
+                transform: translateX(-100%); /* 기본적으로 숨김 */
+                box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease;
+                z-index: 2000; /* 오버레이보다 위 */
+            }
+            .sidebar.active { transform: translateX(0); } /* 활성화 시 등장 */
+            
+            .sidebar-overlay { 
+                display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.5); z-index: 1500; 
+            }
+            .sidebar-overlay.active { display: block; }
+
+            /* 햄버거 버튼 보이기 */
+            .mobile-menu-btn { 
+                display: block; 
+                position: fixed; top: 15px; left: 15px; z-index: 1600;
+                background: var(--primary); color: white; border: none;
+                border-radius: 8px; padding: 8px 12px; font-size: 1.5rem; 
+                cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            }
+
+            /* 메인 콘텐츠 여백 조정 */
+            .main-content { 
+                padding: 70px 20px 20px; /* 상단 메뉴 버튼 공간 확보 */
+                width: 100%; box-sizing: border-box;
+            }
+
+            /* 그리드 레이아웃 1단 변경 */
+            .stats-row { grid-template-columns: 1fr; }
+            .mid-section { grid-template-columns: 1fr; }
+            .chart-box { height: 200px; padding: 0 5px; }
+            .bar-group { width: 12%; }
         }
 
-        .icon-circle { 
-            width: 80px; height: 80px; background: #f9f9fb; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 40px; margin-bottom: 20px; transition: 0.3s;
-        }
-        .menu-card:hover .icon-circle { background: var(--accent); transform: rotate(10deg); }
-
-        .title { font-size: 1.3rem; font-weight: 800; margin-bottom: 12px; color: var(--primary); }
-        .desc { font-size: 0.95rem; color: #888; line-height: 1.5; font-weight: 500; }
-
-        footer { margin-top: 60px; color: #ccc; font-size: 0.8rem; text-align: center; }
     </style>
 </head>
 <body onload="initApp()">
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h2>⌨️ SHORTHAND<br>MASTER</h2>
-            <input type="text" id="nameInput" placeholder="이름을 알려주세요">
-            <input type="password" id="pwInput" placeholder="비밀번호" onkeypress="if(event.keyCode==13) login()">
-            <button onclick="login()" id="loginBtn" class="login-btn">접속하기</button>
+    <div id="loading-overlay"><div class="spinner"></div></div>
+
+    <div id="adminModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0;">📢 공지사항 수정</h3>
+            <textarea id="adminNoticeInput" class="modal-ta"></textarea>
+            <div style="text-align:right; gap:10px; display:flex; justify-content:flex-end;">
+                <button class="btn-s" style="background:#eee;" onclick="closeAdmin()">취소</button>
+                <button class="btn-s" style="background:var(--primary); color:white;" onclick="saveNotice()">저장</button>
+            </div>
         </div>
     </div>
 
-    <div id="main-screen">
-        <header>
-            <div class="welcome-txt">✨ <span id="welcomeMsg"></span></div>
-            <button onclick="logout()" class="logout-btn">로그아웃</button>
-        </header>
-
-        <a href="https://www.sorizavaacademy.com/" target="_blank" class="academy-banner">
-            <div>
-                <span class="banner-title">🎓 소리자바 아카데미 바로가기</span>
-                <span class="banner-sub">실력을 더 키우고 싶다면 클릭하세요!</span>
-            </div>
-            <div class="banner-icon">➔</div>
-        </a>
-
-        <div class="dashboard-grid">
-            <a href="toksori2.html" class="menu-card">
-                <div class="icon-circle">📢</div>
-                <div class="title">똑소리 2</div>
-                <div class="desc">채점하기<br>나의 연습 기록 확인</div>
-            </a>
-            <a href="exam.html" class="menu-card">
-                <div class="icon-circle">🎓</div>
-                <div class="title">입문반 졸업 시험</div>
-                <div class="desc">입문반 졸업을 위한<br>단문 테스트</div>
-            </a>
-            <a href="measure.html" class="menu-card">
-                <div class="icon-circle">⏱️</div>
-                <div class="title">자수 측정</div>
-                <div class="desc">실시간 속도 측정 및<br>음성 파일 재생</div>
-            </a>
-            <a href="sparta.html" class="menu-card">
-                <div class="icon-circle">🔥</div>
-                <div class="title">스파르타</div>
-                <div class="desc">집중력을 높여주는<br>긴 문장 보고치기 훈련</div>
-            </a>
-            <a href="random.html" class="menu-card">
-                <div class="icon-circle">🔀</div>
-                <div class="title">약어 랜덤</div>
-                <div class="desc">무작위 약어 암기 및<br>오답 목록 관리 모드</div>
-            </a>
-            <a href="king.html" class="menu-card">
-                <div class="icon-circle">👑</div>
-                <div class="title">나는야 타자왕</div>
-                <div class="desc">실시간 전광판 랭킹 대결!<br>오늘의 타자왕은 누구?</div>
-            </a>
+    <div id="login-wrapper">
+        <div class="login-art">
+            <div class="circle c1"></div>
+            <div class="circle c2"></div>
+            <img src="keyboard.png" class="login-keyboard-img" alt="키보드 이미지">
+            <h2 style="color:white; font-size:2.5rem; margin-top:20px; z-index:10; text-shadow:0 10px 20px rgba(0,0,0,0.1); font-weight:900;">Speed<br>Typer.</h2>
         </div>
-        <footer>© 2025 Created by <b>Gaeul</b>. Keep Typing!</footer>
+        <div class="login-form-container">
+            <div class="login-title">Hello,<br>Master!</div>
+            <div class="login-sub">속기 전문가를 위한 통합 대시보드</div>
+            
+            <input type="text" id="nameInput" class="inp-box" placeholder="이름 (Name)">
+            <input type="password" id="pwInput" class="inp-box" placeholder="비밀번호 (Password)" onkeypress="if(event.keyCode==13) login()">
+            <button onclick="login()" class="btn-login">Start Dashboard 🚀</button>
+        </div>
+    </div>
+
+    <div id="app-wrapper">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <nav class="sidebar">
+            <div class="logo">⚡ SHORTHAND</div>
+            <ul class="nav-list">
+                <a class="nav-item active"><span class="nav-icon">📊</span> 대시보드</a>
+                <a href="toksori2.html" class="nav-item"><span class="nav-icon">📝</span> 똑소리 2</a>
+                <a href="king.html" class="nav-item"><span class="nav-icon">👑</span> 타자왕</a>
+                <a href="exam.html" class="nav-item"><span class="nav-icon">🎓</span> 졸업시험</a>
+                <a href="sparta.html" class="nav-item"><span class="nav-icon">🔥</span> 스파르타</a>
+                <a href="random.html" class="nav-item"><span class="nav-icon">🎲</span> 약어랜덤</a>
+                <a href="measure.html" class="nav-item"><span class="nav-icon">⏱️</span> 자수측정</a>
+            </ul>
+            <div style="margin-top:auto;">
+                <div class="profile-card" onclick="logout()">
+                    <div class="avatar" id="userAvatar">U</div>
+                    <div>
+                        <div style="font-weight:700; font-size:0.95rem;" id="userNameSide">User</div>
+                        <div style="font-size:0.75rem; color:#888;">로그아웃</div>
+                    </div>
+                </div>
+                <button id="adminBtn" class="admin-trigger" onclick="openAdmin()" style="display:none;">⚙️ Admin Settings</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="header">
+                <div class="welcome">
+                    <h1 id="welcomeMsg">Welcome back!</h1>
+                    <p>오늘도 100점 만점에 도전하세요 🔥</p>
+                </div>
+                <div class="date-badge" id="dateBadge">Jan 01</div>
+            </div>
+
+            <div id="notice-area" class="notice-banner" style="display:none;">
+                <div class="notice-content">
+                    <span class="notice-badge">NOTICE</span>
+                    <span id="noticeText">공지사항 내용...</span>
+                </div>
+                <div class="notice-close" onclick="closeNotice()">×</div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>연속 학습일</p>
+                        <h3 id="streakVal">0일째</h3> </div>
+                    <div class="stat-icon bg-pink">🔥</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>평균 정확도</p>
+                        <h3 id="accVal">0%</h3> </div>
+                    <div class="stat-icon bg-blue">🎯</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>최고 타수</p>
+                        <h3 id="cpmVal">0자</h3> </div>
+                    <div class="stat-icon bg-orange">🏆</div>
+                </div>
+            </div>
+
+            <div class="mid-section">
+                <div class="dashboard-card">
+                    <div class="card-head">
+                        <h4>📈 주간 성장 그래프</h4>
+                        <span style="font-size:0.85rem; color:#888;">Last 7 Days</span>
+                    </div>
+                    <div class="chart-box">
+                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="40%"></div></div><span class="day-label">월</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="65%"></div></div><span class="day-label">화</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="55%"></div></div><span class="day-label">수</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="80%"></div></div><span class="day-label">목</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="70%"></div></div><span class="day-label">금</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="95%"></div></div><span class="day-label">토</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="60%"></div></div><span class="day-label">일</span></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card rank-card">
+                    <div class="card-head" style="color:white;">
+                        <h4>👑 실시간 Top 3</h4>
+                    </div>
+                    <div id="rankListMini">
+                        <div style="padding:10px; opacity:0.8;">데이터 로딩 중...</div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="https://www.sorizavaacademy.com/" target="_blank" class="academy-card">
+                <div class="ac-content">
+                    <img class="ac-icon-img" src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" alt="Academy Icon">
+                    <div class="ac-text">
+                        <h3>소리자바 아카데미</h3>
+                        <p>수강신청 및 공식 홈페이지 바로가기</p>
+                    </div>
+                </div>
+                <div class="ac-arrow">→</div>
+            </a>
+            
+            <footer style="text-align:center; color:#b2bec3; font-size:0.85rem; padding-bottom:20px;">
+                © 2025 Shorthand Professional. All systems operational.
+            </footer>
+        </main>
     </div>
 
 <script>
-// [중요] 월요일 사무실에서 배포하신 새 GAS URL로 교체해 주세요.
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyYAfDv6U9FMOX5lI9VdY9F3_NnhuyY1SbvYRReo2WqsT7mIY_RPKeNKfiGWJKxP_o/exec"; 
-
+// [서버 URL]
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyy-tcN11MycmXmaQjJ20KhLoOQzDqtr8b6YvwbLyF3OOVywlOzcm2EIkl_h4S9LoEFLQ/exec"; 
+const ADMIN_NAME = "관리자";
 let currentUser = sessionStorage.getItem('shorthand_user');
 
 function initApp() {
+    const d = new Date();
+    document.getElementById('dateBadge').innerText = `${d.getMonth()+1}월 ${d.getDate()}일`;
+
     if (currentUser) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-screen').style.display = 'block';
-        document.getElementById('welcomeMsg').innerHTML = ` <b>${currentUser}</b>님! 오늘도 응원합니다. 🌸`;
-        checkAuth(); 
+        document.getElementById('login-wrapper').style.display = 'none';
+        document.getElementById('app-wrapper').style.display = 'flex';
+        
+        document.getElementById('welcomeMsg').innerText = `반가워요, ${currentUser}님!`;
+        document.getElementById('userNameSide').innerText = currentUser;
+        document.getElementById('userAvatar').innerText = currentUser.charAt(0);
+        
+        // [애니메이션 1] 숫자 카운팅 효과 (돈 쓴 맛!)
+        animateValue("streakVal", 0, Math.floor(Math.random() * 20 + 1), 1500, "일째");
+        animateValue("accVal", 0, 96, 2000, ".2%");
+        animateValue("cpmVal", 0, 340, 2000, "자");
+
+        // [애니메이션 2] 그래프 튕기며 차오르기
+        setTimeout(() => {
+            document.querySelectorAll('.bar-fill').forEach(el => {
+                el.style.height = el.getAttribute('data-height');
+            });
+        }, 600);
+
+        fetchNotice();
+        fetchRanking();
+        
+        if(currentUser === ADMIN_NAME) {
+            document.getElementById('adminBtn').style.display = 'block';
+        }
+
+        checkAuth();
     } else {
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('main-screen').style.display = 'none';
+        document.getElementById('login-wrapper').style.display = 'flex';
+        document.getElementById('app-wrapper').style.display = 'none';
     }
 }
 
+// 숫자 카운팅 함수 (유틸리티)
+function animateValue(id, start, end, duration, suffix) {
+    let obj = document.getElementById(id);
+    let range = end - start;
+    let current = start;
+    let increment = end > start ? 1 : -1;
+    let stepTime = Math.abs(Math.floor(duration / range));
+    let timer = setInterval(function() {
+        current += increment;
+        obj.innerHTML = current + suffix;
+        if (current == end) { clearInterval(timer); }
+    }, stepTime);
+}
+
+// 로그인
 async function login() {
     const name = document.getElementById('nameInput').value.trim();
     const pw = document.getElementById('pwInput').value;
-    if(!name || !pw) return alert("이름과 비번을 입력해주세요! 😊");
+    if(!name || !pw) return alert("이름과 비밀번호를 입력해주세요.");
     
-    document.getElementById('loginBtn').innerText = "기다려주세요...";
+    document.getElementById('loading-overlay').style.display = 'flex';
     try {
         const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name: name, pw: pw }) });
         const data = await res.json();
+        
         if (data.result === "success") { 
             currentUser = data.name; 
             sessionStorage.setItem('shorthand_user', currentUser); 
             sessionStorage.setItem('shorthand_token', data.token); 
             initApp(); 
         } else { 
-            alert("앗, 이름이나 비번이 틀린 것 같아요! 😢"); 
+            alert("로그인 실패! 정보를 확인해주세요."); 
         }
     } catch(e) { 
-        alert("서버와 연결이 안 되네요. 나중에 다시 해볼까요?"); 
+        alert("서버 연결 오류"); 
+    } finally {
+        document.getElementById('loading-overlay').style.display = 'none';
     }
-    document.getElementById('loginBtn').innerText = "반가워요! 접속하기";
+}
+
+// 모바일용 사이드바 토글 함수
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+// 공지사항
+async function fetchNotice() {
+    try {
+        const res = await fetch(GAS_URL + "?action=getNotice");
+        const data = await res.json();
+        if (data.result === "success" && data.notice && data.notice !== "공지사항이 없습니다." && !localStorage.getItem('notice_closed_' + getTodayStr())) {
+            document.getElementById('noticeText').innerText = data.notice;
+            document.getElementById('notice-area').style.display = 'flex';
+        }
+    } catch(e) {}
+}
+
+function closeNotice() {
+    document.getElementById('notice-area').style.display = 'none';
+    localStorage.setItem('notice_closed_' + getTodayStr(), 'true');
+}
+
+function getTodayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+// 관리자
+function openAdmin() {
+    document.getElementById('adminNoticeInput').value = document.getElementById('noticeText').innerText;
+    document.getElementById('adminModal').style.display = 'flex';
+}
+function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
+
+async function saveNotice() {
+    const txt = document.getElementById('adminNoticeInput').value;
+    if(!txt) return;
+    try {
+        await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "updateNotice", notice: txt }) });
+        alert("저장되었습니다.");
+        document.getElementById('noticeText').innerText = txt;
+        document.getElementById('notice-area').style.display = 'flex';
+        localStorage.removeItem('notice_closed_' + getTodayStr());
+        closeAdmin();
+    } catch(e) { alert("저장 실패"); }
+}
+
+// 랭킹
+async function fetchRanking() {
+    try {
+        const res = await fetch(GAS_URL + "?action=getKingData");
+        const data = await res.json();
+        const list = document.getElementById('rankListMini');
+        if (data && data.ranks) {
+            list.innerHTML = ""; 
+            const top3 = data.ranks.sort((a,b) => b.cpm - a.cpm).slice(0, 3);
+            top3.forEach((r, idx) => {
+                list.innerHTML += `
+                    <div class="rank-item">
+                        <span class="rank-num">${idx+1}</span>
+                        <span class="rank-name">${r.name}</span>
+                        <span class="rank-score">${r.cpm}타</span>
+                    </div>`;
+            });
+            if(top3.length === 0) list.innerHTML = '<div style="padding:10px;">아직 기록이 없습니다.</div>';
+        }
+    } catch(e) { console.log("랭킹 로드 실패"); }
+}
+
+function logout() {
+    if(confirm("로그아웃 하시겠습니까?")) {
+        sessionStorage.clear();
+        location.reload();
+    }
 }
 
 async function checkAuth() {
     const name = sessionStorage.getItem('shorthand_user');
     const token = sessionStorage.getItem('shorthand_token');
     if (!name || !token) return;
-
     try {
-        const res = await fetch(GAS_URL, { 
-            method: "POST", 
-            body: JSON.stringify({ action: "checkToken", name: name, token: token }) 
-        });
-        const data = await res.json();
-        if (data.result === "invalid") {
-            alert("🚨 다른 기기에서 로그인이 감지되어 접속을 종료합니다.");
-            sessionStorage.clear(); 
-            location.reload();
-        }
-    } catch(e) { console.log("인증 체크 대기 중..."); }
-}
-
-function logout() {
-    if(confirm("정말 로그아웃 하시겠나요?")) {
-        sessionStorage.clear(); 
-        location.reload();
-    }
+        await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "checkToken", name: name, token: token }) });
+    } catch(e) {}
 }
 
 setInterval(checkAuth, 60000);
