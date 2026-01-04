@@ -3,204 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>속기 약어 암기 마스터</title>
+    <title>SHORTHAND PRO - 리스닝 모드</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
+        /* [1] 공통 디자인 변수 */
         :root {
-            --primary-mute: #6c5e7f;    /* 톤다운된 보라 */
-            --primary-dark: #4a3f58;    /* 깊은 보라색 그레이 */
-            --accent-soft: #9b8bad;     /* 연한 보라 회색 */
-            --bg-neutral: #f4f4f7;      /* 아주 연한 보라빛 회색 배경 */
-            --white: #ffffff;
-            --border-soft: #e2e2e8;
-            --error-red: #d63031;
+            --bg-body: #F0F4F8; 
+            --sidebar-bg: #F8F9FA;
+            --primary: #6C5CE7; 
+            --primary-dark: #5849BE;
+            --primary-light: #A29BFE;
+            --text-dark: #2D3436; 
+            --text-grey: #636E72;
+            --white: #FFFFFF;
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.03);
+            --radius-card: 24px;
+            
+            /* 기능성 컬러 */
+            --danger: #FF7675;
+            --success: #00B894;
+            --accent-soft: #D6A2E8;
         }
 
         body {
-            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-            background-color: var(--bg-neutral);
-            color: var(--primary-dark);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 15px; /* 모바일 외곽 여백 */
-            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif; background: var(--bg-body);
+            color: var(--text-dark); margin: 0; padding: 0; 
+            display: flex; height: 100vh; overflow: hidden;
         }
 
-        .app-container {
-            background: var(--white);
-            width: 100%; /* 모바일에서 꽉 차게 */
-            max-width: 480px; /* PC에서는 기존 크기 유지 */
-            padding: 40px 30px; /* 패딩 살짝 조절 */
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(108, 94, 127, 0.08);
-            box-sizing: border-box;
+        /* [모바일 전용 버튼] */
+        .mobile-menu-btn {
+            display: none; position: fixed; top: 15px; left: 15px; z-index: 1001;
+            background: var(--primary); color: white; border: none;
+            border-radius: 8px; padding: 8px 12px; font-size: 1.5rem; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .sidebar-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 999; backdrop-filter: blur(3px);
         }
 
-        .top-label {
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--accent-soft);
-            letter-spacing: 3px;
-            margin-bottom: 30px;
-            text-align: center;
-            text-transform: uppercase;
+        /* 사이드바 */
+        .sidebar {
+            width: 260px; background: var(--sidebar-bg); padding: 30px 20px; 
+            display: flex; flex-direction: column; border-right: 2px solid #E1E4E8;
+            flex-shrink: 0; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.03);
+            transition: transform 0.3s ease;
+        }
+        .logo { font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-bottom: 40px; padding-left: 10px; }
+        
+        .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+        .nav-item {
+            padding: 14px 18px; margin-bottom: 12px; border-radius: 14px;
+            color: var(--text-grey); font-weight: 700; cursor: pointer; text-decoration: none;
+            display: flex; align-items: center; gap: 12px; transition: 0.2s;
+            background: white; border: 1px solid #EAEAEA; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .nav-item:hover, .nav-item.active { 
+            background: var(--primary); color: white; border-color: var(--primary);
+            transform: translateY(-2px); box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
+        }
+        .nav-icon { width: 24px; text-align: center; }
+
+        .profile-card {
+            background: white; padding: 15px; border-radius: 16px;
+            display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s; margin-top: auto;
+            border: 1px solid #EAEAEA;
         }
 
-        /* [연습 영역] 약어 표시 */
+        /* 메인 콘텐츠 */
+        .main-content {
+            flex: 1; padding: 40px 50px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+        .page-title h2 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--text-dark); }
+        .page-title p { color: var(--text-grey); margin: 5px 0 0 0; }
+
+        /* 카드 박스 스타일 */
+        .card-box {
+            background: var(--white); border-radius: var(--radius-card); padding: 40px;
+            box-shadow: var(--shadow-card); transition: 0.3s; border: 1px solid #DCE0E5;
+            max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;
+            position: relative;
+        }
+
+        /* 컨트롤 패널 (오디오/토글) */
+        .control-panel {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; gap: 10px;
+        }
+        
+        .tts-toggle-btn {
+            background: #f0f0f3; color: var(--text-grey);
+            padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;
+            border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: 0.3s;
+        }
+        .tts-toggle-btn.active {
+            background: var(--primary); color: white; border-color: var(--primary-dark);
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+
+        .combo-badge {
+            font-size: 1rem; font-weight: 800; color: var(--primary);
+            opacity: 0; transform: scale(0.8); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .combo-badge.show { opacity: 1; transform: scale(1); }
+
+        /* 약어 표시 영역 (블러 효과 추가) */
+        .abbr-wrapper {
+            position: relative; margin-bottom: 30px;
+        }
         .abbr-display {
-            font-size: clamp(32px, 10vw, 42px); /* 화면 크기에 따라 글자 크기 유동적 조절 */
-            font-weight: 800;
-            color: var(--primary-mute);
-            height: 110px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
-            border-bottom: 3px solid var(--primary-mute);
-            background: linear-gradient(to bottom, transparent, rgba(108, 94, 127, 0.03));
+            font-size: clamp(3rem, 5vw, 4rem); font-weight: 900; color: var(--text-dark);
+            height: 150px; display: flex; justify-content: center; align-items: center;
             text-align: center;
+            background: radial-gradient(circle, rgba(108, 92, 231, 0.05) 0%, transparent 70%);
+            border-radius: 20px; border: 1px solid #F0F4F8;
+            transition: filter 0.3s ease;
         }
+        /* 듣고치기 모드: 블러 처리 */
+        .abbr-display.blind { filter: blur(20px); opacity: 0.4; }
+        .abbr-display.reveal { filter: blur(0); opacity: 1; }
 
-        /* [연습 영역] 입력창 */
+        /* 다시 듣기 버튼 */
+        .replay-btn {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9); border: 1px solid #ddd;
+            padding: 5px 12px; border-radius: 15px; font-size: 0.8rem;
+            cursor: pointer; display: flex; align-items: center; gap: 5px; color: var(--text-grey);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 10;
+        }
+        .replay-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+        /* 오디오 설정 슬라이더 */
+        .audio-settings {
+            background: #F8F9FA; padding: 15px; border-radius: 12px; margin-bottom: 20px;
+            display: none; grid-template-columns: 1fr 1fr; gap: 15px; border: 1px solid #eee;
+        }
+        .audio-group { display: flex; flex-direction: column; gap: 5px; }
+        .audio-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-grey); }
+        .audio-group input { width: 100%; accent-color: var(--primary); cursor: pointer; }
+
+        /* 입력창 */
         input[type="text"] {
-            width: 100%;
-            padding: 18px 0;
-            font-size: 24px;
-            border: none;
-            border-bottom: 1px solid var(--border-soft);
-            text-align: center;
-            margin-bottom: 35px;
-            outline: none;
-            transition: all 0.4s ease;
-            background: transparent;
-            color: var(--primary-dark);
-            border-radius: 0; /* iOS 입력창 둥글게 방지 */
+            width: 100%; padding: 20px; font-size: 1.8rem; 
+            border: 3px solid #E1E4E8; border-radius: 16px; outline: none; 
+            text-align: center; margin-bottom: 30px; box-sizing: border-box;
+            transition: all 0.3s ease; font-family: 'Pretendard', sans-serif;
+            background: white;
+        }
+        input[type="text"]:focus { 
+            border-color: var(--primary); box-shadow: 0 0 0 5px rgba(108, 92, 231, 0.1); 
         }
 
-        input[type="text"]:focus {
-            border-bottom-color: var(--primary-mute);
-            border-bottom-width: 2px;
-        }
-
-        /* 상태 바 */
+        /* 상태바 */
         .status-grid {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            padding: 15px;
-            background: #fafafc;
-            border-radius: 12px;
-            font-size: 13px;
-            color: var(--primary-mute);
-            border: 1px solid var(--border-soft);
+            display: flex; justify-content: space-between; margin-bottom: 30px;
+            padding: 15px 25px; background: #F8F9FA; border-radius: 16px;
+            border: 1px solid #E1E4E8; font-size: 0.95rem; color: var(--text-grey);
         }
+        .status-grid b { color: var(--primary); font-size: 1.1rem; margin-left: 5px; }
 
-        .status-grid b {
-            color: var(--primary-dark);
-        }
-
-        /* 메뉴 버튼 구성 */
-        .btn-column {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+        /* 버튼 그룹 */
+        .btn-column { display: flex; flex-direction: column; gap: 12px; }
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
         button {
-            border: 1px solid var(--primary-mute);
-            background: transparent;
-            color: var(--primary-mute);
-            padding: 15px;
-            font-size: 14px;
-            font-weight: 700;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-tap-highlight-color: transparent; /* 모바일 터치 잔상 방지 */
+            padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: 700;
+            cursor: pointer; border: none; transition: 0.2s;
         }
-
-        button:hover {
-            background: var(--primary-mute);
-            color: var(--white);
+        
+        .btn-primary { 
+            background: var(--primary); color: white; 
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2); 
         }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3); }
 
-        .btn-highlight {
-            background: var(--primary-mute);
-            color: var(--white);
-        }
+        .btn-secondary { background: white; border: 2px solid #E1E4E8; color: var(--text-grey); }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
 
-        .btn-ghost {
-            border-color: transparent;
-            color: #bdc3c7;
-            font-weight: 400;
-            font-size: 12px;
+        .btn-ghost { background: transparent; color: #B2BEC3; font-size: 0.85rem; font-weight: 500; text-decoration: underline; margin-top: 10px; }
+        
+        /* 애니메이션 */
+        .shake { animation: shake 0.4s both; border-color: var(--danger) !important; }
+        @keyframes shake { 
+            10%, 90% { transform: translate3d(-1px, 0, 0); } 
+            20%, 80% { transform: translate3d(2px, 0, 0); } 
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 
+            40%, 60% { transform: translate3d(4px, 0, 0); } 
         }
 
         #fileInput { display: none; }
-        
-        .helper-text {
-            margin-top: 25px;
-            font-size: 11px;
-            color: #9ea4ad;
-            text-align: center;
-            line-height: 1.6;
-        }
+        .helper-text { text-align: center; color: #B2BEC3; font-size: 0.85rem; margin-top: 20px; line-height: 1.6; }
 
-        /* ✨ 모바일 작은 화면 대응 */
-        @media (max-width: 380px) {
-            .app-container { padding: 30px 20px; }
-            .status-grid { font-size: 11px; padding: 10px; }
-            button { padding: 12px; font-size: 13px; }
+        /* [모바일 대응] */
+        @media (max-width: 768px) {
+            body { overflow: auto; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); box-shadow: 2px 0 15px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
+            .mobile-menu-btn { display: block; }
+            
+            .main-content { padding: 70px 20px 20px; width: 100%; box-sizing: border-box; }
+            .card-box { padding: 25px; }
+            .abbr-display { font-size: 2.5rem; height: 120px; }
+            input[type="text"] { font-size: 1.5rem; padding: 15px; }
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="top-label">Shorthand Mastery</div>
-    
-    <div class="abbr-display" id="abbrDisplay">준비 완료</div>
-    <input type="text" id="userInput" placeholder="입력 후 엔터" autocomplete="off">
-    
-    <div class="status-grid">
-        <span>진행 시간 <b id="timerLabel">0초</b></span>
-        <span>학습 현황 <b id="counterLabel">0 / 0</b></span>
-    </div>
-    
-    <div class="btn-column">
-        <button class="btn-highlight" onclick="document.getElementById('fileInput').click()">📂 연습용 파일 불러오기</button>
-        <div class="btn-row">
-            <button onclick="downloadResults('정답')">정답 저장</button>
-            <button onclick="downloadResults('오답')">오답 저장</button>
+<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<nav class="sidebar">
+    <div class="logo">⚡ SHORTHAND</div>
+    <ul class="nav-list">
+        <a href="index.html" class="nav-item"><span class="nav-icon">📊</span> 대시보드</a>
+        <a href="toksori2.html" class="nav-item"><span class="nav-icon">📝</span> 똑소리 2</a>
+        <a href="king.html" class="nav-item"><span class="nav-icon">👑</span> 타자왕</a>
+        <a href="exam.html" class="nav-item"><span class="nav-icon">🎓</span> 졸업시험</a>
+        <a href="sparta.html" class="nav-item"><span class="nav-icon">🔥</span> 스파르타</a>
+        <a href="random.html" class="nav-item active"><span class="nav-icon">🎲</span> 약어랜덤</a>
+        <a href="measure.html" class="nav-item"><span class="nav-icon">⏱️</span> 자수측정</a>
+    </ul>
+    <div class="profile-card" onclick="logout()">
+        <div style="width:35px; height:35px; background:#D6A2E8; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">U</div>
+        <div>
+            <div style="font-weight:700; font-size:0.9rem;" id="sideUserName">User</div>
+            <div style="font-size:0.75rem; color:#888;">로그아웃</div>
         </div>
-        <button class="btn-ghost" onclick="resetTest()">데이터 리셋하기</button>
-        <input type="file" id="fileInput" accept=".txt">
+    </div>
+</nav>
+
+<main class="main-content">
+    
+    <div class="page-header">
+        <div class="page-title">
+            <h2>🎲 약어 리스닝 마스터</h2>
+            <p>보고 치거나, 듣고 치며(TTS) 약어를 완벽 암기하세요.</p>
+        </div>
     </div>
 
-    <p class="helper-text">
-        오타가 발생하면 자동으로 '오답 목록'에 추가됩니다.<br>
-        모든 텍스트 파일(.txt)을 불러와 연습할 수 있습니다.
-    </p>
-</div>
+    <div class="card-box">
+        
+        <div class="control-panel">
+            <button class="tts-toggle-btn" id="ttsToggle" onclick="toggleTTS()">
+                🎧 듣고 치기 OFF
+            </button>
+            <div class="combo-badge" id="comboBadge">🔥 0 COMBO</div>
+        </div>
+
+        <div class="audio-settings" id="audioPanel">
+            <div class="audio-group">
+                <label>말하기 속도 <span id="rateVal">1.0</span></label>
+                <input type="range" id="rateRange" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateAudioSettings()">
+            </div>
+            <div class="audio-group">
+                <label>목소리 크기 <span id="volVal">1.0</span></label>
+                <input type="range" id="volRange" min="0.1" max="1.0" step="0.1" value="1.0" oninput="updateAudioSettings()">
+            </div>
+        </div>
+        
+        <div class="abbr-wrapper">
+            <div class="abbr-display" id="abbrDisplay">Start!</div>
+            <button class="replay-btn" onclick="replayAudio()">🔊 다시 듣기 (Shift)</button>
+        </div>
+        
+        <input type="text" id="userInput" placeholder="정답 입력 후 Enter" autocomplete="off">
+        
+        <div class="status-grid">
+            <span>⏱️ 진행 시간 <b id="timerLabel">0초</b></span>
+            <span>📚 남은 개수 <b id="counterLabel">0 / 0</b></span>
+        </div>
+        
+        <div class="btn-column">
+            <button class="btn-primary" onclick="document.getElementById('fileInput').click()">📂 약어 파일 불러오기 (.txt)</button>
+            <div class="btn-row">
+                <button class="btn-secondary" onclick="downloadResults('정답')">💾 정답 저장</button>
+                <button class="btn-secondary" onclick="downloadResults('오답')">💾 오답 저장</button>
+            </div>
+            <button class="btn-ghost" onclick="resetTest()">🔄 데이터 리셋</button>
+            <input type="file" id="fileInput" accept=".txt">
+        </div>
+
+        <p class="helper-text">
+            * 듣고 치기(TTS)를 켜면 글자가 가려지고 소리만 나옵니다.<br>
+            * 'Shift' 키를 누르면 언제든 다시 들을 수 있습니다.
+        </p>
+
+    </div>
+
+</main>
 
 <script>
+    // --- 사이드바 토글 ---
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
+        document.querySelector('.sidebar-overlay').classList.toggle('active');
+    }
+
+    // --- 변수 및 상태 ---
     let abbreviations = [];
     let totalCount = 0;
     let currentAbbr = "";
     let totalStartTime = null;
     let isFinished = false;
-    let hasCurrentError = false;
     let correctList = []; 
-    let wrongList = [];   
+    let wrongList = [];    
+    
+    // TTS 관련 변수
+    let ttsMode = false;
+    let combo = 0;
+    let speechRate = 1.0;
+    let speechVol = 1.0;
+    let selectedVoice = null;
 
+    // 사용자 이름 로드
+    const currentUser = sessionStorage.getItem('shorthand_user');
+    if(currentUser && document.getElementById('sideUserName')) {
+        document.getElementById('sideUserName').innerText = currentUser;
+    }
+
+    // --- 초기화: 목소리 로드 ---
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+
+    function loadVoices() {
+        const voices = window.speechSynthesis.getVoices();
+        // 한국어 목소리 우선 선택 (Google 한국어 > 기타 한국어)
+        selectedVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('ko')) ||
+                        voices.find(v => v.lang.includes('ko'));
+    }
+
+    // --- 파일 로드 ---
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -213,30 +351,44 @@
         reader.readAsText(file);
     });
 
+    // --- 리셋 및 시작 ---
     function resetTest() {
-        if (totalCount === 0) return;
+        if (totalCount === 0) {
+            document.getElementById('abbrDisplay').innerText = "Start!";
+            return;
+        }
         totalStartTime = null;
         isFinished = false;
         correctList = [];
         wrongList = [];
+        combo = 0;
+        updateComboUI();
         loadNewAbbr();
         updateUI();
     }
 
+    // --- 문제 출제 ---
     function loadNewAbbr() {
         if (abbreviations.length > 0) {
             currentAbbr = abbreviations[Math.floor(Math.random() * abbreviations.length)];
-            document.getElementById('abbrDisplay').innerText = currentAbbr;
+            
+            const display = document.getElementById('abbrDisplay');
+            display.innerText = currentAbbr;
+            display.classList.remove('reveal'); // 블러 초기화
+            
+            // TTS 모드면 소리 재생
+            if (ttsMode) speak(currentAbbr);
+
             document.getElementById('userInput').value = "";
             document.getElementById('userInput').focus();
-            hasCurrentError = false;
         } else {
             isFinished = true;
-            document.getElementById('abbrDisplay').innerText = "학습 종료";
-            alert("수고하셨습니다! 연습이 모두 끝났습니다.");
+            document.getElementById('abbrDisplay').innerText = "Finish!";
+            alert("수고하셨습니다! 모든 연습이 끝났습니다. 🎉");
         }
     }
 
+    // --- 정답 체크 로직 ---
     document.getElementById('userInput').addEventListener('input', function() {
         if (!totalStartTime) totalStartTime = Date.now();
     });
@@ -245,39 +397,127 @@
         if (e.key === 'Enter') checkEntry();
     });
 
+    // Shift 키로 다시 듣기
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Shift') replayAudio();
+    });
+
     function checkEntry() {
         if (!currentAbbr || isFinished) return;
+        
         const clean = (s) => s.replace(/[^ㄱ-ㅎ가-힣a-zA-Z0-9]/g, "");
         const user = clean(document.getElementById('userInput').value);
         const target = clean(currentAbbr);
         
+        // 조사 유연성 처리
         let alt = target;
         if (target.startsWith('을')) alt = '를' + target.substring(1);
         else if (target.startsWith('를')) alt = '을' + target.substring(1);
         else if (target.startsWith('와')) alt = '과' + target.substring(1);
         else if (target.startsWith('과')) alt = '와' + target.substring(1);
+        else if (target.startsWith('이')) alt = '가' + target.substring(1);
+        else if (target.startsWith('가')) alt = '이' + target.substring(1);
 
         if (user === target || user === alt) {
-            if (!hasCurrentError) correctList.push(currentAbbr);
+            // [정답]
+            if (!wrongList.includes(currentAbbr)) correctList.push(currentAbbr);
+            
+            // 정답이면 목록에서 제거 (마스터 함)
             abbreviations = abbreviations.filter(a => a !== currentAbbr);
+            
+            // 시각 효과
+            document.getElementById('userInput').style.borderColor = "var(--success)";
+            setTimeout(() => document.getElementById('userInput').style.borderColor = "#E1E4E8", 300);
+            
+            combo++;
+            updateComboUI();
             updateUI();
             loadNewAbbr();
         } else {
+            // [오답]
             if (!wrongList.includes(currentAbbr)) wrongList.push(currentAbbr);
-            hasCurrentError = true;
-            document.getElementById('userInput').style.borderBottomColor = "var(--error-red)";
-            setTimeout(() => document.getElementById('userInput').style.borderBottomColor = "", 600);
+            
+            // 콤보 초기화
+            combo = 0;
+            updateComboUI();
+
+            // 오답 시각 효과 (흔들기)
+            const inputEl = document.getElementById('userInput');
+            inputEl.classList.add('shake');
+            setTimeout(() => inputEl.classList.remove('shake'), 400);
+
+            // 오답이면 TTS일 때 정답 잠깐 보여줌
+            if(ttsMode) {
+                document.getElementById('abbrDisplay').classList.add('reveal');
+                speak(currentAbbr); // 다시 읽어줌
+            }
+            
             document.getElementById('userInput').value = "";
         }
     }
 
+    // --- TTS 및 오디오 제어 ---
+    function toggleTTS() {
+        ttsMode = !ttsMode;
+        const btn = document.getElementById('ttsToggle');
+        const display = document.getElementById('abbrDisplay');
+        const panel = document.getElementById('audioPanel');
+
+        if (ttsMode) {
+            btn.classList.add('active');
+            btn.innerText = "🎧 듣고 치기 ON";
+            display.classList.add('blind');
+            panel.style.display = 'grid'; // 설정창 보이기
+            if(currentAbbr) speak(currentAbbr);
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = "🎧 듣고 치기 OFF";
+            display.classList.remove('blind');
+            panel.style.display = 'none'; // 설정창 숨기기
+        }
+        document.getElementById('userInput').focus();
+    }
+
+    function updateAudioSettings() {
+        speechRate = document.getElementById('rateRange').value;
+        speechVol = document.getElementById('volRange').value;
+        document.getElementById('rateVal').innerText = speechRate;
+        document.getElementById('volVal').innerText = speechVol;
+    }
+
+    function replayAudio() {
+        if(currentAbbr) speak(currentAbbr);
+        document.getElementById('userInput').focus();
+    }
+
+    function speak(text) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ko-KR';
+        utter.rate = speechRate;
+        utter.volume = speechVol;
+        if (selectedVoice) utter.voice = selectedVoice;
+        
+        window.speechSynthesis.speak(utter);
+    }
+
+    // --- 기타 유틸리티 ---
+    function updateComboUI() {
+        const badge = document.getElementById('comboBadge');
+        badge.innerText = `🔥 ${combo} COMBO`;
+        if (combo > 1) badge.classList.add('show');
+        else badge.classList.remove('show');
+    }
+
     function downloadResults(type) {
         const list = type === '정답' ? correctList : wrongList;
-        if (list.length === 0) return alert("데이터가 없습니다.");
+        if (list.length === 0) return alert("저장할 데이터가 없습니다.");
         const blob = new Blob([[...new Set(list)].join('\n')], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `${type}.txt`;
+        a.download = `${type}_목록.txt`;
         a.click();
     }
 
@@ -289,7 +529,11 @@
     }, 1000);
 
     function updateUI() {
-        document.getElementById('counterLabel').innerText = `${totalCount - abbreviations.length} / ${totalCount}`;
+        document.getElementById('counterLabel').innerText = `${abbreviations.length} / ${totalCount}`;
+    }
+    
+    function logout() { 
+        if(confirm("로그아웃 하시겠습니까?")) { sessionStorage.clear(); location.href = 'index.html'; } 
     }
 </script>
 </body>
