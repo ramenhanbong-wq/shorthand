@@ -491,7 +491,7 @@
         newInp.autocomplete = 'off';
         newInp.addEventListener('input', handleTyping);
         wrapper.appendChild(newInp);
-        newInp.focus();
+        newInp.focus({ preventScroll: true });
         
         // 피버 모드 클래스 제거
         newInp.classList.remove('fever-mode');
@@ -769,3 +769,4 @@
 </script>
 </body>
 </html>
+
