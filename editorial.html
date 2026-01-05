@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHORTHAND PRO - 사설치기</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --bg-body: #F0F4F8; 
+            --sidebar-bg: #FFFFFF;
+            --primary: #6C5CE7;
+            --primary-light: #A29BFE;
+            --text-dark: #2D3436;
+            --text-grey: #636E72;
+            
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.03);
+            --radius-card: 24px;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            margin: 0; padding: 0;
+            overflow: hidden; /* 전체 스크롤 방지 */
+        }
+
+        /* --- 공통 레이아웃 (대시보드 스타일) --- */
+        #app-wrapper { display: none; height: 100vh; width: 100vw; }
+        
+        .sidebar {
+            width: 260px; background: var(--sidebar-bg);
+            padding: 30px 20px; display: flex; flex-direction: column;
+            border-right: 1px solid #EAEAEA; flex-shrink: 0; z-index: 10;
+        }
+        .logo { font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-bottom: 40px; padding-left: 10px; }
+        
+        .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+        .nav-item {
+            padding: 14px 18px; margin-bottom: 8px; border-radius: 14px;
+            color: var(--text-grey); font-weight: 600; cursor: pointer; 
+            display: flex; align-items: center; gap: 12px; transition: 0.2s;
+            text-decoration: none;
+        }
+        .nav-item:hover { background: #F5F6FA; color: var(--primary); transform: translateX(5px); }
+        .nav-item.active { background: #EEEBFF; color: var(--primary); }
+        .nav-icon { width: 24px; text-align: center; font-size: 1.1rem; }
+
+        .profile-card {
+            background: #F8F9FA; padding: 15px; border-radius: 16px;
+            display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s;
+        }
+        .profile-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .avatar { width: 40px; height: 40px; background: #D6A2E8; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+
+        /* --- 메인 콘텐츠 영역 (사설 연습 전용 스타일) --- */
+        .main-content {
+            flex: 1; padding: 30px 40px; 
+            display: flex; flex-direction: column; 
+            position: relative; overflow: hidden; /* 내부 스크롤 제어 */
+        }
+
+        /* 상단 헤더 및 타이머 바 */
+        .practice-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; flex-shrink: 0;
+        }
+        .page-title h2 { margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--text-dark); }
+        .page-title p { margin: 5px 0 0; color: var(--text-grey); font-size: 0.9rem; }
+        
+        .status-display {
+            background: white; padding: 10px 25px; border-radius: 50px;
+            box-shadow: var(--shadow-card); display: flex; gap: 30px; align-items: center;
+            font-weight: 700; color: var(--text-dark);
+        }
+        .status-item { display: flex; align-items: center; gap: 8px; }
+        .speed-val { color: #e74c3c; font-size: 1.4rem; font-weight: 900; min-width: 50px; text-align: right; }
+        .timer-val { color: var(--primary); font-variant-numeric: tabular-nums; }
+
+        /* 네이버 배너 */
+        .naver-banner {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #03C75A; color: white; text-decoration: none;
+            padding: 8px 16px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(3, 199, 90, 0.3); transition: 0.2s;
+            margin-right: 15px;
+        }
+        .naver-banner:hover { transform: translateY(-2px); background-color: #02b351; }
+
+        /* 연습 영역 컨테이너 (5:5 분할) */
+        .practice-container {
+            display: flex; gap: 20px; flex: 1; min-height: 0; /* Flex height fix */
+        }
+        
+        .editor-card {
+            flex: 1; background: white; border-radius: 20px; padding: 25px;
+            box-shadow: var(--shadow-card); display: flex; flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .card-top {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; flex-shrink: 0; padding-bottom: 10px; border-bottom: 2px solid #f0f2f5;
+        }
+        .card-title { font-weight: 800; color: var(--text-dark); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;}
+        .count-badge { background: #e8f5e9; color: #27ae60; padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 800; }
+
+        /* 툴바 */
+        .toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; flex-shrink: 0; gap: 10px; flex-wrap: wrap;
+        }
+        
+        .btn {
+            border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; 
+            font-family: 'Pretendard', sans-serif; cursor: pointer; transition: 0.2s;
+            font-size: 0.9rem; display: flex; align-items: center; gap: 6px; height: 38px;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(0.95); }
+        .btn-clean { background: #ffeaa7; color: #d35400; }
+        .btn-tts { background: #74b9ff; color: #0984e3; }
+        .btn-reset { background: #dfe6e9; color: #636E72; }
+        .btn-grade { background: var(--primary); color: white; padding: 0 24px; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
+
+        .tts-group {
+            display: flex; align-items: center; gap: 8px; background: #F8F9FA;
+            padding: 4px 8px; border-radius: 10px;
+        }
+        select, input[type="range"] { cursor: pointer; }
+        #voiceSelect { border: 1px solid #ddd; border-radius: 6px; padding: 4px; font-family: inherit; max-width: 100px;}
+
+        /* 텍스트 영역 */
+        textarea {
+            flex: 1; width: 100%; resize: none; border: 2px solid #F0F4F8;
+            padding: 20px; font-size: 1.05rem; line-height: 1.8;
+            font-family: 'Pretendard', sans-serif; outline: none;
+            border-radius: 12px; box-sizing: border-box; background-color: #fcfcfc;
+            transition: 0.2s;
+        }
+        textarea:focus { border-color: var(--primary-light); background: white; }
+        textarea::placeholder { color: #b2bec3; }
+
+        #typingArea { background-color: #fff; }
+        #typingArea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); }
+
+        /* ----------------------------------------------------
+           [모바일 반응형] : 768px 이하
+           ---------------------------------------------------- */
+        .mobile-menu-btn { display: none; }
+        .sidebar-overlay { display: none; }
+
+        @media (max-width: 768px) {
+            body { overflow: auto; }
+            #app-wrapper { height: auto; min-height: 100vh; overflow-x: hidden;}
+            .main-content { padding: 70px 20px 20px; height: auto; }
+            .practice-container { flex-direction: column; height: auto; }
+            textarea { height: 300px; } /* 모바일에서 높이 고정 */
+            
+            .sidebar {
+                position: fixed; top: 0; left: 0; height: 100%;
+                transform: translateX(-100%); transition: transform 0.3s ease;
+                z-index: 2000;
+            }
+            .sidebar.active { transform: translateX(0); }
+            .sidebar-overlay {
+                display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 1500;
+            }
+            .sidebar-overlay.active { display: block; }
+            .mobile-menu-btn {
+                display: block; position: fixed; top: 15px; left: 15px; z-index: 1600;
+                background: var(--primary); color: white; border: none;
+                border-radius: 8px; padding: 8px 12px; font-size: 1.5rem;
+            }
+            .practice-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .status-display { width: 100%; justify-content: space-between; box-sizing: border-box;}
+        }
+
+        /* --- 결과 모달 --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; backdrop-filter: blur(4px); }
+        .modal-content {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; width: 90%; max-width: 800px; max-height: 85vh;
+            border-radius: 24px; padding: 40px; overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: fadeUp 0.3s ease-out;
+        }
+        @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, -40%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
+        .score-circle { 
+            width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 8px solid var(--primary-light); color: var(--primary);
+        }
+        .score-number { font-size: 3rem; font-weight: 900; line-height: 1; }
+        .score-label { font-size: 0.9rem; font-weight: 700; margin-top: 5px; opacity: 0.7;}
+        
+        .score-detail { text-align: center; color: var(--text-grey); margin-bottom: 25px; font-weight: 500;}
+        .diff-view { 
+            font-size: 1.1rem; line-height: 2.0; background: #fafafa; padding: 20px; 
+            border: 1px solid #eee; border-radius: 16px; white-space: pre-wrap; word-break: break-all; 
+            max-height: 300px; overflow-y: auto;
+        }
+        
+        /* 채점 스타일 */
+        .d-missing { background: #FFEBEE; color: #FF7675; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
+        .d-added { color: #00B894; font-weight: bold; text-decoration: underline; }
+        .d-wrong { border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: bold; position: relative; margin: 0 2px;}
+        .correction { font-size: 0.6em; color: white; background: var(--primary); padding: 1px 4px; border-radius: 4px; position: absolute; top: -1.4em; left: 0; white-space: nowrap; }
+        .close-btn { position: absolute; top: 25px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #aaa; transition: 0.2s; }
+        .close-btn:hover { color: var(--text-dark); transform: rotate(90deg); }
+
+        /* 로딩/로그인 (대시보드 공통) */
+        #login-wrapper { display: flex; height: 100vh; width: 100vw; background: white; position: fixed; top: 0; left: 0; z-index: 3000; }
+        .login-art { flex: 1.5; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;}
+        .login-form-container { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 60px; max-width: 500px; }
+        .inp-box { width: 100%; padding: 20px; border-radius: 16px; background: #F8F9FA; border: 2px solid transparent; margin-bottom: 15px; outline: none; box-sizing: border-box;}
+        .inp-box:focus { background: white; border-color: var(--primary); }
+        .btn-login { width: 100%; padding: 20px; border-radius: 16px; border: none; background: var(--primary); color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer; margin-top: 20px; }
+
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 3500; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .spinner { width: 40px; height: 40px; border: 4px solid #eee; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s infinite linear; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body onload="initApp()">
+
+    <div id="loading-overlay"><div class="spinner"></div></div>
+
+    <div id="login-wrapper">
+        <div class="login-art">
+            <h2 style="color:white; font-size:2.5rem; font-weight:900; text-shadow:0 10px 20px rgba(0,0,0,0.1);">Speed Typer.</h2>
+        </div>
+        <div class="login-form-container">
+            <div style="font-size:2.5rem; font-weight:900; margin-bottom:10px;">Hello,<br>Master!</div>
+            <p style="color:#636E72; margin-bottom:40px;">로그인하여 연습을 시작하세요.</p>
+            <input type="text" id="nameInput" class="inp-box" placeholder="이름 (Name)">
+            <input type="password" id="pwInput" class="inp-box" placeholder="비밀번호 (Password)" onkeypress="if(event.keyCode==13) login()">
+            <button onclick="login()" class="btn-login">Login 🚀</button>
+        </div>
+    </div>
+
+    <div id="app-wrapper">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <nav class="sidebar">
+            <div class="logo">⚡ SHORTHAND</div>
+            <ul class="nav-list">
+                <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span> 대시보드</a>
+                <a href="#" class="nav-item active"><span class="nav-icon">📰</span> 사설치기</a> <a href="toksori2.html" class="nav-item"><span class="nav-icon">📝</span> 똑소리 2</a>
+                <a href="king.html" class="nav-item"><span class="nav-icon">👑</span> 타자왕</a>
+                <a href="exam.html" class="nav-item"><span class="nav-icon">🎓</span> 졸업시험</a>
+                <a href="sparta.html" class="nav-item"><span class="nav-icon">🔥</span> 스파르타</a>
+                <a href="random.html" class="nav-item"><span class="nav-icon">🎲</span> 약어랜덤</a>
+                <a href="measure.html" class="nav-item"><span class="nav-icon">⏱️</span> 자수측정</a>
+            </ul>
+            <div style="margin-top:auto;">
+                <div class="profile-card" onclick="logout()">
+                    <div class="avatar" id="userAvatar">U</div>
+                    <div>
+                        <div style="font-weight:700; font-size:0.95rem;" id="userNameSide">User</div>
+                        <div style="font-size:0.75rem; color:#888;">로그아웃</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="practice-header">
+                <div class="page-title">
+                    <h2>📰 사설 치기 연습</h2>
+                    <p>네이버 사설을 복사해서 연습하고 정확도를 확인하세요.</p>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <a href="https://news.naver.com/opinion/home" target="_blank" class="naver-banner">
+                        <span>N</span> 사설 가져오기 →
+                    </a>
+                    <div class="status-display">
+                        <div class="status-item">
+                            <span>⏱</span> <span id="timer" class="timer-val">00:00</span>
+                        </div>
+                        <div style="width:1px; height:15px; background:#ddd; margin:0 15px;"></div>
+                        <div class="status-item">
+                            <span>🚀</span> <span id="speedDisplay" class="speed-val">0</span> 
+                            <span style="font-size:0.8rem; color:#888;">자/분</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="practice-container">
+                <div class="editor-card">
+                    <div class="card-top">
+                        <span class="card-title">🔖 원문 (붙여넣기)</span>
+                        <span class="count-badge" id="sourceCount">0자</span>
+                    </div>
+                    <div class="toolbar">
+                        <button class="btn btn-clean" onclick="cleanSourceText()">✨ 텍스트 정제</button>
+                        <div class="tts-group">
+                            <select id="voiceSelect"></select>
+                            <input type="range" id="ttsRate" min="0.5" max="2.0" step="0.1" value="1.0" style="width:60px;">
+                            <button class="btn btn-tts" onclick="toggleTTS()" id="btnTTS">🔊 읽기</button>
+                        </div>
+                    </div>
+                    <textarea id="sourceArea" placeholder="위 '사설 가져오기' 버튼을 눌러 내용을 복사한 뒤 붙여넣으세요!" oninput="updateSourceCount()"></textarea>
+                </div>
+
+                <div class="editor-card">
+                    <div class="card-top">
+                        <span class="card-title">⌨️ 연습 입력창</span>
+                        <span class="count-badge" id="typingCount">0자</span>
+                    </div>
+                    <div class="toolbar">
+                        <span style="font-size:0.8rem; color:#888; margin-right:auto;">Tip: <b>ESC</b>로 채점</span>
+                        <button class="btn btn-reset" onclick="resetPractice()">🔄 초기화</button>
+                        <button class="btn btn-grade" onclick="calculateAccuracy()">💯 정확도 확인</button>
+                    </div>
+                    <textarea id="typingArea" placeholder="여기를 클릭하고 타이핑을 시작하세요." oninput="handleTyping()"></textarea>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="resultModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('resultModal').style.display='none'">&times;</span>
+            <h3 style="text-align:center; margin-top:0; color:var(--text-dark);">📊 채점 결과</h3>
+            
+            <div class="score-circle">
+                <div class="score-number" id="finalScore">0%</div>
+                <div class="score-label">정확도</div>
+            </div>
+            
+            <div class="score-detail" id="scoreDetail"></div>
+
+            <h4 style="margin-bottom:10px; color:var(--text-dark);">상세 비교 (오답 노트)</h4>
+            <div class="diff-view" id="diffOutput"></div>
+            
+            <div style="text-align:center; margin-top:30px;">
+                <button class="btn btn-grade" onclick="document.getElementById('resultModal').style.display='none'">닫기 (ESC)</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // [설정] 서버 URL (로그인 용)
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyy-tcN11MycmXmaQjJ20KhLoOQzDqtr8b6YvwbLyF3OOVywlOzcm2EIkl_h4S9LoEFLQ/exec"; 
+    let currentUser = sessionStorage.getItem('shorthand_user');
+
+    // --- [1] 기본 앱 초기화 및 로그인/로그아웃 로직 ---
+    function initApp() {
+        if (currentUser) {
+            document.getElementById('login-wrapper').style.display = 'none';
+            document.getElementById('app-wrapper').style.display = 'flex'; // 수정됨: flex로 변경
+            document.getElementById('userNameSide').innerText = currentUser;
+            document.getElementById('userAvatar').innerText = currentUser.charAt(0);
+            populateVoiceList(); // TTS 로드
+        } else {
+            document.getElementById('login-wrapper').style.display = 'flex';
+            document.getElementById('app-wrapper').style.display = 'none';
+        }
+    }
+
+    async function login() {
+        const name = document.getElementById('nameInput').value.trim();
+        const pw = document.getElementById('pwInput').value;
+        if(!name || !pw) return alert("이름과 비밀번호를 입력해주세요.");
+        
+        document.getElementById('loading-overlay').style.display = 'flex';
+        try {
+            const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name: name, pw: pw }) });
+            const data = await res.json();
+            
+            if (data.result === "success") { 
+                currentUser = data.name; 
+                sessionStorage.setItem('shorthand_user', currentUser); 
+                sessionStorage.setItem('shorthand_token', data.token); 
+                initApp(); 
+            } else { 
+                alert("로그인 실패! 정보를 확인해주세요."); 
+            }
+        } catch(e) { 
+            alert("서버 연결 오류"); 
+        } finally {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+    }
+
+    function logout() {
+        if(confirm("로그아웃 하시겠습니까?")) {
+            sessionStorage.clear();
+            location.reload();
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+
+    // --- [2] 사설 연습 로직 (기존 로직 이식) ---
+    let startTime = null;
+    let timerInterval = null;
+    let isPlaying = false;
+    let synth = window.speechSynthesis;
+    let utterance = null;
+    let voices = [];
+
+    // ESC 키 이벤트
+    window.addEventListener('keydown', function(e) {
+        if(e.key === "Escape") {
+            const modal = document.getElementById('resultModal');
+            if(modal.style.display === 'block') {
+                modal.style.display = 'none'; return;
+            }
+            const inputVal = document.getElementById('typingArea').value;
+            if(inputVal.length > 0) {
+                stopTimer(); calculateAccuracy();
+            }
+        }
+    });
+
+    // 목소리 로드
+    function populateVoiceList() {
+        voices = synth.getVoices().filter(voice => voice.lang.includes('ko') || voice.lang.includes('KR'));
+        const voiceSelect = document.getElementById('voiceSelect');
+        voiceSelect.innerHTML = '';
+        if(voices.length === 0) {
+            const option = document.createElement('option'); option.textContent = "기본 목소리"; voiceSelect.appendChild(option); return;
+        }
+        voices.sort((a, b) => {
+            const aName = a.name.toLowerCase(); const bName = b.name.toLowerCase();
+            if ((aName.includes('google') || aName.includes('natural')) && !(bName.includes('google') || bName.includes('natural'))) return -1;
+            if (!(aName.includes('google') || aName.includes('natural')) && (bName.includes('google') || bName.includes('natural'))) return 1;
+            return 0;
+        });
+        voices.forEach((voice) => {
+            const option = document.createElement('option');
+            let label = voice.name;
+            if(label.includes("Google")) label = "🗣️ Google";
+            else if(label.includes("Natural") || label.includes("Online")) label = "🗣️ Natural";
+            else label = voice.name.slice(0, 10) + ".."; 
+            
+            option.textContent = label; option.value = voice.name; voiceSelect.appendChild(option);
+        });
+    }
+    if (speechSynthesis.onvoiceschanged !== undefined) { speechSynthesis.onvoiceschanged = populateVoiceList; }
+
+    // 카운트 및 정제
+    function getPureCount(text) { return text.replace(/[^a-zA-Z0-9가-힣]/g, "").length; }
+    function updateSourceCount() { document.getElementById('sourceCount').innerText = getPureCount(document.getElementById('sourceArea').value) + "자"; }
+    function cleanSourceText() {
+        let text = document.getElementById('sourceArea').value;
+        text = text.replace(/\([^)]*\)/g, ""); 
+        text = text.replace(/\n/g, " ");       
+        text = text.replace(/[^a-zA-Z0-9가-힣\s.,?%]/g, ""); 
+        text = text.replace(/\s+/g, " ").trim(); 
+        document.getElementById('sourceArea').value = text;
+        updateSourceCount();
+    }
+
+    // 타이머 및 입력
+    function handleTyping() {
+        const inputVal = document.getElementById('typingArea').value;
+        const currentCount = getPureCount(inputVal);
+        document.getElementById('typingCount').innerText = currentCount + "자";
+        if (!startTime && currentCount > 0) { startTime = new Date(); startTimer(); }
+        if (currentCount === 0) { stopTimer(); resetMetrics(); }
+    }
+    function startTimer() {
+        if (timerInterval) return;
+        timerInterval = setInterval(() => {
+            const now = new Date();
+            const elapsedSeconds = (now - startTime) / 1000;
+            const min = Math.floor(elapsedSeconds / 60).toString().padStart(2, '0');
+            const sec = Math.floor(elapsedSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${min}:${sec}`;
+            const currentCount = getPureCount(document.getElementById('typingArea').value);
+            if (elapsedSeconds > 0) {
+                const cpm = Math.round((currentCount / elapsedSeconds) * 60);
+                document.getElementById('speedDisplay').innerText = cpm;
+            }
+        }, 1000);
+    }
+    function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+    function resetMetrics() { startTime = null; document.getElementById('timer').innerText = "00:00"; document.getElementById('speedDisplay').innerText = "0"; }
+    function resetPractice() {
+        document.getElementById('typingArea').value = ""; document.getElementById('typingCount').innerText = "0자";
+        stopTimer(); resetMetrics(); document.getElementById('typingArea').focus();
+    }
+
+    // TTS
+    function toggleTTS() {
+        if (isPlaying) {
+            synth.cancel(); isPlaying = false;
+            document.getElementById('btnTTS').innerText = "🔊 읽기"; document.getElementById('btnTTS').style.backgroundColor = ""; document.getElementById('btnTTS').style.color = "";
+        } else {
+            const text = document.getElementById('sourceArea').value;
+            if (!text) { alert("읽을 원문이 없습니다."); return; }
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR'; utterance.rate = document.getElementById('ttsRate').value;
+            const selectedVoiceName = document.getElementById('voiceSelect').value;
+            const selectedVoice = voices.find(v => v.name === selectedVoiceName);
+            if (selectedVoice) utterance.voice = selectedVoice;
+            utterance.onend = function() {
+                isPlaying = false; document.getElementById('btnTTS').innerText = "🔊 읽기"; document.getElementById('btnTTS').style.backgroundColor = "";
+            };
+            synth.speak(utterance); isPlaying = true;
+            document.getElementById('btnTTS').innerText = "⏹ 멈춤"; document.getElementById('btnTTS').style.backgroundColor = "#e74c3c"; document.getElementById('btnTTS').style.color = "white";
+        }
+    }
+    document.getElementById('ttsRate').addEventListener('change', function() { if (isPlaying) { synth.cancel(); toggleTTS(); } });
+
+    // 채점
+    function calculateAccuracy() {
+        const rawO = document.getElementById('sourceArea').value;
+        const rawS = document.getElementById('typingArea').value;
+        if(!rawO.trim()) { alert("원문이 없습니다!"); return; }
+        if(!rawS.trim()) { alert("입력된 내용이 없습니다!"); return; }
+
+        let pureLength = rawO.replace(/[^0-9a-zA-Z\uAC00-\uD7A3]/g, '').length;
+        if(pureLength === 0) pureLength = 1;
+
+        let oArr = rawO.trim().split(''); let sArr = rawS.trim().split('');
+        let n = oArr.length; let m = sArr.length;
+        let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
+        for (let i = 1; i <= n; i++) {
+            for (let j = 1; j <= m; j++) {
+                if (oArr[i-1] === sArr[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
+                else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+            }
+        }
+        let i = n, j = m, diffs = [];
+        while (i > 0 || j > 0) {
+            if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { diffs.push({ t: 'same', c: oArr[i-1] }); i--; j--; }
+            else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { diffs.push({ t: 'added', c: sArr[j-1] }); j--; }
+            else { diffs.push({ t: 'missing', c: oArr[i-1] }); i--; }
+        }
+        diffs.reverse();
+
+        let html = "", w=0, mi=0, ad=0;
+        let mBuffer = [], aBuffer = []; 
+        const isSpecial = (char) => /[^0-9a-zA-Z\uAC00-\uD7A3]/.test(char);
+        const toHtmlChar = (ch) => (ch === " ") ? "&nbsp;" : ch.replace(/</g, "&lt;");
+
+        function flushBuffer() {
+            let mIdx = 0, aIdx = 0;
+            while (mIdx < mBuffer.length || aIdx < aBuffer.length) {
+                let mChar = mBuffer[mIdx], aChar = aBuffer[aIdx];
+                if (mIdx < mBuffer.length && isSpecial(mChar)) { html += `<span>${toHtmlChar(mChar)}</span>`; mIdx++; continue; }
+                if (aIdx < aBuffer.length && isSpecial(aChar)) { html += `<span style="color:#ccc;">${toHtmlChar(aChar)}</span>`; aIdx++; continue; }
+                if (mIdx < mBuffer.length && aIdx < aBuffer.length) { 
+                    html += `<span class="d-wrong">${toHtmlChar(aChar)}<span class="correction">${toHtmlChar(mChar)}</span></span>`; 
+                    w++; mIdx++; aIdx++; continue; 
+                }
+                if (mIdx < mBuffer.length) { html += `<span class="d-missing">${toHtmlChar(mChar)}</span>`; mi++; mIdx++; continue; }
+                if (aIdx < aBuffer.length) { html += `<span class="d-added">${toHtmlChar(aChar)}</span>`; ad++; aIdx++; continue; }
+            }
+            mBuffer = []; aBuffer = [];
+        }
+        for (let k = 0; k < diffs.length; k++) {
+            let item = diffs[k];
+            if (item.t === 'same') { flushBuffer(); html += `<span>${toHtmlChar(item.c)}</span>`; } 
+            else if (item.t === 'missing') { mBuffer.push(item.c); } 
+            else if (item.t === 'added') { aBuffer.push(item.c); }
+        }
+        flushBuffer();
+
+        let adPenalty = Math.floor(ad / 3);
+        let score = Math.max(0, 100 - ((w + mi + adPenalty) / pureLength * 100)).toFixed(1);
+        document.getElementById('finalScore').innerText = score + "%";
+        document.getElementById('scoreDetail').innerText = `총 글자: ${pureLength}자 / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
+        document.getElementById('diffOutput').innerHTML = html;
+        document.getElementById('resultModal').style.display = 'block';
+    }
+    function closeModal(e) { if(e.target === document.getElementById('resultModal')) document.getElementById('resultModal').style.display = 'none'; }
+</script>
+</body>
+</html>
