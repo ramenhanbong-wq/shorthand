@@ -9,7 +9,7 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            --bg-body: #F0F4F8; 
+            --bg-body: #F0F4F8;
             --sidebar-bg: #F8F9FA;
             --primary: #6C5CE7; 
             --primary-light: #A29BFE;
@@ -18,7 +18,6 @@
             --white: #FFFFFF;
             --shadow-card: 0 4px 20px rgba(0,0,0,0.03);
             --radius-card: 24px;
-            
             --main-blue: #6C5CE7;
             --fail: #FF7675; 
             --success: #00B894; 
@@ -26,65 +25,83 @@
         }
 
         body {
-            font-family: 'Pretendard', sans-serif; background: var(--bg-body);
+            font-family: 'Pretendard', sans-serif;
+            background: var(--bg-body);
             color: var(--text-dark); margin: 0; padding: 0; 
             display: flex; height: 100vh; overflow: hidden;
         }
 
         /* [모바일 전용 버튼] */
         .mobile-menu-btn {
-            display: none; position: fixed; top: 15px; left: 15px; z-index: 1001;
+            display: none;
+            position: fixed; top: 15px; left: 15px; z-index: 1001;
             background: var(--primary); color: white; border: none;
-            border-radius: 8px; padding: 8px 12px; font-size: 1.5rem; cursor: pointer;
+            border-radius: 8px; padding: 8px 12px;
+            font-size: 1.5rem; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .sidebar-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 999; backdrop-filter: blur(3px);
         }
 
         /* 사이드바 */
         .sidebar {
-            width: 260px; background: var(--sidebar-bg); padding: 30px 20px; 
+            width: 260px;
+            background: var(--sidebar-bg); padding: 30px 20px; 
             display: flex; flex-direction: column; border-right: 2px solid #E1E4E8;
-            flex-shrink: 0; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.03);
+            flex-shrink: 0; z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.03);
             transition: transform 0.3s ease;
         }
-        .logo { font-size: 1.4rem; font-weight: 900; color: var(--primary); margin-bottom: 40px; padding-left: 10px; }
+        .logo { font-size: 1.4rem;
+            font-weight: 900; color: var(--primary); margin-bottom: 40px; padding-left: 10px; }
         
-        .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+        .nav-list { list-style: none;
+            padding: 0; margin: 0; flex: 1; }
         .nav-item {
-            padding: 14px 18px; margin-bottom: 12px; border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 12px; border-radius: 14px;
             color: var(--text-grey); font-weight: 700; cursor: pointer; text-decoration: none;
             display: flex; align-items: center; gap: 12px; transition: 0.2s;
             background: white; border: 1px solid #EAEAEA; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         .nav-item:hover, .nav-item.active { 
-            background: var(--primary); color: white; border-color: var(--primary);
+            background: var(--primary);
+            color: white; border-color: var(--primary);
             transform: translateY(-2px); box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
         }
-        .nav-icon { width: 24px; text-align: center; }
+        .nav-icon { width: 24px; text-align: center;
+        }
 
         .profile-card {
-            background: white; padding: 15px; border-radius: 16px;
+            background: white;
+            padding: 15px; border-radius: 16px;
             display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s; margin-top: auto;
             border: 1px solid #EAEAEA;
         }
-        .profile-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .profile-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
 
         /* 메인 콘텐츠 */
         .main-content {
-            flex: 1; padding: 40px 50px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+            flex: 1;
+            padding: 40px 50px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
         }
         
-        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
-        .page-title h2 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--text-dark); }
-        .page-title p { color: var(--text-grey); margin: 5px 0 0 0; }
+        .page-header { display: flex;
+            justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+        .page-title h2 { font-size: 1.8rem;
+            font-weight: 800; margin: 0; color: var(--text-dark); }
+        .page-title p { color: var(--text-grey);
+            margin: 5px 0 0 0; }
 
         .card-box {
-            background: var(--white); border-radius: var(--radius-card); padding: 30px;
+            background: var(--white);
+            border-radius: var(--radius-card); padding: 30px;
             box-shadow: var(--shadow-card); transition: 0.3s;
-            border: 1px solid #DCE0E5; 
+            border: 1px solid #DCE0E5;
         }
 
         .ranking-banner {
@@ -93,97 +110,148 @@
             box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2); margin-bottom: 20px;
             border: 2px solid white; outline: 2px solid #a29bfe;
         }
-        .ranking-list { display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .ranking-item { padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); }
+        .ranking-list { display: flex;
+            justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .ranking-item { padding: 5px 12px;
+            border-radius: 20px; font-weight: 700; font-size: 0.9rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
+        }
 
-        .config-row { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .config-item { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .config-row { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .config-item { flex: 1; display: flex; flex-direction: column; gap: 8px;
+        }
         .styled-input {
-            padding: 12px 15px; border: 2px solid #E1E4E8; border-radius: 12px;
+            padding: 12px 15px;
+            border: 2px solid #E1E4E8; border-radius: 12px;
             font-size: 1rem; outline: none; transition: 0.2s; background: #F8F9FA;
         }
-        .styled-input:focus { border-color: var(--primary); background: #fff; }
+        .styled-input:focus { border-color: var(--primary); background: #fff;
+        }
 
         .audio-player-card { 
-            background: #F8F9FA; border-radius: 20px; padding: 20px; 
+            background: #F8F9FA;
+            border-radius: 20px; padding: 20px; 
             border: 1px solid #E1E4E8;
         }
         .play-btn-circle {
-            width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white;
+            width: 50px;
+            height: 50px; border-radius: 50%; background: var(--primary); color: white;
             border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3); transition: 0.2s;
+            font-size: 24px;
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3); transition: 0.2s;
         }
-        .play-btn-circle:hover { transform: scale(1.1); }
-        .play-btn-circle:disabled { background: #ddd; box-shadow: none; cursor: not-allowed; }
+        .play-btn-circle:hover { transform: scale(1.1);
+        }
+        .play-btn-circle:disabled { background: #ddd; box-shadow: none; cursor: not-allowed;
+        }
         
-        .progress-container input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--primary); }
-        .time-wrapper { font-size: 0.85rem; color: #888; font-weight: 600; text-align: right; margin-top: 5px; }
+        .progress-container input[type="range"] { width: 100%;
+            cursor: pointer; accent-color: var(--primary); }
+        .time-wrapper { font-size: 0.85rem; color: #888; font-weight: 600;
+            text-align: right; margin-top: 5px; }
 
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .input-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr;
+            gap: 20px; margin-top: 20px; }
+        .input-wrapper { display: flex; flex-direction: column; gap: 10px;
+        }
         .styled-textarea {
-            width: 100%; height: 250px; padding: 20px; 
+            width: 100%;
+            height: 250px; padding: 20px; 
             border: 2px solid #E1E4E8; border-radius: 16px;
-            resize: none; font-size: 1.1rem; line-height: 1.8; box-sizing: border-box; outline: none; transition: 0.2s;
+            resize: none; font-size: 1.1rem; line-height: 1.8; box-sizing: border-box; outline: none;
+            transition: 0.2s;
             font-family: 'Pretendard', sans-serif; background: #FFFEFC;
         }
-        .styled-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); background: white; }
-        .label-badge { display: inline-block; background: #EEEBFF; color: var(--primary); padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; border: 1px solid #D1C4E9; }
+        .styled-textarea:focus { border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); background: white;
+        }
+        .label-badge { display: inline-block; background: #EEEBFF; color: var(--primary); padding: 5px 12px;
+            border-radius: 8px; font-weight: 800; font-size: 0.9rem; border: 1px solid #D1C4E9;
+        }
 
         .btn-primary {
-            background: var(--primary); color: white; border: none; padding: 15px 30px;
+            background: var(--primary);
+            color: white; border: none; padding: 15px 30px;
             border-radius: 16px; font-size: 1.1rem; font-weight: 800; cursor: pointer;
-            width: 100%; margin-top: 20px; transition: 0.2s; box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2);
+            width: 100%; margin-top: 20px;
+            transition: 0.2s; box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2);
             border: 2px solid transparent;
         }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.3); border-color: #A29BFE; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.3);
+            border-color: #A29BFE; }
 
-        .btn-ghost { background: #fff; border: 2px solid #E1E4E8; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #666; transition: 0.2s; }
-        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-ghost { background: #fff; border: 2px solid #E1E4E8;
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #666; transition: 0.2s;
+        }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary);
+        }
 
         .diff-view { 
-            background: #fff; padding: 30px; border: 2px solid #E1E4E8; border-radius: 16px; 
-            font-size: 20px; line-height: 3.5; white-space: pre-wrap; word-break: break-all; margin-top: 20px;
+            background: #fff;
+            padding: 30px; border: 2px solid #E1E4E8; border-radius: 16px; 
+            font-size: 20px; line-height: 2.5; white-space: pre-wrap; word-break: break-all; margin-top: 20px;
         }
-        .d-missing { background: #FFEBEE; color: #FF7675; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
-        .d-added { color: #00B894; font-weight: bold; text-decoration: underline; }
-        .d-wrong { border-bottom: 2px solid var(--primary); position: relative; font-weight: bold; color: var(--primary); }
+        .d-missing { background: #FFEBEE; color: #FF7675; padding: 2px 5px; border-radius: 4px;
+            font-weight: bold; }
+        .d-added { color: #00B894; font-weight: bold; text-decoration: underline;
+        }
+        .d-wrong { border-bottom: 2px solid var(--primary); position: relative; font-weight: bold; color: var(--primary);
+        }
         .correction { 
-            position: absolute; top: -2.5em; left: 0; font-size: 0.6em; color: white; background: var(--primary);
-            padding: 2px 6px; border-radius: 6px; white-space: nowrap; z-index: 10;
+            position: absolute;
+            top: -2.3em; /* [수정됨] 오답을 가리지 않도록 더 위로 올림 */
+            left: 0; font-size: 0.6em; color: white; background: var(--primary);
+            padding: 2px 6px; border-radius: 6px; white-space: nowrap;
         }
 
-        .growth-box { background: #E3F2FD; color: #1565C0; padding: 20px; border-radius: 16px; margin-bottom: 20px; display: none; border: 2px solid #90CAF9; }
-        .growth-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 8px; display: block; }
+        .growth-box { background: #E3F2FD; color: #1565C0; padding: 20px; border-radius: 16px; margin-bottom: 20px;
+            display: none; border: 2px solid #90CAF9; }
+        .growth-title { font-weight: 800; font-size: 1.1rem;
+            margin-bottom: 8px; display: block; }
 
         .toast-msg { 
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
+            position: fixed;
+            top: 20px; left: 50%; transform: translateX(-50%); 
             background: var(--text-dark); color: white; padding: 12px 25px; border-radius: 30px; 
-            font-weight: bold; z-index: 2000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            font-weight: bold; z-index: 2000;
+            display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
         }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; backdrop-filter: blur(5px); }
+        .modal-overlay { display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; backdrop-filter: blur(5px);
+        }
         #report-modal { 
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            width: 400px; background: white; padding: 30px; border-radius: 24px; 
+            display: none;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 400px; background: white; padding: 30px; border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 2001; 
             border: 1px solid #E1E4E8;
         }
 
-        .error-note-area { background: #FFF8E1; border: 2px solid #FFE082; padding: 20px; border-radius: 16px; display: none; margin-bottom: 20px; }
-        .error-item-row { background: white; padding: 10px; border-radius: 8px; margin-bottom: 5px; font-size: 0.95rem; border: 1px solid rgba(0,0,0,0.1); }
+        .error-note-area { background: #FFF8E1; border: 2px solid #FFE082; padding: 20px; border-radius: 16px;
+            display: none; margin-bottom: 20px; }
+        .error-item-row { background: white; padding: 10px; border-radius: 8px;
+            margin-bottom: 5px; font-size: 0.95rem; border: 1px solid rgba(0,0,0,0.1); }
 
         /* [모바일 대응] */
         @media (max-width: 768px) {
-            body { overflow: auto; }
-            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); box-shadow: 2px 0 15px rgba(0,0,0,0.1); }
-            .sidebar.active { transform: translateX(0); }
-            .sidebar-overlay.active { display: block; }
-            .mobile-menu-btn { display: block; }
+            body { overflow: auto;
+            }
+            .sidebar { position: fixed; top: 0; left: 0;
+            height: 100%; transform: translateX(-100%); box-shadow: 2px 0 15px rgba(0,0,0,0.1); }
+            .sidebar.active { transform: translateX(0);
+            }
+            .sidebar-overlay.active { display: block;
+            }
+            .mobile-menu-btn { display: block;
+            }
             
-            .main-content { padding: 70px 20px 20px; width: 100%; box-sizing: border-box; }
-            .input-grid { grid-template-columns: 1fr; }
-            .card-box { padding: 20px; }
+            .main-content { padding: 70px 20px 20px;
+            width: 100%; box-sizing: border-box; }
+            .input-grid { grid-template-columns: 1fr;
+            }
+            .card-box { padding: 20px;
+            }
         }
     </style>
 </head>
@@ -215,10 +283,13 @@
         <a href="measure.html" class="nav-item"><span class="nav-icon">⏱️</span> 자수측정</a>
     </ul>
     <div class="profile-card" onclick="logout()">
-        <div style="width:35px; height:35px; background:#D6A2E8; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">U</div>
+        <div style="width:35px;
+        height:35px; background:#D6A2E8; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">U</div>
         <div>
-            <div style="font-weight:700; font-size:0.9rem;" id="sideUserName">User</div>
-            <div style="font-size:0.75rem; color:#888;">로그아웃</div>
+            <div style="font-weight:700;
+            font-size:0.9rem;" id="sideUserName">User</div>
+            <div style="font-size:0.75rem;
+            color:#888;">로그아웃</div>
         </div>
     </div>
 </nav>
@@ -229,80 +300,103 @@
             <h2>📝 똑소리 2</h2>
             <p id="welcomeMsg">오늘도 화이팅하세요!</p>
         </div>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex;
+        gap:10px;">
             <button onclick="generateReport()" class="btn-ghost">📊 월간 리포트</button>
-            <button onclick="logout()" class="btn-ghost" style="color:var(--fail); border-color:var(--fail);">로그아웃</button>
+            <button onclick="logout()" class="btn-ghost" style="color:var(--fail);
+            border-color:var(--fail);">로그아웃</button>
         </div>
     </div>
 
     <div class="ranking-banner">
-        <div style="font-size:1.1rem; font-weight:800;">👑 실시간 연습왕 TOP 3</div>
+        <div style="font-size:1.1rem;
+        font-weight:800;">👑 실시간 연습왕 TOP 3</div>
         <div class="ranking-list" id="kingList">분석 중...</div>
     </div>
 
     <div class="card-box">
         <div class="config-row">
             <div class="config-item" style="flex:2;">
-                <label style="font-weight:700; font-size:0.9rem;">📂 파일명 (기록용)</label>
+                <label style="font-weight:700;
+                font-size:0.9rem;">📂 파일명 (기록용)</label>
                 <input type="text" id="fileName" class="styled-input" placeholder="예: 연설문_01 (자동 저장됨)">
             </div>
             <div class="config-item" style="flex:1;">
-                <label style="font-weight:700; font-size:0.9rem;">🎯 목표 점수 (%)</label>
+                <label style="font-weight:700;
+                font-size:0.9rem;">🎯 목표 점수 (%)</label>
                 <input type="number" id="targetScore" class="styled-input" value="90">
             </div>
         </div>
 
         <div class="audio-player-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span style="font-weight:700; color:#555;">🎧 오디오 플레이어</span>
-                <label class="btn-ghost" style="font-size:0.8rem; padding:5px 10px; background:white;">
+            <div style="display:flex;
+            justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <span style="font-weight:700;
+                color:#555;">🎧 오디오 플레이어</span>
+                <label class="btn-ghost" style="font-size:0.8rem;
+                padding:5px 10px; background:white;">
                     📂 음성 파일 열기 <input type="file" accept="audio/*" style="display:none;" onchange="loadAudioFile(this)">
                 </label>
             </div>
             
             <audio id="audioPlayer" style="display:none;"></audio>
             
-            <div style="display:flex; align-items:center; gap:20px;">
+    
+            <div style="display:flex; align-items:center;
+            gap:20px;">
                 <button id="playBtn" class="play-btn-circle" onclick="toggleAudio()" disabled>▶</button>
                 
                 <div style="flex:1;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <select id="speedRate" onchange="changeSpeed()" style="border:none; background:transparent; font-weight:bold; cursor:pointer;">
+                    <div style="display:flex;
+                    justify-content:space-between; margin-bottom:5px;">
+                        <select id="speedRate" onchange="changeSpeed()" style="border:none;
+                        background:transparent; font-weight:bold; cursor:pointer;">
                             <option value="0.8">0.8x (느림)</option>
                             <option value="1.0" selected>1.0x (보통)</option>
                             <option value="1.2">1.2x (빠름)</option>
+       
                         </select>
                         <div id="timeDisplay" class="time-wrapper" style="margin:0;">00:00 / 00:00</div>
                     </div>
                     <div class="progress-container">
+             
                         <input type="range" id="audioProgress" value="0" step="0.1" oninput="seekAudio()">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div style="text-align:right; margin-top:20px;">
-            <button onclick="clearAllInputs()" class="btn-ghost" style="font-size:0.8rem; color:#888;">🗑️ 내용 비우기</button>
+        <div style="text-align:right;
+        margin-top:20px;">
+            <button onclick="clearAllInputs()" class="btn-ghost" style="font-size:0.8rem;
+            color:#888;">🗑️ 내용 비우기</button>
         </div>
 
         <div class="input-grid">
             <div class="input-wrapper">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex;
+                justify-content:space-between; align-items:center;">
                     <span class="label-badge">📄 정답(원본)</span>
-                    <label style="cursor:pointer; font-size:0.85rem; font-weight:bold; color:var(--primary);">
+                    <label style="cursor:pointer;
+                    font-size:0.85rem; font-weight:bold; color:var(--primary);">
                         📂 불러오기 <input type="file" accept=".txt" style="display:none;" onchange="loadFile(this, 'original')">
                     </label>
                 </div>
                 <textarea id="original" class="styled-textarea" placeholder="여기에 정답 텍스트를 붙여넣거나 파일을 불러오세요."></textarea>
+       
             </div>
             <div class="input-wrapper">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="label-badge" style="background:#FFF3E0; color:#FF9800; border-color:#FFE0B2;">✍️ 내 입력</span>
-                    <label style="cursor:pointer; font-size:0.85rem; font-weight:bold; color:var(--primary);">
+                <div style="display:flex;
+                justify-content:space-between; align-items:center;">
+                    <span class="label-badge" style="background:#FFF3E0;
+                    color:#FF9800; border-color:#FFE0B2;">✍️ 내 입력</span>
+                    <label style="cursor:pointer;
+                    font-size:0.85rem; font-weight:bold; color:var(--primary);">
                         📂 불러오기 <input type="file" accept=".txt" style="display:none;" onchange="loadFile(this, 'student')">
                     </label>
                 </div>
                 <textarea id="student" class="styled-textarea" placeholder="오디오를 듣고 여기에 타이핑하세요."></textarea>
+         
             </div>
         </div>
 
@@ -311,7 +405,8 @@
 
     <div id="result" style="display:none;">
         <div class="card-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div style="display:flex;
+            justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h3 style="margin:0;">📊 분석 결과</h3>
                 <button onclick="saveScreenshot()" class="btn-ghost">📸 결과 저장</button>
             </div>
@@ -319,20 +414,28 @@
             <div id="growthBox" class="growth-box"></div>
 
             <div id="errorNoteArea" class="error-note-area">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <span style="font-weight:bold; color:#F57C00;">📝 오답 노트</span>
+                <div style="display:flex;
+                justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-weight:bold;
+                    color:#F57C00;">📝 오답 노트</span>
                     <button onclick="saveErrorNote()" class="btn-ghost" style="background:white;">💾 저장</button>
                 </div>
                 <div id="errorList"></div>
             </div>
 
-            <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
-                <div style="flex:1; background:#F8F9FA; border-radius:16px; padding:30px; text-align:center; display:flex; flex-direction:column; justify-content:center; border:1px solid #eee;">
-                    <div style="color:#888; margin-bottom:5px;">최종 정확도</div>
-                    <div id="finalScore" style="font-size:4rem; font-weight:900; color:var(--primary);">0</div>
-                    <div id="scoreDesc" style="font-weight:600; color:#555;"></div>
+            <div style="display:flex;
+            gap:20px; flex-wrap:wrap; margin-bottom:20px;">
+                <div style="flex:1;
+                background:#F8F9FA; border-radius:16px; padding:30px; text-align:center; display:flex; flex-direction:column; justify-content:center; border:1px solid #eee;">
+                    <div style="color:#888;
+                    margin-bottom:5px;">최종 정확도</div>
+                    <div id="finalScore" style="font-size:4rem;
+                    font-weight:900; color:var(--primary);">0</div>
+                    <div id="scoreDesc" style="font-weight:600;
+                    color:#555;"></div>
                 </div>
-                <div style="flex:1; height:300px; min-width:300px;">
+                <div style="flex:1;
+                height:300px; min-width:300px;">
                     <canvas id="scoreChart"></canvas>
                 </div>
             </div>
@@ -342,7 +445,8 @@
     </div>
 
     <div class="card-box" style="background:#FAFAFA;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div style="display:flex;
+        justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h4 style="margin:0;">📜 최근 기록</h4>
             <button onclick="clearHistoryView()" class="btn-ghost" style="font-size:0.8rem;">🔄 초기화</button>
         </div>
@@ -400,7 +504,6 @@ const audio = document.getElementById('audioPlayer');
 const playBtn = document.getElementById('playBtn');
 const progressBar = document.getElementById('audioProgress');
 const timeDisplay = document.getElementById('timeDisplay');
-
 function initAudioPlayer() {
     audio.addEventListener('timeupdate', () => {
         if (!isNaN(audio.duration)) {
@@ -469,12 +572,14 @@ async function fetchData() {
             if(data.allTodayHistory) updateKingRanking(data.allTodayHistory);
             checkAttendance(scoreHistory);
         }
-    } catch (e) { console.error("데이터 수신 오류"); }
+    } catch (e) { console.error("데이터 수신 오류");
+    }
 }
 
 function updateKingRanking(allHistory) {
     const kingListEl = document.getElementById('kingList');
-    if (!allHistory || allHistory.length === 0) { kingListEl.innerHTML = "연습을 시작해 1등이 되어보세요! 🏆"; return; }
+    if (!allHistory || allHistory.length === 0) { kingListEl.innerHTML = "연습을 시작해 1등이 되어보세요! 🏆"; return;
+    }
     const totals = {};
     allHistory.forEach(h => { totals[h.name] = (totals[h.name] || 0) + Number(h.charCount || 0); });
     const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -503,19 +608,23 @@ function analyzeAndGrade() {
     let n = oArr.length;
     let m = sArr.length;
     let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
-    
     for (let i = 1; i <= n; i++) {
         for (let j = 1; j <= m; j++) {
-            if (oArr[i-1] === sArr[j-1]) { dp[i][j] = dp[i-1][j-1] + 1; } 
-            else { dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]); }
+            if (oArr[i-1] === sArr[j-1]) { dp[i][j] = dp[i-1][j-1] + 1;
+            } 
+            else { dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+            }
         }
     }
 
     let i = n, j = m, diffs = [];
     while (i > 0 || j > 0) {
-        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { diffs.push({ t: 'same', c: oArr[i-1] }); i--; j--; } 
-        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { diffs.push({ t: 'added', c: sArr[j-1] }); j--; } 
-        else { diffs.push({ t: 'missing', c: oArr[i-1] }); i--; }
+        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { diffs.push({ t: 'same', c: oArr[i-1] });
+        i--; j--; } 
+        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { diffs.push({ t: 'added', c: sArr[j-1] });
+        j--; } 
+        else { diffs.push({ t: 'missing', c: oArr[i-1] }); i--;
+        }
     }
     diffs.reverse();
 
@@ -527,20 +636,28 @@ function analyzeAndGrade() {
         let mIdx = 0, aIdx = 0;
         while (mIdx < mBuffer.length || aIdx < aBuffer.length) {
             let mChar = mBuffer[mIdx], aChar = aBuffer[aIdx];
-            if (mIdx < mBuffer.length && isSpecial(mChar)) { html += `<span>${toHtmlChar(mChar)}</span>`; mIdx++; continue; }
-            if (aIdx < aBuffer.length && isSpecial(aChar)) { html += `<span style=\"color:#ccc;\">${toHtmlChar(aChar)}</span>`; aIdx++; continue; }
-            if (mIdx < mBuffer.length && aIdx < aBuffer.length) { html += `<span class=\"d-wrong\">${toHtmlChar(aChar)}<span class=\"correction\">${toHtmlChar(mChar)}</span></span>`; w++; mIdx++; aIdx++; continue; }
-            if (mIdx < mBuffer.length) { html += `<span class=\"d-missing\">${toHtmlChar(mChar)}</span>`; mi++; mIdx++; continue; }
-            if (aIdx < aBuffer.length) { html += `<span class=\"d-added\">${toHtmlChar(aChar)}</span>`; ad++; aIdx++; continue; }
+            if (mIdx < mBuffer.length && isSpecial(mChar)) { html += `<span>${toHtmlChar(mChar)}</span>`; mIdx++; continue;
+            }
+            if (aIdx < aBuffer.length && isSpecial(aChar)) { html += `<span style=\"color:#ccc;\">${toHtmlChar(aChar)}</span>`;
+            aIdx++; continue; }
+            if (mIdx < mBuffer.length && aIdx < aBuffer.length) { html += `<span class=\"d-wrong\">${toHtmlChar(aChar)}<span class=\"correction\">${toHtmlChar(mChar)}</span></span>`;
+            w++; mIdx++; aIdx++; continue; }
+            if (mIdx < mBuffer.length) { html += `<span class=\"d-missing\">${toHtmlChar(mChar)}</span>`;
+            mi++; mIdx++; continue; }
+            if (aIdx < aBuffer.length) { html += `<span class=\"d-added\">${toHtmlChar(aChar)}</span>`;
+            ad++; aIdx++; continue; }
         }
-        mBuffer = []; aBuffer = [];
+        mBuffer = [];
+        aBuffer = [];
     }
 
     for (let k = 0; k < diffs.length; k++) {
         let item = diffs[k];
         if (item.t === 'same') { flushBuffer(); html += `<span>${toHtmlChar(item.c)}</span>`; } 
-        else if (item.t === 'missing') { mBuffer.push(item.c); } 
-        else if (item.t === 'added') { aBuffer.push(item.c); }
+        else if (item.t === 'missing') { mBuffer.push(item.c);
+        } 
+        else if (item.t === 'added') { aBuffer.push(item.c);
+        }
     }
     flushBuffer(); 
 
@@ -548,10 +665,14 @@ function analyzeAndGrade() {
     currentErrorItems = [];
     let tempO = "", tempS = "";
     let hasErrorInWord = false;
-
+    
     for (let k = 0; k < diffs.length; k++) {
         let item = diffs[k];
-        if (item.t === 'same' && (item.c === ' ' || item.c === '\n')) {
+        // [수정됨] 공백이나 줄바꿈은 무조건 단어의 끝으로 인식하도록 변경 (오/탈자/첨자 포함)
+        if (item.c === ' ' || item.c === '\n') {
+            if (item.t === 'missing') { tempO += item.c; hasErrorInWord = true; }
+            else if (item.t === 'added') { tempS += item.c; hasErrorInWord = true; }
+            
             if (hasErrorInWord) {
                 currentErrorItems.push({ 
                     type: (tempS.trim() === "") ? 'missing' : 'wrong', 
@@ -562,13 +683,14 @@ function analyzeAndGrade() {
             tempO = ""; tempS = ""; hasErrorInWord = false;
         } else {
             if (item.t === 'same') {
-                tempO += item.c; tempS += item.c;
+                tempO += item.c;
+                tempS += item.c;
             } else if (item.t === 'missing') {
-                tempO += item.c; 
-                if(item.c.trim().length > 0) hasErrorInWord = true; // [수정] 공백만 있는 경우는 에러로 치지 않음
+                tempO += item.c;
+                hasErrorInWord = true;
             } else if (item.t === 'added') {
-                tempS += item.c; 
-                if(item.c.trim().length > 0) hasErrorInWord = true; // [수정] 공백만 있는 경우는 에러로 치지 않음
+                tempS += item.c;
+                hasErrorInWord = true;
             }
         }
     }
@@ -586,7 +708,7 @@ function analyzeAndGrade() {
     document.getElementById('scoreDesc').innerText = `총 글자(부호제외): ${pureLength} / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
     document.getElementById('diffOutput').innerHTML = html;
     
-    renderErrorNote(); 
+    renderErrorNote();
     document.getElementById('result').style.display = 'block';
 
     sendDataToServer(score, w, mi, ad, fName, pureLength);
@@ -597,7 +719,6 @@ function renderErrorNote() {
     const list = document.getElementById('errorList');
     
     const validErrors = currentErrorItems.filter(e => e.correct.trim().length > 0 || e.wrong.trim().length > 0);
-
     if (validErrors.length === 0) {
         area.style.display = 'none';
         return;
@@ -609,6 +730,7 @@ function renderErrorNote() {
             <div class="error-item-row">
                 <span style="background:#FF7675; color:white; padding:2px 6px; border-radius:4px; font-size:0.8rem; margin-right:5px;">오자</span>
                 <span style="color:#FF7675; text-decoration:line-through; margin-right:5px;">${escapeHtml(e.wrong)}</span>
+             
                 <span style="color:#6C5CE7; font-weight:bold;">➡ ${escapeHtml(e.correct)}</span>
             </div>`;
         } else {
@@ -616,6 +738,7 @@ function renderErrorNote() {
             <div class="error-item-row">
                 <span style="background:#B2BEC3; color:white; padding:2px 6px; border-radius:4px; font-size:0.8rem; margin-right:5px;">탈자</span>
                 <span style="color:#B2BEC3;">(누락됨)</span>
+      
                 <span style="color:#6C5CE7; font-weight:bold;">➡ ${escapeHtml(e.correct)}</span>
             </div>`;
         }
@@ -640,7 +763,6 @@ function saveErrorNote() {
             return `${i+1}. [탈자] 놓친 내용: '${e.correct}'`;
         }
     }).join('\n');
-
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -657,7 +779,8 @@ function analyzeGrowth(currentScore, currentErrors, fileName) {
 
     const prevRecords = fullHistoryRaw.filter(h => h.title === fileName);
     if (prevRecords.length === 0) {
-        box.innerHTML = `<div class="growth-title">🌱 첫 도전이네요!</div><div>'${escapeHtml(fileName)}' 파일의 첫 기록이 생성됩니다. 기준 기록을 잘 만들어보세요!</div>`;
+        box.innerHTML = `<div class="growth-title">🌱 첫 도전이네요!</div><div>'${escapeHtml(fileName)}' 파일의 첫 기록이 생성됩니다.
+        기준 기록을 잘 만들어보세요!</div>`;
         box.style.display = 'block';
     } else {
         const last = prevRecords[prevRecords.length - 1];
@@ -669,15 +792,19 @@ function analyzeGrowth(currentScore, currentErrors, fileName) {
 
         let msg = `<div class="growth-title">🆚 '${escapeHtml(fileName)}' 성장 분석</div>`;
         if (cScore > lastScore) {
-            msg += `<div style="margin-bottom:5px;">🚀 점수가 <span style="color:#00B894; font-weight:bold;">+${scoreDiff}점</span> 올랐어요! (직전: ${lastScore}점)</div>`;
+            msg += `<div style="margin-bottom:5px;">🚀 점수가 <span style="color:#00B894; font-weight:bold;">+${scoreDiff}점</span> 올랐어요!
+            (직전: ${lastScore}점)</div>`;
         } else if (cScore < lastScore) {
-            msg += `<div style="margin-bottom:5px;">📉 점수가 <span style="color:#FF7675; font-weight:bold;">${scoreDiff}점</span> 떨어졌어요. 다시 집중해봐요! (직전: ${lastScore}점)</div>`;
+            msg += `<div style="margin-bottom:5px;">📉 점수가 <span style="color:#FF7675; font-weight:bold;">${scoreDiff}점</span> 떨어졌어요.
+            다시 집중해봐요! (직전: ${lastScore}점)</div>`;
         } else {
-            msg += `<div style="margin-bottom:5px;">⚖️ 지난번과 점수가 똑같아요. (${lastScore}점)</div>`;
+            msg += `<div style="margin-bottom:5px;">⚖️ 지난번과 점수가 똑같아요.
+            (${lastScore}점)</div>`;
         }
 
         if (errDiff > 0) {
-            msg += `<div>✨ 와우! 전체 실수(오/탈/첨)가 <span style="color:#00B894; font-weight:bold;">${errDiff}개</span> 줄었어요!</div>`;
+            msg += `<div>✨ 와우!
+            전체 실수(오/탈/첨)가 <span style="color:#00B894; font-weight:bold;">${errDiff}개</span> 줄었어요!</div>`;
         } else if (errDiff < 0) {
             msg += `<div>⚠️ 실수가 지난번보다 <span style="color:#FF7675; font-weight:bold;">${Math.abs(errDiff)}개</span> 늘어났어요.</div>`;
         }
@@ -707,7 +834,7 @@ async function sendDataToServer(score, w, mi, ad, title, n) {
     const streakMsg = document.getElementById("streakMsg");
     if (streakMsg && target > 0) {
         streakMsg.innerHTML = (scoreNum >= target) ?
-            `✅ <b>목표 달성</b> (${target}%)` : `📌 목표 ${target}%까지 ${Math.max(0, (target - scoreNum)).toFixed(1)}% 남음`;
+        `✅ <b>목표 달성</b> (${target}%)` : `📌 목표 ${target}%까지 ${Math.max(0, (target - scoreNum)).toFixed(1)}% 남음`;
         streakMsg.style.display = "block";
         setTimeout(() => (streakMsg.style.display = "none"), 2500);
     }
@@ -728,7 +855,8 @@ async function sendDataToServer(score, w, mi, ad, title, n) {
             }
             if (data.allTodayHistory) updateKingRanking(data.allTodayHistory);
         }
-    } catch (e) { console.error("데이터 전송 오류:", e); }
+    } catch (e) { console.error("데이터 전송 오류:", e);
+    }
 }
 
 function updateHistoryUI() {
@@ -740,7 +868,8 @@ function updateHistoryUI() {
                 <span style="color:var(--primary);">${item.score}%</span>
             </div>
             <div style="font-size:0.8rem; color:#888;">
-                📍 글자: ${item.n} | ❌ 오자: ${item.w} | 🕳️ 탈자: ${item.mi} | ➕ 첨자: ${item.ad}
+       
+                 📍 글자: ${item.n} | ❌ 오자: ${item.w} | 🕳️ 탈자: ${item.mi} | ➕ 첨자: ${item.ad}
             </div>
         </div>
     `).join('');
@@ -756,13 +885,15 @@ function updateChart() {
             datasets: [{ 
                 label: '정확도 (%)', 
                 data: scoreHistory.slice(-15).map(i => parseFloat(i.score)), 
-                borderColor: '#6C5CE7', 
+       
+                 borderColor: '#6C5CE7', 
                 tension: 0.3, 
                 fill: true, 
                 backgroundColor: 'rgba(108, 92, 231, 0.1)' 
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive: true, 
+            maintainAspectRatio: false }
     });
 }
 
@@ -777,7 +908,8 @@ function checkAttendance(history) {
 }
 
 function logout() { 
-    if(confirm("로그아웃 하시겠습니까?")) { sessionStorage.clear(); location.href = 'index.html'; } 
+    if(confirm("로그아웃 하시겠습니까?")) { sessionStorage.clear(); location.href = 'index.html';
+    } 
 }
 
 function clearHistoryView() {
@@ -790,9 +922,11 @@ function clearHistoryView() {
     }
 }
 
-function closeReport() { document.getElementById('overlay').style.display = 'none'; document.getElementById('report-modal').style.display = 'none'; }
+function closeReport() { document.getElementById('overlay').style.display = 'none'; document.getElementById('report-modal').style.display = 'none';
+}
 function generateReport() {
-    if (!scoreHistory || scoreHistory.length === 0) { alert("분석할 연습 기록이 없습니다. 먼저 연습을 진행해 주세요!"); return; }
+    if (!scoreHistory || scoreHistory.length === 0) { alert("분석할 연습 기록이 없습니다. 먼저 연습을 진행해 주세요!");
+    return; }
     const now = new Date();
     const thisMonth = now.getMonth(); 
     const thisYear = now.getFullYear();
@@ -810,8 +944,10 @@ function generateReport() {
             <p style="margin:5px 0;">🏆 <b>최고 정확도:</b> ${maxScore}%</p>
             <p style="margin:5px 0;">⌨️ <b>누적 연습량:</b> ${totalChars.toLocaleString()}자</p>
         </div>
-        <p style="text-align:center; font-size:14px; color:#666;">
-            ${avgScore >= 98 ? "🌟 전문가 수준의 정확도입니다!" : "📈 꾸준히 연습하면 더 좋아질 거예요!"}
+   
+         <p style="text-align:center; font-size:14px; color:#666;">
+            ${avgScore >= 98 ?
+            "🌟 전문가 수준의 정확도입니다!" : "📈 꾸준히 연습하면 더 좋아질 거예요!"}
         </p>
     `;
     document.getElementById('report-content').innerHTML = reportHtml;
@@ -826,7 +962,8 @@ function loadFile(input, targetId) {
 
 function readFile(file, targetId) {
     if (file.name.split('.').pop().toLowerCase() !== 'txt') {
-        alert("txt 파일만 불러올 수 있어요! 😅"); return;
+        alert("txt 파일만 불러올 수 있어요! 😅");
+        return;
     }
     const reader = new FileReader();
     reader.onload = function(e) {
