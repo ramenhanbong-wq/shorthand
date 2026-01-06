@@ -143,14 +143,14 @@
 
         .diff-view { 
             background: #fff; padding: 30px; border: 2px solid #E1E4E8; border-radius: 16px; 
-            font-size: 20px; line-height: 2.5; white-space: pre-wrap; word-break: break-all; margin-top: 20px;
+            font-size: 20px; line-height: 3.5; white-space: pre-wrap; word-break: break-all; margin-top: 20px;
         }
         .d-missing { background: #FFEBEE; color: #FF7675; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
         .d-added { color: #00B894; font-weight: bold; text-decoration: underline; }
         .d-wrong { border-bottom: 2px solid var(--primary); position: relative; font-weight: bold; color: var(--primary); }
         .correction { 
-            position: absolute; top: -1.8em; left: 0; font-size: 0.6em; color: white; background: var(--primary);
-            padding: 2px 6px; border-radius: 6px; white-space: nowrap; 
+            position: absolute; top: -2.5em; left: 0; font-size: 0.6em; color: white; background: var(--primary);
+            padding: 2px 6px; border-radius: 6px; white-space: nowrap; z-index: 10;
         }
 
         .growth-box { background: #E3F2FD; color: #1565C0; padding: 20px; border-radius: 16px; margin-bottom: 20px; display: none; border: 2px solid #90CAF9; }
@@ -564,9 +564,11 @@ function analyzeAndGrade() {
             if (item.t === 'same') {
                 tempO += item.c; tempS += item.c;
             } else if (item.t === 'missing') {
-                tempO += item.c; hasErrorInWord = true;
+                tempO += item.c; 
+                if(item.c.trim().length > 0) hasErrorInWord = true; // [수정] 공백만 있는 경우는 에러로 치지 않음
             } else if (item.t === 'added') {
-                tempS += item.c; hasErrorInWord = true;
+                tempS += item.c; 
+                if(item.c.trim().length > 0) hasErrorInWord = true; // [수정] 공백만 있는 경우는 에러로 치지 않음
             }
         }
     }
