@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHORTHAND PRO - 똑소리 2</title>
+    <title>SHORTHAND PRO - (수정)똑소리 2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -410,7 +410,7 @@
         <button onclick="analyzeAndGrade()" class="btn-primary">💯 채점하기</button>
     </div>
 
-<div id="result" style="display:none;">
+    <div id="result" style="display:none;">
         <div class="card-box" id="result-card-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h3 style="margin:0;">📊 분석 결과</h3>
@@ -444,7 +444,6 @@
             <div class="diff-view" id="diffOutput"></div>
         </div>
     </div>
-</div>
 
     <div class="card-box" style="background:#FAFAFA;">
         <div style="display:flex;
@@ -611,7 +610,7 @@ function analyzeAndGrade() {
     let n = oArr.length;
     let m = sArr.length;
 
-    // 1. LCS 알고리즘 (비교 분석)
+    // 1. LCS 알고리즘
     let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
     for (let i = 1; i <= n; i++) {
         for (let j = 1; j <= m; j++) {
@@ -667,20 +666,20 @@ function analyzeAndGrade() {
             let mChar = mBuffer[mIdx];
             let aChar = aBuffer[aIdx];
 
-            // 1) 원본 특수문자 (화면: 그냥 출력 / 오답: 틀린 건 아님, 문맥용 저장)
+            // 1) 원본 특수문자
             if (mIdx < mBuffer.length && isSpecial(mChar)) { 
                 html += `<span>${toHtmlChar(mChar)}</span>`; 
                 wordO += mChar; 
-                wordS += mChar; // 문맥 유지를 위해 학생 쪽에도 붙임
+                wordS += mChar; 
                 mIdx++; continue;
             }
-            // 2) 학생 입력 특수문자 (화면: 회색 처리 / 오답: 점수 안 깎이면 오답 아님)
+            // 2) 학생 입력 특수문자
             if (aIdx < aBuffer.length && isSpecial(aChar)) { 
                 html += `<span style=\"color:#ccc;\">${toHtmlChar(aChar)}</span>`; 
-                wordS += aChar; // 내가 친 거니 보여주긴 함
+                wordS += aChar; 
                 aIdx++; continue; 
             }
-            // 3) 오타 (Wrong) - 화면에 빨간줄 ➡ 오답노트 필수
+            // 3) 오타 (Wrong)
             if (mIdx < mBuffer.length && aIdx < aBuffer.length) { 
                 html += `<span class=\"d-wrong\">${toHtmlChar(aChar)}<span class=\"correction\">${toHtmlChar(mChar)}</span></span>`;
                 wordO += mChar;
@@ -688,14 +687,14 @@ function analyzeAndGrade() {
                 isWordDirty = true; // 에러 체크!
                 w++; mIdx++; aIdx++; continue; 
             }
-            // 4) 탈자 (Missing) - 화면에 붉은 박스 ➡ 오답노트 필수
+            // 4) 탈자 (Missing)
             if (mIdx < mBuffer.length) { 
                 html += `<span class=\"d-missing\">${toHtmlChar(mChar)}</span>`;
                 wordO += mChar;
                 isWordDirty = true; // 에러 체크!
                 mi++; mIdx++; continue; 
             }
-            // 5) 첨자 (Added) - 화면에 녹색 밑줄 ➡ 오답노트 필수
+            // 5) 첨자 (Added)
             if (aIdx < aBuffer.length) { 
                 html += `<span class=\"d-added\">${toHtmlChar(aChar)}</span>`;
                 wordS += aChar;
@@ -716,11 +715,8 @@ function analyzeAndGrade() {
 
             // 공백이나 줄바꿈을 만나면 단어 끊기
             if (item.c === ' ' || item.c === '\n') {
-                commitWord(); // 지금까지 모은 단어 저장(에러가 있었다면)
+                commitWord(); // 지금까지 모은 단어 저장
                 html += (item.c === ' ') ? '<span>&nbsp;</span>' : '<br>';
-                
-                // 공백도 문맥에는 포함시키고 싶다면 아래 주석 해제 (보통은 뺌)
-                // wordO += item.c; wordS += item.c; 
             } else {
                 // 맞는 글자
                 html += `<span>${toHtmlChar(item.c)}</span>`;
@@ -753,7 +749,7 @@ function analyzeAndGrade() {
     sendDataToServer(score, w, mi, ad, fName, pureLength);
 }
 
-// 1. [수정] 오답 노트 렌더링 함수 (기본 접힘 상태 유지)
+// 오답 노트 렌더링 함수 (기본 접힘 상태)
 function renderErrorNote() {
     const area = document.getElementById('errorNoteArea');
     const list = document.getElementById('errorList');
@@ -766,7 +762,6 @@ function renderErrorNote() {
         return;
     }
 
-    // 오답 리스트 HTML 생성
     list.innerHTML = validErrors.map(e => {
         if(e.type === 'wrong') {
             return `
@@ -785,13 +780,12 @@ function renderErrorNote() {
         }
     }).join('');
 
-    // 초기화: 내용은 채우되, 화면에는 접힌 상태(display: none)로 둡니다.
     area.style.display = 'block';
     list.style.display = 'none'; 
     icon.innerText = `▼ (총 ${validErrors.length}개 - 클릭해서 펼치기)`;
 }
 
-// 2. [추가] 오답 노트 접기/펼치기 토글 함수
+// 오답 노트 접기/펼치기 토글 함수
 function toggleErrorList() {
     const list = document.getElementById('errorList');
     const icon = document.getElementById('errorToggleIcon');
@@ -807,9 +801,252 @@ function toggleErrorList() {
     }
 }
 
-// 3. [수정] 스크린샷 저장 함수 (영역 지정 변경)
+// 오답 노트 텍스트 저장 함수
+function saveErrorNote() {
+    if (currentErrorItems.length === 0) {
+        alert("저장할 오답이 없습니다.");
+        return;
+    }
+    
+    const fName = document.getElementById('fileName').value.trim() || "연습";
+    const today = new Date().toISOString().slice(0, 10);
+    
+    let content = `[${today}] ${fName} - 오답 노트 (단어 단위)\n\n`;
+    content += currentErrorItems.map((e, i) => {
+        if (e.type === 'wrong') {
+            return `${i+1}. [오자] 입력: '${e.wrong}' -> 정답: '${e.correct}'`;
+        } else {
+            return `${i+1}. [탈자] 놓친 내용: '${e.correct}'`;
+        }
+    }).join('\n');
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${fName}_오답노트_${today}.txt`;
+    link.click();
+}
+
+function analyzeGrowth(currentScore, currentErrors, fileName) {
+    const box = document.getElementById('growthBox');
+    if (!fileName || fileName === "미지정") {
+        box.style.display = 'none';
+        return;
+    }
+
+    const prevRecords = fullHistoryRaw.filter(h => h.title === fileName);
+    if (prevRecords.length === 0) {
+        box.innerHTML = `<div class="growth-title">🌱 첫 도전이네요!</div><div>'${escapeHtml(fileName)}' 파일의 첫 기록이 생성됩니다.
+        기준 기록을 잘 만들어보세요!</div>`;
+        box.style.display = 'block';
+    } else {
+        const last = prevRecords[prevRecords.length - 1];
+        const lastScore = parseFloat(last.score);
+        const lastErrors = parseInt(last.w) + parseInt(last.mi) + parseInt(last.ad);
+        const cScore = parseFloat(currentScore);
+        const scoreDiff = (cScore - lastScore).toFixed(1);
+        const errDiff = lastErrors - currentErrors;
+
+        let msg = `<div class="growth-title">🆚 '${escapeHtml(fileName)}' 성장 분석</div>`;
+        if (cScore > lastScore) {
+            msg += `<div style="margin-bottom:5px;">🚀 점수가 <span style="color:#00B894; font-weight:bold;">+${scoreDiff}점</span> 올랐어요!
+            (직전: ${lastScore}점)</div>`;
+        } else if (cScore < lastScore) {
+            msg += `<div style="margin-bottom:5px;">📉 점수가 <span style="color:#FF7675; font-weight:bold;">${scoreDiff}점</span> 떨어졌어요.
+            다시 집중해봐요! (직전: ${lastScore}점)</div>`;
+        } else {
+            msg += `<div style="margin-bottom:5px;">⚖️ 지난번과 점수가 똑같아요.
+            (${lastScore}점)</div>`;
+        }
+
+        if (errDiff > 0) {
+            msg += `<div>✨ 와우!
+            전체 실수(오/탈/첨)가 <span style="color:#00B894; font-weight:bold;">${errDiff}개</span> 줄었어요!</div>`;
+        } else if (errDiff < 0) {
+            msg += `<div>⚠️ 실수가 지난번보다 <span style="color:#FF7675; font-weight:bold;">${Math.abs(errDiff)}개</span> 늘어났어요.</div>`;
+        }
+
+        box.innerHTML = msg;
+        box.style.display = 'block';
+    }
+}
+
+async function sendDataToServer(score, w, mi, ad, title, n) {
+    const scoreNum = parseFloat(score);
+    const today = new Date().toISOString().slice(0, 10);
+    const prevMax = Math.max(0, ...scoreHistory.map(h => parseFloat(h.score) || 0));
+    scoreHistory.push({ date: today, title: title, score: scoreNum, w: w, mi: mi, ad: ad, n: n });
+    fullHistoryRaw.push({ date: today, title: title, score: scoreNum, w: w, mi: mi, ad: ad, n: n });
+    
+    updateHistoryUI();
+    updateChart();
+    const recordMsg = document.getElementById("recordMsg");
+    if (recordMsg && scoreNum > prevMax) {
+        recordMsg.innerHTML = `🏅 <b>신기록!</b> 최고 정확도 ${scoreNum}% 달성`;
+        recordMsg.style.display = "block";
+        setTimeout(() => (recordMsg.style.display = "none"), 2500);
+    }
+
+    const target = parseFloat(document.getElementById("targetScore")?.value || "0");
+    const streakMsg = document.getElementById("streakMsg");
+    if (streakMsg && target > 0) {
+        streakMsg.innerHTML = (scoreNum >= target) ?
+        `✅ <b>목표 달성</b> (${target}%)` : `📌 목표 ${target}%까지 ${Math.max(0, (target - scoreNum)).toFixed(1)}% 남음`;
+        streakMsg.style.display = "block";
+        setTimeout(() => (streakMsg.style.display = "none"), 2500);
+    }
+
+  try {
+        const res = await fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "save", name: currentUser, date: today, title: title, score: scoreNum, w: w, mi: mi, ad: ad, n: n })
+        });
+        const data = await res.json();
+        if (data && data.result === "success") {
+            if (Array.isArray(data.history)) { 
+                fullHistoryRaw = data.history;
+                const ignoredCount = parseInt(localStorage.getItem('ignoredHistoryCount') || '0');
+                scoreHistory = fullHistoryRaw.slice(ignoredCount);
+                updateHistoryUI(); 
+                updateChart();
+            }
+            if (data.allTodayHistory) updateKingRanking(data.allTodayHistory);
+        }
+    } catch (e) { console.error("데이터 전송 오류:", e);
+    }
+}
+
+function updateHistoryUI() {
+    const list = document.getElementById('historyList');
+    list.innerHTML = scoreHistory.slice(-10).reverse().map(item => `
+        <div style="padding:15px; border-bottom:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:5px;">
+                <span>📅 ${item.date} [${escapeHtml(item.title)}]</span>
+                <span style="color:var(--primary);">${item.score}%</span>
+            </div>
+            <div style="font-size:0.8rem; color:#888;">
+       
+                📍 글자: ${item.n} | ❌ 오자: ${item.w} | 🕳️ 탈자: ${item.mi} | ➕ 첨자: ${item.ad}
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateChart() {
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: scoreHistory.slice(-15).map((_, i) => (i+1) + "회"),
+            datasets: [{ 
+                label: '정확도 (%)', 
+                data: scoreHistory.slice(-15).map(i => parseFloat(i.score)), 
+       
+                 borderColor: '#6C5CE7', 
+                tension: 0.3, 
+                fill: true, 
+                backgroundColor: 'rgba(108, 92, 231, 0.1)' 
+            }]
+        },
+        options: { responsive: true, 
+            maintainAspectRatio: false }
+    });
+}
+
+function checkAttendance(history) {
+    if(!history || history.length === 0) return;
+    const dates = [...new Set(history.map(h => h.date))].sort().reverse();
+    if(dates.length > 1) {
+        const msg = document.getElementById('streakMsg');
+        msg.innerHTML = `🔥 <b>꾸준함의 승리!</b> 연속으로 연습을 이어가고 있습니다!`;
+        msg.style.display = 'block';
+    }
+}
+
+function logout() { 
+    if(confirm("로그아웃 하시겠습니까?")) { sessionStorage.clear(); location.href = 'index.html';
+    } 
+}
+
+function clearHistoryView() {
+    if(confirm("기록을 초기화하시겠습니까?")) {
+        localStorage.setItem('ignoredHistoryCount', fullHistoryRaw.length);
+        scoreHistory = []; 
+        updateHistoryUI();
+        updateChart();
+        alert("초기화되었습니다! ✨");
+    }
+}
+
+function closeReport() { document.getElementById('overlay').style.display = 'none'; document.getElementById('report-modal').style.display = 'none';
+}
+function generateReport() {
+    if (!scoreHistory || scoreHistory.length === 0) { alert("분석할 연습 기록이 없습니다. 먼저 연습을 진행해 주세요!");
+    return; }
+    const now = new Date();
+    const thisMonth = now.getMonth(); 
+    const thisYear = now.getFullYear();
+    const monthlyData = scoreHistory.filter(h => { const hDate = new Date(h.date); return hDate.getMonth() === thisMonth && hDate.getFullYear() === thisYear; });
+    if (monthlyData.length === 0) { alert("이번 달 기록된 데이터가 없습니다."); return; }
+
+    const totalSessions = monthlyData.length;
+    const avgScore = (monthlyData.reduce((acc, cur) => acc + parseFloat(cur.score), 0) / totalSessions).toFixed(1);
+    const totalChars = monthlyData.reduce((acc, cur) => acc + parseInt(cur.n || 0), 0);
+    const maxScore = Math.max(...monthlyData.map(h => parseFloat(h.score)));
+    const reportHtml = `
+        <div style="background:#F0F4F8; padding:15px; border-radius:10px; border-left:5px solid var(--primary); margin-bottom:15px;">
+            <p style="margin:5px 0;">📊 <b>총 연습 횟수:</b> ${totalSessions}회</p>
+            <p style="margin:5px 0;">🎯 <b>평균 정확도:</b> <span style="color:var(--primary); font-weight:bold;">${avgScore}%</span></p>
+            <p style="margin:5px 0;">🏆 <b>최고 정확도:</b> ${maxScore}%</p>
+            <p style="margin:5px 0;">⌨️ <b>누적 연습량:</b> ${totalChars.toLocaleString()}자</p>
+        </div>
+   
+         <p style="text-align:center; font-size:14px; color:#666;">
+            ${avgScore >= 98 ?
+            "🌟 전문가 수준의 정확도입니다!" : "📈 꾸준히 연습하면 더 좋아질 거예요!"}
+        </p>
+    `;
+    document.getElementById('report-content').innerHTML = reportHtml;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('report-modal').style.display = 'block';
+}
+
+function loadFile(input, targetId) {
+    const file = input.files[0];
+    if (file) readFile(file, targetId);
+}
+
+function readFile(file, targetId) {
+    if (file.name.split('.').pop().toLowerCase() !== 'txt') {
+        alert("txt 파일만 불러올 수 있어요! 😅");
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById(targetId).value = e.target.result;
+    };
+    reader.readAsText(file, "UTF-8");
+}
+
+function setupDragAndDrop(areaId) {
+    const area = document.getElementById(areaId);
+    area.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        area.style.borderColor = "var(--primary)";
+    });
+    area.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        area.style.borderColor = "#F0F4F8";
+    });
+    area.addEventListener("drop", (e) => {
+        e.preventDefault();
+        area.style.borderColor = "#F0F4F8";
+        const file = e.dataTransfer.files[0];
+        if (file) readFile(file, areaId);
+    });
+}
+
 function saveScreenshot() {
-    // 기존 'capture-area' 대신, 분석 결과 카드인 'result-card-box'만 찍습니다.
     const element = document.getElementById("result-card-box"); 
     
     if (!element) {
@@ -818,8 +1055,8 @@ function saveScreenshot() {
     }
 
     html2canvas(element, { 
-        scale: 2, // 고해상도
-        backgroundColor: "#ffffff", // 배경 흰색 강제 지정
+        scale: 2, 
+        backgroundColor: "#ffffff", 
         useCORS: true 
     }).then(canvas => {
         const link = document.createElement("a");
@@ -834,19 +1071,3 @@ function saveScreenshot() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
