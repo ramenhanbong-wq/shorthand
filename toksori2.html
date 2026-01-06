@@ -607,6 +607,7 @@ function analyzeAndGrade() {
     let rawO = document.getElementById('original').value;
     let rawS = document.getElementById('student').value;
     if(!rawO.trim()) return;
+
     const isSpecial = (char) => /[^0-9a-zA-Z\uAC00-\uD7A3]/.test(char);
     let pureLength = rawO.replace(/[^0-9a-zA-Z\uAC00-\uD7A3]/g, '').length;
 
@@ -614,45 +615,98 @@ function analyzeAndGrade() {
     let sArr = rawS.trim().split('');
     let n = oArr.length;
     let m = sArr.length;
+
+    // 1. LCS 알고리즘 (비교 분석)
     let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
     for (let i = 1; i <= n; i++) {
         for (let j = 1; j <= m; j++) {
-            if (oArr[i-1] === sArr[j-1]) { dp[i][j] = dp[i-1][j-1] + 1;
-            } 
-            else { dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
-            }
+            if (oArr[i-1] === sArr[j-1]) { dp[i][j] = dp[i-1][j-1] + 1; } 
+            else { dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]); }
         }
     }
 
     let i = n, j = m, diffs = [];
     while (i > 0 || j > 0) {
-        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { diffs.push({ t: 'same', c: oArr[i-1] });
-        i--; j--; } 
-        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { diffs.push({ t: 'added', c: sArr[j-1] });
-        j--; } 
-        else { diffs.push({ t: 'missing', c: oArr[i-1] }); i--;
+        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { 
+            diffs.push({ t: 'same', c: oArr[i-1] });
+            i--; j--; 
+        } 
+        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { 
+            diffs.push({ t: 'added', c: sArr[j-1] });
+            j--; 
+        } 
+        else { 
+            diffs.push({ t: 'missing', c: oArr[i-1] }); 
+            i--;
         }
     }
     diffs.reverse();
 
-    // 1. 화면 표시용 HTML 및 점수 계산
+    // 2. 화면 표시(HTML)와 오답노트 데이터 동시 생성
     let html = "", w=0, mi=0, ad=0;
     let mBuffer = [], aBuffer = []; 
-    
+    currentErrorItems = []; // 오답노트 초기화
+
+    // 현재 처리 중인 단어 버퍼
+    let wordO = ""; // 정답 문맥
+    let wordS = ""; // 학생 입력 문맥
+    let isWordDirty = false; // 현재 단어에 에러가 있는가?
+
+    // 단어 저장 함수
+    function commitWord() {
+        if (isWordDirty && (wordO.trim() || wordS.trim())) {
+            currentErrorItems.push({
+                type: (wordS.trim() === "") ? 'missing' : 'wrong',
+                correct: wordO,
+                wrong: wordS
+            });
+        }
+        wordO = "";
+        wordS = "";
+        isWordDirty = false;
+    }
+
     function flushBuffer() {
         let mIdx = 0, aIdx = 0;
         while (mIdx < mBuffer.length || aIdx < aBuffer.length) {
-            let mChar = mBuffer[mIdx], aChar = aBuffer[aIdx];
-            if (mIdx < mBuffer.length && isSpecial(mChar)) { html += `<span>${toHtmlChar(mChar)}</span>`; mIdx++; continue;
+            let mChar = mBuffer[mIdx];
+            let aChar = aBuffer[aIdx];
+
+            // 1) 원본 특수문자 (화면: 그냥 출력 / 오답: 틀린 건 아님, 문맥용 저장)
+            if (mIdx < mBuffer.length && isSpecial(mChar)) { 
+                html += `<span>${toHtmlChar(mChar)}</span>`; 
+                wordO += mChar; 
+                wordS += mChar; // 문맥 유지를 위해 학생 쪽에도 붙임
+                mIdx++; continue;
             }
-            if (aIdx < aBuffer.length && isSpecial(aChar)) { html += `<span style=\"color:#ccc;\">${toHtmlChar(aChar)}</span>`;
-            aIdx++; continue; }
-            if (mIdx < mBuffer.length && aIdx < aBuffer.length) { html += `<span class=\"d-wrong\">${toHtmlChar(aChar)}<span class=\"correction\">${toHtmlChar(mChar)}</span></span>`;
-            w++; mIdx++; aIdx++; continue; }
-            if (mIdx < mBuffer.length) { html += `<span class=\"d-missing\">${toHtmlChar(mChar)}</span>`;
-            mi++; mIdx++; continue; }
-            if (aIdx < aBuffer.length) { html += `<span class=\"d-added\">${toHtmlChar(aChar)}</span>`;
-            ad++; aIdx++; continue; }
+            // 2) 학생 입력 특수문자 (화면: 회색 처리 / 오답: 점수 안 깎이면 오답 아님)
+            if (aIdx < aBuffer.length && isSpecial(aChar)) { 
+                html += `<span style=\"color:#ccc;\">${toHtmlChar(aChar)}</span>`; 
+                wordS += aChar; // 내가 친 거니 보여주긴 함
+                aIdx++; continue; 
+            }
+            // 3) 오타 (Wrong) - 화면에 빨간줄 ➡ 오답노트 필수
+            if (mIdx < mBuffer.length && aIdx < aBuffer.length) { 
+                html += `<span class=\"d-wrong\">${toHtmlChar(aChar)}<span class=\"correction\">${toHtmlChar(mChar)}</span></span>`;
+                wordO += mChar;
+                wordS += aChar;
+                isWordDirty = true; // 에러 체크!
+                w++; mIdx++; aIdx++; continue; 
+            }
+            // 4) 탈자 (Missing) - 화면에 붉은 박스 ➡ 오답노트 필수
+            if (mIdx < mBuffer.length) { 
+                html += `<span class=\"d-missing\">${toHtmlChar(mChar)}</span>`;
+                wordO += mChar;
+                isWordDirty = true; // 에러 체크!
+                mi++; mIdx++; continue; 
+            }
+            // 5) 첨자 (Added) - 화면에 녹색 밑줄 ➡ 오답노트 필수
+            if (aIdx < aBuffer.length) { 
+                html += `<span class=\"d-added\">${toHtmlChar(aChar)}</span>`;
+                wordS += aChar;
+                isWordDirty = true; // 에러 체크!
+                ad++; aIdx++; continue; 
+            }
         }
         mBuffer = [];
         aBuffer = [];
@@ -660,51 +714,34 @@ function analyzeAndGrade() {
 
     for (let k = 0; k < diffs.length; k++) {
         let item = diffs[k];
-        if (item.t === 'same') { flushBuffer(); html += `<span>${toHtmlChar(item.c)}</span>`; } 
-        else if (item.t === 'missing') { mBuffer.push(item.c);
+
+        if (item.t === 'same') { 
+            // 버퍼에 쌓인 틀린 내용들 먼저 처리
+            flushBuffer(); 
+
+            // 공백이나 줄바꿈을 만나면 단어 끊기
+            if (item.c === ' ' || item.c === '\n') {
+                commitWord(); // 지금까지 모은 단어 저장(에러가 있었다면)
+                html += (item.c === ' ') ? '<span>&nbsp;</span>' : '<br>';
+                
+                // 공백도 문맥에는 포함시키고 싶다면 아래 주석 해제 (보통은 뺌)
+                // wordO += item.c; wordS += item.c; 
+            } else {
+                // 맞는 글자
+                html += `<span>${toHtmlChar(item.c)}</span>`;
+                wordO += item.c;
+                wordS += item.c;
+            }
         } 
-        else if (item.t === 'added') { aBuffer.push(item.c);
-        }
+        else if (item.t === 'missing') { mBuffer.push(item.c); } 
+        else if (item.t === 'added') { aBuffer.push(item.c); }
     }
-    flushBuffer(); 
-
-    // 2. 오답 노트 생성 (어절 단위로 재분석)
-    currentErrorItems = [];
-    let tempO = "", tempS = "";
-    let hasErrorInWord = false;
     
-    for (let k = 0; k < diffs.length; k++) {
-        let item = diffs[k];
-        // [수정됨] 공백이나 줄바꿈은 무조건 단어의 끝으로 인식하도록 변경 (오/탈자/첨자 포함)
-        if (item.c === ' ' || item.c === '\n') {
-            if (item.t === 'missing') { tempO += item.c; hasErrorInWord = true; }
-            else if (item.t === 'added') { tempS += item.c; hasErrorInWord = true; }
-            
-            if (hasErrorInWord) {
-                currentErrorItems.push({ 
-                    type: (tempS.trim() === "") ? 'missing' : 'wrong', 
-                    correct: tempO, 
-                    wrong: tempS 
-                });
-            }
-            tempO = ""; tempS = ""; hasErrorInWord = false;
-        } else {
-            if (item.t === 'same') {
-                tempO += item.c;
-                tempS += item.c;
-            } else if (item.t === 'missing') {
-                tempO += item.c;
-                hasErrorInWord = true;
-            } else if (item.t === 'added') {
-                tempS += item.c;
-                hasErrorInWord = true;
-            }
-        }
-    }
-    if (hasErrorInWord) {
-        currentErrorItems.push({ type: (tempS.trim() === "") ? 'missing' : 'wrong', correct: tempO, wrong: tempS });
-    }
+    // 남은 잔여물 처리
+    flushBuffer();
+    commitWord(); 
 
+    // 3. 점수 계산 및 렌더링
     let adPenalty = Math.floor(ad / 3);
     let calcN = pureLength > 0 ? pureLength : 1;
     let score = Math.max(0, 100 - ((w + mi + adPenalty) / calcN * 100)).toFixed(1);
@@ -1010,6 +1047,7 @@ function saveScreenshot() {
 </script>
 </body>
 </html>
+
 
 
 
