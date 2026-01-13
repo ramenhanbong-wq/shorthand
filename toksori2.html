@@ -642,13 +642,16 @@ function getExactStats(origin, student, generateHtml = false) {
 }
 
 // [최종 업데이트] 수정 내역(형광펜) + 탈자(놓친 내용) 동시 표시 로직
+// [최종 수정] 개악/오수정/미수정/탈자 완벽 구분 로직 (대체 감지 강화)
 function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     const cleanO = txtOriginal.replace(/\s+/g, ' ').trim();
+    
+    // 배열 변환
+    const sOrigin = txtOriginal.trim().split('');
     const sPre = txtPre.trim().split('');
     const sPost = txtPost.trim().split('');
-    const sOrigin = txtOriginal.trim().split('');
 
-    // [내부함수] LCS Diff 계산기
+    // [LCS 알고리즘] 두 배열의 차이를 계산
     const getDiff = (arr1, arr2) => {
         let dp = Array.from(Array(arr1.length + 1), () => Array(arr2.length + 1).fill(0));
         for (let i = 1; i <= arr1.length; i++) {
@@ -671,77 +674,124 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
         return diff.reverse();
     };
 
-    // 1단계: [번문 전 vs 번문 후] 분석 -> 최종본(Post) 각 글자의 "출신 성분" 파악
-    // Post의 각 글자가 "새로 쓴 건지(New)", "원래 있던 건지(Old)" 매핑
-    const changesPrePost = getDiff(sPre, sPost);
-    let postMeta = []; // Post 글자 수만큼 생성될 메타 데이터
-    let delBuffer = ""; // 삭제된 글자 임시 저장(개악 판별용)
+    // 1단계: [번문 전(Pre) -> 번문 후(Post)] 분석
+    // Post의 각 글자가 "새로 쓴 건지(New)", "그대로 둔 건지(Old)" 확인
+    // "새로 썼다면(New)", 그 자리에 있던 "지워진 글자(Deleted)"가 무엇인지 기록
+    const diffPrePost = getDiff(sPre, sPost);
+    let postMeta = []; 
+    let delBuffer = ""; 
 
-    changesPrePost.forEach(ch => {
+    diffPrePost.forEach(ch => {
         if (ch.t === 'same') {
-            postMeta.push({ isNew: false, replaced: "" }); // 원래 있던 글자
+            postMeta.push({ isNew: false, deletedFromPre: "" }); 
             delBuffer = "";
         } else if (ch.t === 'added') {
-            postMeta.push({ isNew: true, replaced: delBuffer }); // 새로 쓴 글자 (+삭제된 내용 기록)
-            delBuffer = ""; 
+            // 이 글자는 새로 쓴 것임. 직전에 지워진 내용(delBuffer)을 기억해둠 (개악 판별용)
+            postMeta.push({ isNew: true, deletedFromPre: delBuffer });
+            // 버퍼는 한 번 매핑했으면 비워줌 (1:1 매칭이 아니더라도 근사치로 동작)
+            // 단, 연속된 added가 있을 수 있으므로 delBuffer를 유지해야 할 수도 있으나,
+            // 여기선 "뭉텅이 교체"를 감지하기 위해 일단 할당 후 비움 전략 사용
+            if(delBuffer.length > 0) delBuffer = ""; 
         } else if (ch.t === 'missing') {
-            delBuffer += ch.c; // 삭제된 글자 누적
+            delBuffer += ch.c; // 지워진 글자 누적
         }
     });
 
-    // 2단계: [원문 vs 번문 후] 분석 -> 최종 화면 그리기 (탈자 포함)
-    const changesOrigPost = getDiff(sOrigin, sPost);
+    // 2단계: [원문(Origin) -> 번문 후(Post)] 분석 및 렌더링
+    const diffOrigPost = getDiff(sOrigin, sPost);
     let html = "";
-    let postIdx = 0; // Post 메타 데이터 조회용 커서
+    let postIdx = 0; // Post 배열 인덱스 추적
+    let missingBuffer = ""; // 원문에서 빠진 글자들(탈자 후보) 임시 저장
 
-    changesOrigPost.forEach(ch => {
-        // A. 탈자 (원문에는 있는데, 최종본에 없음) -> 놓친 부분 표시!
-        if (ch.t === 'missing') {
-            // 줄바꿈은 그냥 줄바꿈으로, 공백은 &nbsp;로, 글자는 박스 처리
-            if (ch.c === '\n') html += '<br>';
-            else if (ch.c === ' ') html += '<span>&nbsp;</span>'; 
-            else html += `<span class="hl-omitted">${escapeHtml(ch.c)}</span>`;
+    // 탈자 버퍼를 비우는 함수 (화면에 출력)
+    const flushMissing = () => {
+        if (!missingBuffer) return;
+        // 탈자 박스 출력
+        for (let char of missingBuffer) {
+            if (char === '\n') html += '<br>';
+            else if (char === ' ') html += '<span>&nbsp;</span>'; 
+            else html += `<span class="hl-omitted">${escapeHtml(char)}</span>`;
         }
-        // B. 최종본에 있는 글자 (원문과 같든 다르든 일단 화면에 보임)
-        else {
-            let charMeta = postMeta[postIdx] || { isNew: true, replaced: "" }; 
-            let charCode = ch.c;
-            let displayChar = toHtmlChar(charCode);
-            if(charCode === '\n') displayChar = '<br>';
+        missingBuffer = "";
+    };
 
-            // 공백/줄바꿈은 형광펜 칠 금지
-            if (/^\s$/.test(charCode)) {
+    diffOrigPost.forEach(ch => {
+        if (ch.t === 'same') {
+            // 정답과 일치함 -> 그동안 쌓인 탈자가 있다면 진짜 탈자임. 출력.
+            flushMissing();
+            
+            // 정답 글자 출력
+            let displayChar = (ch.c === '\n') ? '<br>' : `<span>${toHtmlChar(ch.c)}</span>`;
+            
+            // 혹시 Post 메타데이터상 이게 "새로 고쳐서 맞춘 것(성공)"인지 확인
+            let meta = postMeta[postIdx] || { isNew: false };
+            if (meta.isNew) {
+                // 공백이 아니면 성공 표시
+                if (!/^\s$/.test(ch.c)) {
+                    html += `<span class="hl-success">${toHtmlChar(ch.c)}</span>`;
+                } else {
+                    html += displayChar;
+                }
+            } else {
+                html += displayChar; // 원래 맞았던 것
+            }
+            postIdx++;
+
+        } else if (ch.t === 'missing') {
+            // 원문에 있는데 Post에 없음 -> 일단 버퍼에 담음.
+            // 바로 뒤에 'added'(대체 글자)가 나오면 이 버퍼는 "탈자"로 안 보여주고 "틀린 글자" 판별에 씀.
+            missingBuffer += ch.c;
+
+        } else if (ch.t === 'added') {
+            // 원문에 없는데 Post에 있음 (틀린 글자 or 대체된 글자)
+            // ★핵심: 이 자리에 missingBuffer(원문 글자)가 있었다면, 이건 "대체"된 것임.
+            // 따라서 missingBuffer를 "탈자 박스"로 보여주지 않음 (flushMissing 호출 안 함!)
+            // 다만, 개악 판별을 위해 missingBuffer 내용은 알고 있어야 함.
+            
+            let targetChar = ch.c;
+            let displayChar = toHtmlChar(targetChar);
+            if (targetChar === '\n') displayChar = '<br>';
+
+            // 공백/줄바꿈은 형광펜 패스
+            if (/^\s$/.test(targetChar)) {
                 html += displayChar;
             } else {
+                let meta = postMeta[postIdx] || { isNew: true, deletedFromPre: "" };
+                
                 // (1) 새로 쓴 글자인가? (수정함)
-                if (charMeta.isNew) {
-                    if (cleanO.includes(charCode)) {
-                        // 맞게 고침 (성공)
-                        html += `<span class="hl-success">${displayChar}</span>`;
+                if (meta.isNew) {
+                    // 틀리게 고침.
+                    // Q. 개악인가? (맞는 걸 지우고 틀린 걸 썼나?)
+                    // -> Pre에서 지운 글자(meta.deletedFromPre)가 원문(cleanO)에 있었는지 확인
+                    // -> 혹은 현재 위치의 원문 글자(missingBuffer)와 Pre에서 지운 글자가 일치하는지 확인
+                    
+                    let deletedText = meta.deletedFromPre.trim();
+                    
+                    // 지운 내용이 있고, 그게 원문에 포함되어 있다면 -> 개악 (맞는거 지움)
+                    // (좀 더 엄격하게: missingBuffer(여기 있어야 할 글자)가 deletedText에 포함되는지 확인)
+                    if (deletedText.length > 0 && cleanO.includes(deletedText)) {
+                        html += `<span class="hl-bad">${displayChar}</span>`; 
                     } else {
-                        // 틀리게 고침 -> 개악(Bad)인지 오수정(Warning)인지 판별
-                        if (charMeta.replaced && cleanO.includes(charMeta.replaced.trim())) {
-                            html += `<span class="hl-bad">${displayChar}</span>`; // 개악 (맞는거 지우고 틀린거 씀)
-                        } else {
-                            html += `<span class="hl-warning">${displayChar}</span>`; // 오수정
-                        }
+                        html += `<span class="hl-warning">${displayChar}</span>`; // 그냥 틀리게 고침 (오수정)
                     }
                 } 
                 // (2) 원래 있던 글자인가? (수정 안 함)
                 else {
-                    // 원문과 일치하면(same) 그냥 둠, 원문에 없으면(added) 틀린 채로 둔 것
-                    if (ch.t === 'added') { 
-                        // 틀린 글자인데 안 고침 (빨간 물결 밑줄)
-                        html += `<span style="color:#d32f2f; text-decoration:underline; text-decoration-style:wavy;">${displayChar}</span>`;
-                    } else {
-                        html += `<span>${displayChar}</span>`; // 정답 유지
-                    }
+                    // 고치지 않고 틀린 상태 유지 -> 미수정 (빨간 물결)
+                    // 이때도 missingBuffer(원래 있어야 할 글자)는 화면에 안 보여줌 (대체된 걸로 간주)
+                    html += `<span class="hl-missed">${displayChar}</span>`;
                 }
             }
-            postIdx++; // Post 커서 이동
+            
+            // Added를 처리했으므로, 이와 짝이 되는 Missing(탈자 후보)들은 "대체"되어 사라진 것으로 간주하고 버퍼 비움
+            missingBuffer = ""; 
+            postIdx++;
         }
     });
-    
+
+    // 남은 탈자 버퍼 출력 (문장 끝부분 등)
+    flushMissing();
+
     document.getElementById('reviewContent').innerHTML = html;
 }
 
@@ -766,3 +816,4 @@ function closeReport() { document.getElementById('overlay').style.display = 'non
 </script>
 </body>
 </html>
+
