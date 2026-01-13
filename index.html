@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHORTHAND PRO</title>
+    <title>SHORTHAND PRO - Dashboard</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
@@ -14,11 +14,10 @@
             --text-dark: #2D3436;
             --text-grey: #636E72;
             
-            /* 컬러 */
+            /* 컬러셋 */
             --c-blue: #E3F2FD; --t-blue: #2196F3;
             --c-pink: #FFEBEE; --t-pink: #E91E63;
             --c-orange: #FFF3E0; --t-orange: #FF9800;
-            --c-green: #E8F5E9; --t-green: #00B894;
 
             --shadow-card: 0 4px 20px rgba(0,0,0,0.03);
             --shadow-hover: 0 20px 40px rgba(0,0,0,0.12); 
@@ -30,15 +29,14 @@
             background-color: var(--bg-body);
             color: var(--text-dark);
             margin: 0; padding: 0;
-            /* [PC 기본] 스크롤 없이 고정 레이아웃 */
             overflow: hidden; 
         }
 
-        /* [PC 기본] 모바일 버튼 숨김 */
+        /* [모바일 기본 숨김] */
         .mobile-menu-btn { display: none; }
         .sidebar-overlay { display: none; }
 
-        /* --- [1] 로그인 화면 (PC 스타일) --- */
+        /* --- [1] 로그인 화면 --- */
         #login-wrapper {
             display: flex; height: 100vh; width: 100vw;
             background: white; position: fixed; top: 0; left: 0; z-index: 3000;
@@ -70,26 +68,25 @@
         .inp-box {
             width: 100%; padding: 20px; border-radius: 16px; background: #F8F9FA;
             border: 2px solid transparent; margin-bottom: 15px; font-size: 1rem; outline: none; 
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-sizing: border-box;
+            transition: all 0.3s; box-sizing: border-box;
         }
         .inp-box:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1); transform: translateY(-2px); }
         
         .btn-login {
             width: 100%; padding: 20px; border-radius: 16px; border: none;
             background: var(--primary); color: white; font-size: 1.1rem; font-weight: 800;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin-top: 20px;
+            cursor: pointer; transition: all 0.3s; margin-top: 20px;
             box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
         }
         .btn-login:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.4); }
-        .btn-login:active { transform: translateY(-2px) scale(0.98); }
 
 
-        /* --- [2] 메인 앱 레이아웃 (PC 스타일) --- */
+        /* --- [2] 메인 앱 레이아웃 --- */
         #app-wrapper {
             display: none; height: 100vh; width: 100vw;
         }
 
-        /* 사이드바 (PC: 고정형) */
+        /* 사이드바 */
         .sidebar {
             width: 260px; background: var(--sidebar-bg);
             padding: 30px 20px; display: flex; flex-direction: column;
@@ -103,7 +100,7 @@
             padding: 14px 18px; margin-bottom: 8px; border-radius: 14px;
             color: var(--text-grey); font-weight: 600; cursor: pointer; 
             display: flex; align-items: center; gap: 12px; transition: 0.2s;
-            text-decoration: none; position: relative; overflow: hidden;
+            text-decoration: none;
         }
         .nav-item:hover { background: #F5F6FA; color: var(--primary); transform: translateX(5px); }
         .nav-item.active { background: #EEEBFF; color: var(--primary); }
@@ -116,7 +113,7 @@
         .profile-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         .avatar { width: 40px; height: 40px; background: #D6A2E8; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
 
-        /* 메인 콘텐츠 (PC: 스크롤 영역) */
+        /* 메인 콘텐츠 */
         .main-content {
             flex: 1; padding: 40px 50px; overflow-y: auto;
             display: flex; flex-direction: column; gap: 25px;
@@ -129,15 +126,9 @@
             animation: bgMove 20s linear infinite; z-index: -1; pointer-events: none;
         }
         @keyframes bgMove { 0% { transform: translate(0,0); } 50% { transform: translate(-20px, -20px); } 100% { transform: translate(0,0); } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
 
-        /* [수정됨] 누락되었던 float 애니메이션 추가 */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
-        }
-
-        /* [PC 요소들] */
+        /* 요소들 */
         .header { display: flex; justify-content: space-between; align-items: flex-end; opacity: 0; animation: fadeUp 0.8s forwards 0.2s; }
         .welcome h1 { font-size: 2rem; margin: 0; font-weight: 800; color: var(--text-dark); }
         .welcome p { margin: 8px 0 0 0; color: var(--text-grey); font-size: 1rem; }
@@ -153,14 +144,12 @@
         .notice-content { display: flex; align-items: center; gap: 12px; font-weight: 600; color: #444; }
         .notice-badge { background: #FFEBEE; color: #D63031; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 800; }
         .notice-close { cursor: pointer; font-size: 1.2rem; color: #aaa; transition: 0.2s; }
-        .notice-close:hover { color: #333; transform: rotate(90deg); }
-
-        /* 스탯 카드 */
+        
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; opacity: 0; animation: fadeUp 0.8s forwards 0.4s; }
         .stat-card {
             background: white; border-radius: var(--radius-card); padding: 30px;
             box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: space-between;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s;
         }
         .stat-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: var(--shadow-hover); }
         .stat-info h3 { margin: 5px 0 0 0; font-size: 2.2rem; font-weight: 800; color: var(--text-dark); }
@@ -175,7 +164,6 @@
         .bg-blue { background: var(--c-blue); color: var(--t-blue); animation-delay: 0.2s; }
         .bg-orange { background: var(--c-orange); color: var(--t-orange); animation-delay: 0.4s; }
 
-        /* 그래프 & 랭킹 */
         .mid-section { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; min-height: 320px; opacity: 0; animation: fadeUp 0.8s forwards 0.5s; }
         
         .dashboard-card {
@@ -188,6 +176,7 @@
         .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .card-head h4 { margin: 0; font-size: 1.2rem; font-weight: 800; }
         
+        /* 차트 */
         .chart-box { display: flex; align-items: flex-end; justify-content: space-between; flex: 1; padding: 0 15px; }
         .bar-group { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 10%; height: 100%; justify-content: flex-end; }
         .bar { width: 100%; background: #F1F3F5; border-radius: 8px; position: relative; overflow: hidden; height: 100%; }
@@ -197,6 +186,7 @@
         }
         .day-label { font-size: 0.85rem; color: #ADB5BD; font-weight: 600; }
 
+        /* 랭킹 리스트 */
         .rank-card { background: linear-gradient(135deg, #6C5CE7 0%, #a29bfe 100%); color: white; overflow: hidden; }
         .rank-item {
             display: flex; align-items: center; background: rgba(255,255,255,0.15);
@@ -207,12 +197,12 @@
         .rank-item:nth-child(1) { animation-delay: 0.8s; }
         .rank-item:nth-child(2) { animation-delay: 1.0s; }
         .rank-item:nth-child(3) { animation-delay: 1.2s; }
-
         .rank-item:hover { background: rgba(255,255,255,0.25); transform: translateX(5px); }
         .rank-num { font-weight: 800; font-size: 1.2rem; margin-right: 15px; width: 20px; text-align: center; }
         .rank-name { flex: 1; font-weight: 600; font-size: 1rem; }
         .rank-score { font-weight: 700; font-size: 0.95rem; opacity: 0.9; background: white; color: var(--primary); padding: 4px 10px; border-radius: 8px;}
 
+        /* 아카데미 카드 */
         .academy-card {
             background: white; border-radius: 20px; padding: 20px 30px;
             display: flex; justify-content: space-between; align-items: center;
@@ -221,20 +211,10 @@
             border: 1px solid rgba(0,0,0,0.03); margin-bottom: 20px;
             opacity: 0; animation: fadeUp 0.8s forwards 0.6s;
         }
-        .academy-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.15);
-            border-color: var(--primary-light);
-        }
+        .academy-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(108, 92, 231, 0.15); border-color: var(--primary-light); }
         .ac-content { display: flex; align-items: center; gap: 15px; }
-        .ac-icon-img {
-            width: 50px; height: 50px; object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-            transition: 0.3s;
-        }
-        @keyframes rocketLaunch { 0% { transform: translate(0,0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0,0); } }
-        .academy-card:hover .ac-icon-img { animation: rocketLaunch 0.4s linear; transform: scale(1.1) rotate(-10deg); }
-
+        .ac-icon-img { width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); transition: 0.3s; }
+        .academy-card:hover .ac-icon-img { transform: scale(1.1) rotate(-10deg); }
         .ac-text h3 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-dark); }
         .ac-text p { margin: 2px 0 0 0; color: #888; font-size: 0.9rem; font-weight: 500;}
         .ac-arrow { font-size: 1.5rem; color: #ddd; font-weight: bold; transition: 0.3s; }
@@ -243,7 +223,7 @@
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideInRight { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* 관리자 모달 & 로딩 */
+        /* 모달 & 로딩 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-box { background: white; width: 400px; padding: 30px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: fadeUp 0.3s; }
         .modal-ta { width: 100%; height: 100px; padding: 15px; margin: 15px 0; border: 2px solid #eee; border-radius: 12px; resize: none; font-family: inherit; box-sizing: border-box;}
@@ -255,57 +235,23 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #eee; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s infinite linear; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* ----------------------------------------------------
-           [모바일 반응형] : 768px 이하일 때만 적용 
-           ---------------------------------------------------- */
+        /* --- 모바일 반응형 --- */
         @media (max-width: 768px) {
-            body { 
-                overflow: auto; /* 모바일은 스크롤 가능하게 */
-            }
-
-            /* 로그인 화면 모바일 조정 */
+            body { overflow: auto; }
             #login-wrapper { flex-direction: column; overflow-y: auto; }
             .login-art { flex: 0.4; padding: 40px 0; min-height: 250px; }
             .login-form-container { flex: 1; padding: 40px 20px; }
-
-            /* 사이드바 숨김 & 오버레이 처리 */
-            .sidebar {
-                position: fixed; top: 0; left: 0; height: 100%;
-                transform: translateX(-100%); /* 기본적으로 숨김 */
-                box-shadow: 2px 0 15px rgba(0,0,0,0.1);
-                transition: transform 0.3s ease;
-                z-index: 2000; /* 오버레이보다 위 */
-            }
-            .sidebar.active { transform: translateX(0); } /* 활성화 시 등장 */
             
-            .sidebar-overlay { 
-                display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                background: rgba(0,0,0,0.5); z-index: 1500; 
-            }
-            .sidebar-overlay.active { display: block; }
-
-            /* 햄버거 버튼 보이기 */
-            .mobile-menu-btn { 
-                display: block; 
-                position: fixed; top: 15px; left: 15px; z-index: 1600;
-                background: var(--primary); color: white; border: none;
-                border-radius: 8px; padding: 8px 12px; font-size: 1.5rem; 
-                cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            }
-
-            /* 메인 콘텐츠 여백 조정 */
-            .main-content { 
-                padding: 70px 20px 20px; /* 상단 메뉴 버튼 공간 확보 */
-                width: 100%; box-sizing: border-box;
-            }
-
-            /* 그리드 레이아웃 1단 변경 */
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 2000; }
+            .sidebar.active { transform: translateX(0); } 
+            .sidebar-overlay.active { display: block; background: rgba(0,0,0,0.5); z-index: 1500; position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+            .mobile-menu-btn { display: block; position: fixed; top: 15px; left: 15px; z-index: 1600; background: var(--primary); color: white; border: none; border-radius: 8px; padding: 8px 12px; font-size: 1.5rem; cursor: pointer; }
+            .main-content { padding: 70px 20px 20px; width: 100%; box-sizing: border-box; }
             .stats-row { grid-template-columns: 1fr; }
             .mid-section { grid-template-columns: 1fr; }
             .chart-box { height: 200px; padding: 0 5px; }
             .bar-group { width: 12%; }
         }
-
     </style>
 </head>
 <body onload="initApp()">
@@ -327,7 +273,7 @@
         <div class="login-art">
             <div class="circle c1"></div>
             <div class="circle c2"></div>
-            <img src="keyboard.png" class="login-keyboard-img" alt="키보드 이미지">
+            <img src="keyboard.png" class="login-keyboard-img" alt="Keyboard">
             <h2 style="color:white; font-size:2.5rem; margin-top:20px; z-index:10; text-shadow:0 10px 20px rgba(0,0,0,0.1); font-weight:900;">Speed<br>Typer.</h2>
         </div>
         <div class="login-form-container">
@@ -409,17 +355,17 @@
             <div class="mid-section">
                 <div class="dashboard-card">
                     <div class="card-head">
-                        <h4>📈 주간 성장 그래프</h4>
+                        <h4>📈 주간 활동 그래프</h4>
                         <span style="font-size:0.85rem; color:#888;">Last 7 Days</span>
                     </div>
                     <div class="chart-box">
-                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="40%"></div></div><span class="day-label">월</span></div>
-                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="65%"></div></div><span class="day-label">화</span></div>
-                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="55%"></div></div><span class="day-label">수</span></div>
-                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="80%"></div></div><span class="day-label">목</span></div>
-                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="70%"></div></div><span class="day-label">금</span></div>
-                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="95%"></div></div><span class="day-label">토</span></div>
-                        <div class="bar-group"><div class="bar"><div class="bar-fill" data-height="60%"></div></div><span class="day-label">일</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill"></div></div><span class="day-label">-</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill"></div></div><span class="day-label">-</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill"></div></div><span class="day-label">-</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill"></div></div><span class="day-label">-</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill"></div></div><span class="day-label">-</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill"></div></div><span class="day-label">-</span></div>
+                        <div class="bar-group"><div class="bar"><div class="bar-fill"></div></div><span class="day-label">-</span></div>
                     </div>
                 </div>
 
@@ -451,8 +397,9 @@
     </div>
 
 <script>
-// [서버 URL]
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyy-tcN11MycmXmaQjJ20KhLoOQzDqtr8b6YvwbLyF3OOVywlOzcm2EIkl_h4S9LoEFLQ/exec"; 
+// [⚠️ 주의] 배포 후 얻은 웹 앱 URL을 아래에 넣으세요
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzbyAeF7AsySRtH4ON71SbUGqAEf4z9nae-d6cle9YmdRFhm3rXL4xTmyp8OdRLl_-lbQ/exec"; 
+
 const ADMIN_NAME = "관리자";
 let currentUser = sessionStorage.getItem('shorthand_user');
 
@@ -468,18 +415,8 @@ function initApp() {
         document.getElementById('userNameSide').innerText = currentUser;
         document.getElementById('userAvatar').innerText = currentUser.charAt(0);
         
-        // [애니메이션 1] 숫자 카운팅 효과 (돈 쓴 맛!)
-        animateValue("streakVal", 0, Math.floor(Math.random() * 20 + 1), 1500, "일째");
-        animateValue("accVal", 0, 96, 2000, ".2%");
-        animateValue("cpmVal", 0, 340, 2000, "자");
-
-        // [애니메이션 2] 그래프 튕기며 차오르기
-        setTimeout(() => {
-            document.querySelectorAll('.bar-fill').forEach(el => {
-                el.style.height = el.getAttribute('data-height');
-            });
-        }, 600);
-
+        // 데이터 로드
+        fetchDashboardData();
         fetchNotice();
         fetchRanking();
         
@@ -488,19 +425,65 @@ function initApp() {
         }
 
         checkAuth();
+        setInterval(checkAuth, 60000); // 1분마다 토큰 체크
     } else {
         document.getElementById('login-wrapper').style.display = 'flex';
         document.getElementById('app-wrapper').style.display = 'none';
     }
 }
 
-// 숫자 카운팅 함수 (유틸리티)
+// [핵심] 대시보드 데이터 연동
+async function fetchDashboardData() {
+    try {
+        const res = await fetch(GAS_URL + `?action=getDashboardData&name=${encodeURIComponent(currentUser)}`);
+        const json = await res.json();
+        
+        if (json.result === "success") {
+            const data = json.data;
+
+            // 스탯 카드 업데이트
+            animateValue("streakVal", 0, data.streak, 1500, "일째");
+            animateValue("accVal", 0, Math.round(data.avgAcc), 1500, "%"); 
+            animateValue("cpmVal", 0, data.maxCPM, 1500, "자");
+
+            // 그래프 업데이트
+            const bars = document.querySelectorAll('.bar');
+            const labels = document.querySelectorAll('.day-label');
+            const maxVal = data.maxActivity;
+
+            data.graphData.forEach((dayData, index) => {
+                if (bars[index]) {
+                    const fill = bars[index].querySelector('.bar-fill');
+                    labels[index].innerText = dayData.label;
+                    
+                    let heightPercent = 0;
+                    if (maxVal > 0) heightPercent = (dayData.value / maxVal) * 100;
+                    
+                    setTimeout(() => {
+                        fill.style.height = `${heightPercent}%`;
+                        fill.title = `${dayData.value}회 연습`; 
+                    }, 300 + (index * 100));
+                }
+            });
+        }
+    } catch (e) {
+        console.error("대시보드 실패:", e);
+    }
+}
+
+// 숫자 카운팅 애니메이션
 function animateValue(id, start, end, duration, suffix) {
     let obj = document.getElementById(id);
     let range = end - start;
+    if (range === 0) {
+        obj.innerHTML = end + suffix;
+        return;
+    }
     let current = start;
     let increment = end > start ? 1 : -1;
     let stepTime = Math.abs(Math.floor(duration / range));
+    if (stepTime > 100) stepTime = 50; 
+    
     let timer = setInterval(function() {
         current += increment;
         obj.innerHTML = current + suffix;
@@ -512,7 +495,7 @@ function animateValue(id, start, end, duration, suffix) {
 async function login() {
     const name = document.getElementById('nameInput').value.trim();
     const pw = document.getElementById('pwInput').value;
-    if(!name || !pw) return alert("이름과 비밀번호를 입력해주세요.");
+    if(!name || !pw) return alert("정보를 입력해주세요.");
     
     document.getElementById('loading-overlay').style.display = 'flex';
     try {
@@ -525,7 +508,7 @@ async function login() {
             sessionStorage.setItem('shorthand_token', data.token); 
             initApp(); 
         } else { 
-            alert("로그인 실패! 정보를 확인해주세요."); 
+            alert("로그인 실패!"); 
         }
     } catch(e) { 
         alert("서버 연결 오류"); 
@@ -534,7 +517,6 @@ async function login() {
     }
 }
 
-// 모바일용 사이드바 토글 함수
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
@@ -564,7 +546,7 @@ function getTodayStr() {
     return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
 }
 
-// 관리자
+// 관리자 (공지 수정)
 function openAdmin() {
     document.getElementById('adminNoticeInput').value = document.getElementById('noticeText').innerText;
     document.getElementById('adminModal').style.display = 'flex';
@@ -584,7 +566,7 @@ async function saveNotice() {
     } catch(e) { alert("저장 실패"); }
 }
 
-// 랭킹
+// 랭킹 (Top 3)
 async function fetchRanking() {
     try {
         const res = await fetch(GAS_URL + "?action=getKingData");
@@ -601,9 +583,9 @@ async function fetchRanking() {
                         <span class="rank-score">${r.cpm}타</span>
                     </div>`;
             });
-            if(top3.length === 0) list.innerHTML = '<div style="padding:10px;">아직 기록이 없습니다.</div>';
+            if(top3.length === 0) list.innerHTML = '<div style="padding:10px;">오늘 기록이 없습니다.</div>';
         }
-    } catch(e) { console.log("랭킹 로드 실패"); }
+    } catch(e) {}
 }
 
 function logout() {
@@ -621,8 +603,6 @@ async function checkAuth() {
         await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "checkToken", name: name, token: token }) });
     } catch(e) {}
 }
-
-setInterval(checkAuth, 60000);
 </script>
 </body>
 </html>
