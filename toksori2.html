@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHORTHAND PRO - (수정)똑소리 2</title>
+    <title>SHORTHAND PRO - 똑소리 2 (번문 평가 ver)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -150,8 +150,10 @@
         .time-wrapper { font-size: 0.85rem; color: #888; font-weight: 600;
             text-align: right; margin-top: 5px; }
 
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr;
-            gap: 20px; margin-top: 20px; }
+        /* [수정] 3단 컬럼을 위해 수정됨 */
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px; margin-top: 20px; }
+        
         .input-wrapper { display: flex; flex-direction: column; gap: 10px;
         }
         .styled-textarea {
@@ -304,7 +306,7 @@
 <main class="main-content" id="capture-area">
     <div class="page-header">
         <div class="page-title">
-            <h2>📝 똑소리 2</h2>
+            <h2>📝 똑소리 2 (번문 평가)</h2>
             <p id="welcomeMsg">오늘도 화이팅하세요!</p>
         </div>
         <div style="display:flex;
@@ -348,7 +350,6 @@
             
             <audio id="audioPlayer" style="display:none;"></audio>
             
-    
             <div style="display:flex; align-items:center;
             gap:20px;">
                 <button id="playBtn" class="play-btn-circle" onclick="toggleAudio()" disabled>▶</button>
@@ -361,49 +362,49 @@
                             <option value="0.8">0.8x (느림)</option>
                             <option value="1.0" selected>1.0x (보통)</option>
                             <option value="1.2">1.2x (빠름)</option>
-       
                         </select>
                         <div id="timeDisplay" class="time-wrapper" style="margin:0;">00:00 / 00:00</div>
                     </div>
                     <div class="progress-container">
-             
                         <input type="range" id="audioProgress" value="0" step="0.1" oninput="seekAudio()">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div style="text-align:right;
-        margin-top:20px;">
-            <button onclick="clearAllInputs()" class="btn-ghost" style="font-size:0.8rem;
-            color:#888;">🗑️ 내용 비우기</button>
+        <div style="text-align:right; margin-top:20px;">
+            <button onclick="clearAllInputs()" class="btn-ghost" style="font-size:0.8rem; color:#888;">🗑️ 내용 비우기</button>
         </div>
 
         <div class="input-grid">
             <div class="input-wrapper">
-                <div style="display:flex;
-                justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="label-badge">📄 정답(원본)</span>
-                    <label style="cursor:pointer;
-                    font-size:0.85rem; font-weight:bold; color:var(--primary);">
-                        📂 불러오기 <input type="file" accept=".txt" style="display:none;" onchange="loadFile(this, 'original')">
+                    <label style="cursor:pointer; font-size:0.8rem; font-weight:bold; color:var(--primary);">
+                        📂 열기 <input type="file" accept=".txt" style="display:none;" onchange="loadFile(this, 'original')">
                     </label>
                 </div>
-                <textarea id="original" class="styled-textarea" placeholder="여기에 정답 텍스트를 붙여넣거나 파일을 불러오세요."></textarea>
-       
+                <textarea id="original" class="styled-textarea" placeholder="정답 텍스트를 붙여넣거나 파일을 불러오세요."></textarea>
             </div>
+
             <div class="input-wrapper">
-                <div style="display:flex;
-                justify-content:space-between; align-items:center;">
-                    <span class="label-badge" style="background:#FFF3E0;
-                    color:#FF9800; border-color:#FFE0B2;">✍️ 내 입력</span>
-                    <label style="cursor:pointer;
-                    font-size:0.85rem; font-weight:bold; color:var(--primary);">
-                        📂 불러오기 <input type="file" accept=".txt" style="display:none;" onchange="loadFile(this, 'student')">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="label-badge" style="background:#ECEFF1; color:#546E7A; border-color:#CFD8DC;">1️⃣ 번문 전 (초안)</span>
+                    <label style="cursor:pointer; font-size:0.8rem; font-weight:bold; color:var(--primary);">
+                        📂 열기 <input type="file" accept=".txt" style="display:none;" onchange="loadFile(this, 'studentPre')">
                     </label>
                 </div>
-                <textarea id="student" class="styled-textarea" placeholder="오디오를 듣고 여기에 타이핑하세요."></textarea>
-         
+                <textarea id="studentPre" class="styled-textarea" placeholder="낭독 직후 작성한(수정 전) 내용을 넣으세요."></textarea>
+            </div>
+
+            <div class="input-wrapper">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="label-badge" style="background:#FFF3E0; color:#FF9800; border-color:#FFE0B2;">2️⃣ 번문 후 (최종)</span>
+                    <label style="cursor:pointer; font-size:0.8rem; font-weight:bold; color:var(--primary);">
+                        📂 열기 <input type="file" accept=".txt" style="display:none;" onchange="loadFile(this, 'studentPost')">
+                    </label>
+                </div>
+                <textarea id="studentPost" class="styled-textarea" placeholder="수정 시간 10분 후의 최종 답안을 넣으세요."></textarea>
             </div>
         </div>
 
@@ -412,31 +413,89 @@
 
     <div id="result" style="display:none;">
         <div class="card-box" id="result-card-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div style="display:flex;
+            justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h3 style="margin:0;">📊 분석 결과</h3>
                 <button onclick="saveScreenshot()" class="btn-ghost">📸 결과 저장</button>
             </div>
 
             <div id="growthBox" class="growth-box"></div>
 
-            <div id="errorNoteArea" class="error-note-area">
-                <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleErrorList()">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-weight:bold; color:#F57C00;">📝 오답 노트</span>
-                        <span id="errorToggleIcon" style="font-size:0.8rem; color:#F57C00;">▼ (클릭해서 펼치기)</span>
-                    </div>
-                    <button onclick="saveErrorNote(); event.stopPropagation();" class="btn-ghost" style="background:white; font-size:0.8rem; padding:5px 10px;">💾 텍스트 저장</button>
+            <div id="compareResult" style="margin-bottom: 20px; display:none;">
+                <h4 style="margin:0 0 10px 0;">⚖️ 번문(수정) 전·후 비교</h4>
+                <table style="width:100%; text-align:center; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                    <thead>
+                        <tr style="background:#F1F3F5; color:#495057; font-size:0.9rem;">
+                            <th style="padding:10px;">구분</th>
+                            <th style="padding:10px;">번문 전 (초안)</th>
+                            <th style="padding:10px; color:var(--primary);">번문 후 (제출)</th>
+                            <th style="padding:10px;">증감(효과)</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-weight:bold; font-size:1rem;">
+                        <tr style="border-bottom:1px solid #eee;">
+                            <td style="padding:12px;">💯 정확도</td>
+                            <td id="scorePre" style="color:#888;">-</td>
+                            <td id="scorePost" style="color:var(--primary); font-size:1.2rem;">-</td>
+                            <td id="scoreDiff">-</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #eee; font-size:0.9rem;">
+                            <td style="padding:10px;">❌ 오자</td>
+                            <td id="wrongPre">-</td>
+                            <td id="wrongPost">-</td>
+                            <td id="wrongDiff">-</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #eee; font-size:0.9rem;">
+                            <td style="padding:10px;">🕳️ 탈자</td>
+                            <td id="missPre">-</td>
+                            <td id="missPost">-</td>
+                            <td id="missDiff">-</td>
+                        </tr>
+                        <tr style="font-size:0.9rem;">
+                            <td style="padding:10px;">➕ 첨자</td>
+                            <td id="addPre">-</td>
+                            <td id="addPost">-</td>
+                            <td id="addDiff">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="margin-top:15px; background:#E8F5E9; padding:15px; border-radius:10px; border:1px solid #C8E6C9;">
+                    <span style="font-weight:bold; color:#2E7D32;">💡 선생님의 한마디:</span>
+                    <span id="reviewComment">분석 중...</span>
                 </div>
-                <div id="errorList" style="display:none; margin-top:15px; border-top:1px solid rgba(0,0,0,0.05); padding-top:15px;"></div>
             </div>
 
-            <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
-                <div style="flex:1; background:#F8F9FA; border-radius:16px; padding:30px; text-align:center; display:flex; flex-direction:column; justify-content:center; border:1px solid #eee;">
-                    <div style="color:#888; margin-bottom:5px;">최종 정확도</div>
-                    <div id="finalScore" style="font-size:4rem; font-weight:900; color:var(--primary);">0</div>
-                    <div id="scoreDesc" style="font-weight:600; color:#555;"></div>
+            <div id="errorNoteArea" class="error-note-area">
+                <div style="display:flex;
+                justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleErrorList()">
+                    <div style="display:flex;
+                    align-items:center; gap:8px;">
+                        <span style="font-weight:bold;
+                        color:#F57C00;">📝 오답 노트</span>
+                        <span id="errorToggleIcon" style="font-size:0.8rem;
+                        color:#F57C00;">▼ (클릭해서 펼치기)</span>
+                    </div>
+                    <button onclick="saveErrorNote();
+                    event.stopPropagation();" class="btn-ghost" style="background:white; font-size:0.8rem; padding:5px 10px;">💾 텍스트 저장</button>
                 </div>
-                <div style="flex:1; height:300px; min-width:300px;">
+                <div id="errorList" style="display:none;
+                margin-top:15px; border-top:1px solid rgba(0,0,0,0.05); padding-top:15px;"></div>
+            </div>
+
+            <div style="display:flex;
+            gap:20px; flex-wrap:wrap; margin-bottom:20px;">
+                <div style="flex:1;
+                background:#F8F9FA; border-radius:16px; padding:30px; text-align:center; display:flex; flex-direction:column; justify-content:center; border:1px solid #eee;">
+                    <div style="color:#888;
+                    margin-bottom:5px;">최종 정확도</div>
+                    <div id="finalScore" style="font-size:4rem;
+                    font-weight:900; color:var(--primary);">0</div>
+                    <div id="scoreDesc" style="font-weight:600;
+                    color:#555;"></div>
+                </div>
+                <div style="flex:1;
+                height:300px; min-width:300px;">
                     <canvas id="scoreChart"></canvas>
                 </div>
             </div>
@@ -494,7 +553,8 @@ function initApp() {
     if(document.getElementById('sideUserName')) document.getElementById('sideUserName').innerText = currentUser;
     
     setupDragAndDrop('original');
-    setupDragAndDrop('student');
+    setupDragAndDrop('studentPre');  // 추가됨
+    setupDragAndDrop('studentPost'); // 추가됨
     initAudioPlayer();
 
     fetchData();
@@ -593,160 +653,189 @@ function updateKingRanking(allHistory) {
 function clearAllInputs() {
     if(confirm("작성 중인 내용을 모두 지울까요?")) {
         document.getElementById('original').value = "";
-        document.getElementById('student').value = "";
+        document.getElementById('studentPre').value = "";
+        document.getElementById('studentPost').value = "";
     }
 }
 
+// [핵심 로직 변경] 채점 및 번문 비교 로직
 function analyzeAndGrade() {
-    let rawO = document.getElementById('original').value;
-    let rawS = document.getElementById('student').value;
-    if(!rawO.trim()) return;
+    const txtOriginal = document.getElementById('original').value;
+    const txtPre = document.getElementById('studentPre').value;   // 번문 전
+    const txtPost = document.getElementById('studentPost').value; // 번문 후 (최종)
 
+    if(!txtOriginal.trim()) { alert("정답(원본) 텍스트가 필요합니다."); return; }
+
+    // 1. 번문 전(Pre) 분석
+    const resPre = getExactStats(txtOriginal, txtPre); 
+    // 2. 번문 후(Post) 분석 (화면 표시용 HTML 포함)
+    const resPost = getExactStats(txtOriginal, txtPost, true); 
+
+    // 3. 비교 데이터 테이블 업데이트
+    updateCompareTable(resPre, resPost);
+
+    // 4. 최종 결과 화면 표시
+    const fName = document.getElementById('fileName').value.trim() || "미지정";
+    
+    // 점수 표시
+    document.getElementById('finalScore').innerText = resPost.score;
+    document.getElementById('scoreDesc').innerText = 
+        `총 글자(부호제외): ${resPost.n} / 오자: ${resPost.w} / 탈자: ${resPost.mi} / 첨자: ${resPost.ad}`;
+    
+    // 상세 분석(Diff) HTML 표시
+    document.getElementById('diffOutput').innerHTML = resPost.html;
+    
+    // 오답노트 렌더링
+    currentErrorItems = resPost.errorItems;
+    renderErrorNote();
+
+    // 결과창 보이기
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('compareResult').style.display = 'block'; // 비교표 보이기
+
+    // 차트 및 데이터 전송 (최종 점수 기준)
+    analyzeGrowth(resPost.score, resPost.totalErr, fName);
+    sendDataToServer(resPost.score, resPost.w, resPost.mi, resPost.ad, fName, resPost.n);
+}
+
+// [보조 함수] 실제 점수와 Diff HTML을 생성하는 함수
+function getExactStats(origin, student, generateHtml = false) {
+    let rawO = origin.trim();
+    let rawS = (student || "").trim();
     const isSpecial = (char) => /[^0-9a-zA-Z\uAC00-\uD7A3]/.test(char);
     let pureLength = rawO.replace(/[^0-9a-zA-Z\uAC00-\uD7A3]/g, '').length;
+    let n = pureLength > 0 ? pureLength : 1;
 
-    let oArr = rawO.trim().split('');
-    let sArr = rawS.trim().split('');
-    let n = oArr.length;
-    let m = sArr.length;
-
-    // 1. LCS 알고리즘
-    let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
-    for (let i = 1; i <= n; i++) {
-        for (let j = 1; j <= m; j++) {
-            if (oArr[i-1] === sArr[j-1]) { dp[i][j] = dp[i-1][j-1] + 1; } 
-            else { dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]); }
+    let oArr = rawO.split('');
+    let sArr = rawS.split('');
+    
+    // LCS 로직
+    let dp = Array.from(Array(oArr.length + 1), () => Array(sArr.length + 1).fill(0));
+    for (let i = 1; i <= oArr.length; i++) {
+        for (let j = 1; j <= sArr.length; j++) {
+            if (oArr[i-1] === sArr[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
+            else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
         }
     }
 
-    let i = n, j = m, diffs = [];
+    let i = oArr.length, j = sArr.length;
+    let diffs = [];
     while (i > 0 || j > 0) {
         if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { 
-            diffs.push({ t: 'same', c: oArr[i-1] });
-            i--; j--; 
-        } 
-        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { 
-            diffs.push({ t: 'added', c: sArr[j-1] });
-            j--; 
-        } 
-        else { 
-            diffs.push({ t: 'missing', c: oArr[i-1] }); 
-            i--;
+            diffs.push({ t: 'same', c: oArr[i-1] }); i--; j--; 
+        } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { 
+            diffs.push({ t: 'added', c: sArr[j-1] }); j--; 
+        } else { 
+            diffs.push({ t: 'missing', c: oArr[i-1] }); i--;
         }
     }
     diffs.reverse();
 
-    // 2. 화면 표시(HTML)와 오답노트 데이터 동시 생성
-    let html = "", w=0, mi=0, ad=0;
-    let mBuffer = [], aBuffer = []; 
-    currentErrorItems = []; // 오답노트 초기화
+    // 통계 및 HTML 생성
+    let w=0, mi=0, ad=0;
+    let html = "";
+    let errorItems = [];
+    
+    let mBuffer = [], aBuffer = [];
+    let wordO = "", wordS = "";
+    let isWordDirty = false;
 
-    // 현재 처리 중인 단어 버퍼
-    let wordO = ""; // 정답 문맥
-    let wordS = ""; // 학생 입력 문맥
-    let isWordDirty = false; // 현재 단어에 에러가 있는가?
-
-    // 단어 저장 함수
-    function commitWord() {
+    // 내부 함수: 단어 저장
+    const commitWord = () => {
         if (isWordDirty && (wordO.trim() || wordS.trim())) {
-            currentErrorItems.push({
-                type: (wordS.trim() === "") ? 'missing' : 'wrong',
-                correct: wordO,
-                wrong: wordS
-            });
+            errorItems.push({ type: (wordS.trim() === "") ? 'missing' : 'wrong', correct: wordO, wrong: wordS });
         }
-        wordO = "";
-        wordS = "";
-        isWordDirty = false;
+        wordO = ""; wordS = ""; isWordDirty = false;
     }
-
-    function flushBuffer() {
+    
+    // 내부 함수: 버퍼 처리 (오/탈/첨 판별 핵심)
+    const flushBuffer = () => {
         let mIdx = 0, aIdx = 0;
         while (mIdx < mBuffer.length || aIdx < aBuffer.length) {
             let mChar = mBuffer[mIdx];
             let aChar = aBuffer[aIdx];
 
-            // 1) 원본 특수문자
-            if (mIdx < mBuffer.length && isSpecial(mChar)) { 
-                html += `<span>${toHtmlChar(mChar)}</span>`; 
-                wordO += mChar; 
-                wordS += mChar; 
-                mIdx++; continue;
+            if (mIdx < mBuffer.length && isSpecial(mChar)) { // 원본 특수문자
+                if(generateHtml) html += `<span>${toHtmlChar(mChar)}</span>`;
+                wordO += mChar; wordS += mChar; mIdx++; continue;
             }
-            // 2) 학생 입력 특수문자
-            if (aIdx < aBuffer.length && isSpecial(aChar)) { 
-                html += `<span style=\"color:#ccc;\">${toHtmlChar(aChar)}</span>`; 
-                wordS += aChar; 
-                aIdx++; continue; 
+            if (aIdx < aBuffer.length && isSpecial(aChar)) { // 입력 특수문자
+                if(generateHtml) html += `<span style="color:#ccc;">${toHtmlChar(aChar)}</span>`;
+                wordS += aChar; aIdx++; continue; 
             }
-            // 3) 오타 (Wrong)
-            if (mIdx < mBuffer.length && aIdx < aBuffer.length) { 
-                html += `<span class=\"d-wrong\">${toHtmlChar(aChar)}<span class=\"correction\">${toHtmlChar(mChar)}</span></span>`;
-                wordO += mChar;
-                wordS += aChar;
-                isWordDirty = true; // 에러 체크!
-                w++; mIdx++; aIdx++; continue; 
+            if (mIdx < mBuffer.length && aIdx < aBuffer.length) { // 오자 (Wrong)
+                if(generateHtml) html += `<span class="d-wrong">${toHtmlChar(aChar)}<span class="correction">${toHtmlChar(mChar)}</span></span>`;
+                wordO += mChar; wordS += aChar; isWordDirty = true;
+                w++; mIdx++; aIdx++; continue;
             }
-            // 4) 탈자 (Missing)
-            if (mIdx < mBuffer.length) { 
-                html += `<span class=\"d-missing\">${toHtmlChar(mChar)}</span>`;
-                wordO += mChar;
-                isWordDirty = true; // 에러 체크!
-                mi++; mIdx++; continue; 
+            if (mIdx < mBuffer.length) { // 탈자 (Missing)
+                if(generateHtml) html += `<span class="d-missing">${toHtmlChar(mChar)}</span>`;
+                wordO += mChar; isWordDirty = true;
+                mi++; mIdx++; continue;
             }
-            // 5) 첨자 (Added)
-            if (aIdx < aBuffer.length) { 
-                html += `<span class=\"d-added\">${toHtmlChar(aChar)}</span>`;
-                wordS += aChar;
-                isWordDirty = true; // 에러 체크!
-                ad++; aIdx++; continue; 
+            if (aIdx < aBuffer.length) { // 첨자 (Added)
+                if(generateHtml) html += `<span class="d-added">${toHtmlChar(aChar)}</span>`;
+                wordS += aChar; isWordDirty = true;
+                ad++; aIdx++; continue;
             }
         }
-        mBuffer = [];
-        aBuffer = [];
+        mBuffer = []; aBuffer = [];
     }
 
     for (let k = 0; k < diffs.length; k++) {
         let item = diffs[k];
-
-        if (item.t === 'same') { 
-            // 버퍼에 쌓인 틀린 내용들 먼저 처리
-            flushBuffer(); 
-
-            // 공백이나 줄바꿈을 만나면 단어 끊기
+        if (item.t === 'same') {
+            flushBuffer();
             if (item.c === ' ' || item.c === '\n') {
-                commitWord(); // 지금까지 모은 단어 저장
-                html += (item.c === ' ') ? '<span>&nbsp;</span>' : '<br>';
+                commitWord();
+                if(generateHtml) html += (item.c === ' ') ? '<span>&nbsp;</span>' : '<br>';
             } else {
-                // 맞는 글자
-                html += `<span>${toHtmlChar(item.c)}</span>`;
-                wordO += item.c;
-                wordS += item.c;
+                if(generateHtml) html += `<span>${toHtmlChar(item.c)}</span>`;
+                wordO += item.c; wordS += item.c;
             }
-        } 
-        else if (item.t === 'missing') { mBuffer.push(item.c); } 
-        else if (item.t === 'added') { aBuffer.push(item.c); }
+        } else if (item.t === 'missing') mBuffer.push(item.c);
+        else if (item.t === 'added') aBuffer.push(item.c);
     }
-    
-    // 남은 잔여물 처리
     flushBuffer();
-    commitWord(); 
+    commitWord();
 
-    // 3. 점수 계산 및 렌더링
     let adPenalty = Math.floor(ad / 3);
-    let calcN = pureLength > 0 ? pureLength : 1;
-    let score = Math.max(0, 100 - ((w + mi + adPenalty) / calcN * 100)).toFixed(1);
-    const fName = document.getElementById('fileName').value.trim() || "미지정";
+    let score = Math.max(0, 100 - ((w + mi + adPenalty) / n * 100)).toFixed(1);
 
-    analyzeGrowth(score, w + mi + ad, fName);
-    document.getElementById('finalScore').innerText = score;
-    document.getElementById('scoreDesc').innerText = `총 글자(부호제외): ${pureLength} / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
-    document.getElementById('diffOutput').innerHTML = html;
+    return { score, w, mi, ad, n, html, errorItems, totalErr: w+mi+ad };
+}
+
+// [UI 업데이트] 비교 테이블 채우기
+function updateCompareTable(pre, post) {
+    const set = (id, val) => document.getElementById(id).innerText = val;
+    const setDiff = (id, preVal, postVal, isScore = false) => {
+        let diff = isScore ? (postVal - preVal).toFixed(1) : (postVal - preVal);
+        let el = document.getElementById(id);
+        let icon = diff > 0 ? "▲" : (diff < 0 ? "▼" : "-");
+        
+        // 색상 로직: 점수는 오르면 좋고(초록), 에러는 줄면 좋음(초록)
+        let isGood = isScore ? diff > 0 : diff < 0;
+        let color = diff == 0 ? "#888" : (isGood ? "#00B894" : "#FF7675");
+        
+        el.innerHTML = `<span style="color:${color}; font-weight:bold;">${icon} ${Math.abs(diff)}</span>`;
+    };
+
+    set('scorePre', pre.score + '%'); set('scorePost', post.score + '%'); setDiff('scoreDiff', pre.score, post.score, true);
+    set('wrongPre', pre.w); set('wrongPost', post.w); setDiff('wrongDiff', pre.w, post.w);
+    set('missPre', pre.mi); set('missPost', post.mi); setDiff('missDiff', pre.mi, post.mi);
+    set('addPre', pre.ad); set('addPost', post.ad); setDiff('addDiff', pre.ad, post.ad);
+
+    // 선생님의 코멘트
+    let comment = "";
+    let scoreGap = (post.score - pre.score).toFixed(1);
     
-    renderErrorNote();
-    document.getElementById('result').style.display = 'block';
+    if (scoreGap > 0) comment = `👏 훌륭합니다! 수정 시간을 통해 정확도를 <b>${scoreGap}%</b> 올렸네요. 검토 실력이 뛰어납니다!`;
+    else if (scoreGap < 0) comment = `🚨 아차! 수정을 하면서 오히려 점수가 <b>${Math.abs(scoreGap)}%</b> 떨어졌어요. 고치지 않아도 될 것을 건드렸는지 확인해보세요.`;
+    else comment = `⚖️ 점수 변화가 없습니다. (수정한 내용이 없거나, 고친 만큼 틀린 개수도 비슷해요)`;
 
-    sendDataToServer(score, w, mi, ad, fName, pureLength);
+    if (pre.totalErr === 0 && post.totalErr === 0) comment = "🌟 완벽합니다! 초안부터 최종본까지 모두 만점입니다.";
+
+    document.getElementById('reviewComment').innerHTML = comment;
 }
 
 // 오답 노트 렌더링 함수 (기본 접힘 상태)
@@ -756,7 +845,6 @@ function renderErrorNote() {
     const icon = document.getElementById('errorToggleIcon');
     
     const validErrors = currentErrorItems.filter(e => e.correct.trim().length > 0 || e.wrong.trim().length > 0);
-    
     if (validErrors.length === 0) {
         area.style.display = 'none';
         return;
@@ -779,7 +867,6 @@ function renderErrorNote() {
             </div>`;
         }
     }).join('');
-
     area.style.display = 'block';
     list.style.display = 'none'; 
     icon.innerText = `▼ (총 ${validErrors.length}개 - 클릭해서 펼치기)`;
@@ -789,13 +876,11 @@ function renderErrorNote() {
 function toggleErrorList() {
     const list = document.getElementById('errorList');
     const icon = document.getElementById('errorToggleIcon');
-    
     if (list.style.display === 'none') {
         list.style.display = 'block';
         icon.innerText = '▲ (접기)';
     } else {
         list.style.display = 'none';
-        // 개수 정보 다시 표시
         const count = currentErrorItems.filter(e => e.correct.trim().length > 0 || e.wrong.trim().length > 0).length;
         icon.innerText = `▼ (총 ${count}개 - 클릭해서 펼치기)`;
     }
@@ -924,7 +1009,6 @@ function updateHistoryUI() {
                 <span style="color:var(--primary);">${item.score}%</span>
             </div>
             <div style="font-size:0.8rem; color:#888;">
-       
                 📍 글자: ${item.n} | ❌ 오자: ${item.w} | 🕳️ 탈자: ${item.mi} | ➕ 첨자: ${item.ad}
             </div>
         </div>
@@ -941,7 +1025,6 @@ function updateChart() {
             datasets: [{ 
                 label: '정확도 (%)', 
                 data: scoreHistory.slice(-15).map(i => parseFloat(i.score)), 
-       
                  borderColor: '#6C5CE7', 
                 tension: 0.3, 
                 fill: true, 
@@ -1000,7 +1083,6 @@ function generateReport() {
             <p style="margin:5px 0;">🏆 <b>최고 정확도:</b> ${maxScore}%</p>
             <p style="margin:5px 0;">⌨️ <b>누적 연습량:</b> ${totalChars.toLocaleString()}자</p>
         </div>
-   
          <p style="text-align:center; font-size:14px; color:#666;">
             ${avgScore >= 98 ?
             "🌟 전문가 수준의 정확도입니다!" : "📈 꾸준히 연습하면 더 좋아질 거예요!"}
@@ -1047,8 +1129,7 @@ function setupDragAndDrop(areaId) {
 }
 
 function saveScreenshot() {
-    const element = document.getElementById("result-card-box"); 
-    
+    const element = document.getElementById("result-card-box");
     if (!element) {
         alert("저장할 결과 화면이 없습니다.");
         return;
