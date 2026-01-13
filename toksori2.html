@@ -630,15 +630,14 @@ function getExactStats(origin, student, generateHtml = false) {
 }
 
 // [신규 기능] 번문 수정 하이라이트 생성기 (Highlighter Mode)
+// [최종 수정] 띄어쓰기는 형광펜 칠 절대 금지 적용
 function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
-    // 1. Pre vs Post 비교 (어디가 바뀌었나?)
-    // 2. 바뀐 부분이 Original과 일치하는가? (잘 고쳤나?)
-    
-    const cleanO = txtOriginal.replace(/\s+/g, ' ').trim(); // 공백 정규화
+    // 1. 공백 정규화 및 배열 변환
+    const cleanO = txtOriginal.replace(/\s+/g, ' ').trim(); 
     const sPre = txtPre.trim().split('');
     const sPost = txtPost.trim().split('');
     
-    // Pre vs Post LCS
+    // 2. LCS 알고리즘 (Pre vs Post 비교)
     let dp = Array.from(Array(sPre.length + 1), () => Array(sPost.length + 1).fill(0));
     for (let i = 1; i <= sPre.length; i++) {
         for (let j = 1; j <= sPost.length; j++) {
@@ -653,92 +652,43 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
         if (i > 0 && j > 0 && sPre[i-1] === sPost[j-1]) {
             changes.push({ t: 'same', c: sPre[i-1] }); i--; j--;
         } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
-            changes.push({ t: 'post_only', c: sPost[j-1] }); j--; // 수정 시 추가/변경됨
+            changes.push({ t: 'post_only', c: sPost[j-1] }); j--; 
         } else {
-            changes.push({ t: 'pre_only', c: sPre[i-1] }); i--; // 수정 시 삭제됨
+            changes.push({ t: 'pre_only', c: sPre[i-1] }); i--; 
         }
     }
     changes.reverse();
 
-    // HTML 생성
+    // 3. HTML 생성
     let html = "";
-    let bufferPost = ""; 
-    let bufferPre = "";
-
-    // 덩어리 처리 함수
-    const processBuffer = () => {
-        if (!bufferPost && !bufferPre) return;
-
-        // 1. 변경 없음 (Same)
-        if (!bufferPre && bufferPost) { // 단순 텍스트 (수정 안한 부분)
-            // 이 부분이 원문에도 있으면 정답, 없으면 오답(미수정)
-            // *단어 단위 정밀 매칭은 복잡하므로, 여기선 시각적 하이라이트에 집중*
-            // 변경되지 않은 텍스트가 원문에 포함되어 있는지 확인 (약식)
-            if (cleanO.includes(bufferPost.trim())) {
-                html += `<span>${escapeHtml(bufferPost)}</span>`; // 정답 유지
-            } else if (bufferPost.trim().length > 1) { // 1글자 이상 틀린 것
-                html += `<span class="hl-missed">${escapeHtml(bufferPost)}</span>`; // 미수정
-            } else {
-                html += `<span>${escapeHtml(bufferPost)}</span>`; // 애매하면 일반
-            }
-        }
-        // 2. 수정 발생 (Pre -> Post)
-        else {
-            let correctedText = bufferPost;
-            let originalText = bufferPre;
-            
-            // 수정한 내용이 원문에 있는가?
-            if (correctedText.trim().length > 0) {
-                 if (cleanO.includes(correctedText.trim())) {
-                     // 성공: 원문에 있음
-                     html += `<span class="hl-success">${escapeHtml(correctedText)}</span>`;
-                 } else {
-                     // 실패: 고쳤는데 원문에 없음
-                     // 원래 맞았는지 확인? (복잡하므로 단순 오수정/개악 구분)
-                     if (cleanO.includes(originalText.trim()) && originalText.trim().length > 0) {
-                         html += `<span class="hl-bad">${escapeHtml(correctedText)}</span>`; // 개악 (원래 맞았는데)
-                     } else {
-                         html += `<span class="hl-warning">${escapeHtml(correctedText)}</span>`; // 오수정
-                     }
-                 }
-            }
-        }
-        bufferPost = ""; bufferPre = "";
-    };
-
+    
     for (let k = 0; k < changes.length; k++) {
         let ch = changes[k];
+        
+        // (1) 변경 없음 (그대로 출력)
         if (ch.t === 'same') {
-            // 변경 부분이 끝나면 이전 버퍼 처리
-            if (bufferPre) processBuffer();
-            bufferPost += ch.c; // same도 bufferPost에 일단 넣고, 끊길 때 처리하거나, 바로 처리?
-            // Same은 연속되므로 바로 출력하는게 나음, 하지만 "미수정" 체크를 위해 버퍼링
-            // 여기선 단순화를 위해 바로 출력하되, 문장 흐름을 위해...
-            // 로직 단순화: Same은 그냥 출력. 변경된 것만 하이라이트.
-            
-            // 미수정 체크가 너무 붉게 나올 수 있으므로, 변경된 것 위주로 표시
-            html += `<span>${toHtmlChar(ch.c)}</span>`;
-        } else {
-            // 변경 발생
-            if (ch.t === 'post_only') { // 추가된 글자 (수정본)
-                // 버퍼에 쌓아서 단어 단위로 비교
-                // 편의상 바로 하이라이트 로직 적용 (단어 조각일 수 있음)
-                // 글자 단위로 체크하면 정확도 떨어짐 -> "하이라이트"는 덩어리가 좋음.
-                // 여기선 '단순화'하여 글자 단위 스타일 적용
+            if(ch.c === '\n') html += '<br>';
+            else html += `<span>${toHtmlChar(ch.c)}</span>`;
+        } 
+        // (2) 변경 발생 (수정되어 추가된 부분)
+        else if (ch.t === 'post_only') {
+            // ★ 핵심 수정: 정규식으로 '공백', '탭', '줄바꿈' 등 모든 공백 문자 감지
+            if (/^\s$/.test(ch.c)) {
+                // 공백이라면 클래스(배경색) 없이 그냥 출력
+                if(ch.c === '\n') html += '<br>';
+                else html += `<span>&nbsp;</span>`; 
+            } else {
+                // 공백이 아닌 '글자'일 때만 형광펜 로직 적용
                 if (cleanO.includes(ch.c)) {
-                    html += `<span class="hl-success">${toHtmlChar(ch.c)}</span>`;
+                    html += `<span class="hl-success">${toHtmlChar(ch.c)}</span>`; // 맞게 고침 (초록)
                 } else {
-                    html += `<span class="hl-warning">${toHtmlChar(ch.c)}</span>`;
+                    html += `<span class="hl-warning">${toHtmlChar(ch.c)}</span>`; // 틀리게 고침 (노랑)
                 }
-            } 
-            // pre_only (삭제된 글자)는 화면에 표시하지 않음 (번문 후 텍스트 기준이므로)
-        }
+            }
+        } 
+        // (3) pre_only (삭제된 부분)은 표시 안 함
     }
     
-    // *정밀 하이라이트 (단어 단위)* 구현이 브라우저에서 무거울 수 있어,
-    // 위 코드는 글자 단위입니다. 선생님 요청대로 "형광펜 느낌"을 내기 위해
-    // 약간의 꼼수(글자 단위 색칠)를 썼습니다.
-    // 더 정확한 "문맥" 비교는 서버 사이드나 무거운 라이브러리가 필요합니다.
     document.getElementById('reviewContent').innerHTML = html;
 }
 
@@ -763,4 +713,5 @@ function closeReport() { document.getElementById('overlay').style.display = 'non
 </script>
 </body>
 </html>
+
 
