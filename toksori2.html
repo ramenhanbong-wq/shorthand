@@ -641,8 +641,6 @@ function getExactStats(origin, student, generateHtml = false) {
     return { score, w, mi, ad, html };
 }
 
-// [최종 업데이트] 수정 내역(형광펜) + 탈자(놓친 내용) 동시 표시 로직
-// [최종 수정] 개악/오수정/미수정/탈자 완벽 구분 로직 (대체 감지 강화)
 // [최종 완성] 1:1 매칭 강화 + 쓸데없는 첨자(긁어 부스럼) 개악 처리
 function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     const cleanO = txtOriginal.replace(/\s+/g, ' ').trim();
@@ -684,15 +682,12 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     diffPrePost.forEach(ch => {
         if (ch.t === 'same') {
             // 같은 글자가 나오면 큐를 비웁니다 (문맥이 끊김)
-            // *단, 연속된 오타 수정을 위해 큐를 유지하는 전략도 있으나, 
-            // 여기선 '정확한 위치' 매칭을 위해 same에서 끊어주는 게 안전합니다.
             delQueue = []; 
             postMeta.push({ isNew: false, deletedFromPre: "" }); 
         } else if (ch.t === 'missing') {
             delQueue.push(ch.c); // 삭제된 글자 대기열 등록
         } else if (ch.t === 'added') {
             // 추가된 글자가 나오면, 대기열(삭제된 글자)에서 하나 꺼내와서 짝을 짓습니다.
-            // 예: 포항->표향 (포->표, 항->향 순서대로 매칭)
             let matchedDel = delQueue.shift() || ""; 
             postMeta.push({ isNew: true, deletedFromPre: matchedDel });
         }
@@ -779,18 +774,6 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     flushMissing();
     document.getElementById('reviewContent').innerHTML = html;
 }
-            
-            // Added를 처리했으므로, 이와 짝이 되는 Missing(탈자 후보)들은 "대체"되어 사라진 것으로 간주하고 버퍼 비움
-            missingBuffer = ""; 
-            postIdx++;
-        }
-    });
-
-    // 남은 탈자 버퍼 출력 (문장 끝부분 등)
-    flushMissing();
-
-    document.getElementById('reviewContent').innerHTML = html;
-}
 
 // 파일 읽기 및 드래그앤드롭 유틸
 function loadFile(input, targetId) {
@@ -813,5 +796,3 @@ function closeReport() { document.getElementById('overlay').style.display = 'non
 </script>
 </body>
 </html>
-
-
