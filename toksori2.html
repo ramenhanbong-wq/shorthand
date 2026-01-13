@@ -631,13 +631,14 @@ function getExactStats(origin, student, generateHtml = false) {
 
 // [신규 기능] 번문 수정 하이라이트 생성기 (Highlighter Mode)
 // [최종 수정] 띄어쓰기는 형광펜 칠 절대 금지 적용
+// [최종 수정] 개악(맞는 걸 틀리게 고침) 판별 로직 강화 + 띄어쓰기 무시
 function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     // 1. 공백 정규화 및 배열 변환
     const cleanO = txtOriginal.replace(/\s+/g, ' ').trim(); 
     const sPre = txtPre.trim().split('');
     const sPost = txtPost.trim().split('');
     
-    // 2. LCS 알고리즘 (Pre vs Post 비교)
+    // 2. LCS 알고리즘
     let dp = Array.from(Array(sPre.length + 1), () => Array(sPost.length + 1).fill(0));
     for (let i = 1; i <= sPre.length; i++) {
         for (let j = 1; j <= sPost.length; j++) {
@@ -659,35 +660,63 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     }
     changes.reverse();
 
-    // 3. HTML 생성
+    // 3. HTML 생성 (버퍼링 방식 부활: 개악 판별을 위해)
     let html = "";
-    
+    let delBuf = ""; // 지워진 내용 (Pre)
+    let insBuf = ""; // 새로 쓴 내용 (Post)
+
+    // 변경 사항 처리 함수
+    const processBuffer = () => {
+        if (!delBuf && !insBuf) return;
+
+        // (1) 새로 쓴 내용이 있을 때 (수정 or 추가)
+        if (insBuf.length > 0) {
+            // 공백만 있는 경우 -> 색칠 안 함
+            if (/^\s+$/.test(insBuf)) {
+                // 줄바꿈 포함 처리
+                html += insBuf.replace(/\n/g, '<br>').replace(/ /g, '<span>&nbsp;</span>');
+            } 
+            else {
+                // 의미 있는 글자가 수정됨
+                if (cleanO.includes(insBuf.trim())) {
+                    // A. 고친 말이 원문에 있음 -> 성공 (초록)
+                    html += `<span class="hl-success">${escapeHtml(insBuf)}</span>`;
+                } else {
+                    // B. 고친 말이 원문에 없음 (틀림)
+                    // 여기서 '개악'인지 '오수정'인지 판별하려면 '지운 말(delBuf)'을 봐야 함
+                    if (delBuf.length > 0 && cleanO.includes(delBuf.trim())) {
+                        // 지운 말이 원문에 있었음 (맞는 걸 지움) -> 개악 (주황)
+                        html += `<span class="hl-bad">${escapeHtml(insBuf)}</span>`;
+                    } else {
+                        // 지운 말도 원문에 없었음 (틀린 걸 틀리게 고침) -> 오수정 (노랑)
+                        html += `<span class="hl-warning">${escapeHtml(insBuf)}</span>`;
+                    }
+                }
+            }
+        }
+        // (2) 지우기만 하고 안 쓴 경우 (삭제) -> 번문 후 기준이므로 표시 안 함
+        
+        // 버퍼 초기화
+        delBuf = "";
+        insBuf = "";
+    };
+
     for (let k = 0; k < changes.length; k++) {
         let ch = changes[k];
         
-        // (1) 변경 없음 (그대로 출력)
         if (ch.t === 'same') {
+            processBuffer(); // 변경점 처리
             if(ch.c === '\n') html += '<br>';
             else html += `<span>${toHtmlChar(ch.c)}</span>`;
         } 
-        // (2) 변경 발생 (수정되어 추가된 부분)
-        else if (ch.t === 'post_only') {
-            // ★ 핵심 수정: 정규식으로 '공백', '탭', '줄바꿈' 등 모든 공백 문자 감지
-            if (/^\s$/.test(ch.c)) {
-                // 공백이라면 클래스(배경색) 없이 그냥 출력
-                if(ch.c === '\n') html += '<br>';
-                else html += `<span>&nbsp;</span>`; 
-            } else {
-                // 공백이 아닌 '글자'일 때만 형광펜 로직 적용
-                if (cleanO.includes(ch.c)) {
-                    html += `<span class="hl-success">${toHtmlChar(ch.c)}</span>`; // 맞게 고침 (초록)
-                } else {
-                    html += `<span class="hl-warning">${toHtmlChar(ch.c)}</span>`; // 틀리게 고침 (노랑)
-                }
-            }
+        else if (ch.t === 'pre_only') {
+            delBuf += ch.c; // 지운 것 기록 (개악 판별용)
         } 
-        // (3) pre_only (삭제된 부분)은 표시 안 함
+        else if (ch.t === 'post_only') {
+            insBuf += ch.c; // 쓴 것 기록
+        }
     }
+    processBuffer(); // 남은 버퍼 처리
     
     document.getElementById('reviewContent').innerHTML = html;
 }
@@ -713,5 +742,6 @@ function closeReport() { document.getElementById('overlay').style.display = 'non
 </script>
 </body>
 </html>
+
 
 
