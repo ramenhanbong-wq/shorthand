@@ -643,6 +643,7 @@ function getExactStats(origin, student, generateHtml = false) {
 
 // [최종 업데이트] 수정 내역(형광펜) + 탈자(놓친 내용) 동시 표시 로직
 // [최종 수정] 개악/오수정/미수정/탈자 완벽 구분 로직 (대체 감지 강화)
+// [최종 완성] 1:1 매칭 강화 + 쓸데없는 첨자(긁어 부스럼) 개악 처리
 function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     const cleanO = txtOriginal.replace(/\s+/g, ' ').trim();
     
@@ -651,7 +652,7 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
     const sPre = txtPre.trim().split('');
     const sPost = txtPost.trim().split('');
 
-    // [LCS 알고리즘] 두 배열의 차이를 계산
+    // [LCS 알고리즘]
     const getDiff = (arr1, arr2) => {
         let dp = Array.from(Array(arr1.length + 1), () => Array(arr2.length + 1).fill(0));
         for (let i = 1; i <= arr1.length; i++) {
@@ -674,39 +675,37 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
         return diff.reverse();
     };
 
-    // 1단계: [번문 전(Pre) -> 번문 후(Post)] 분석
-    // Post의 각 글자가 "새로 쓴 건지(New)", "그대로 둔 건지(Old)" 확인
-    // "새로 썼다면(New)", 그 자리에 있던 "지워진 글자(Deleted)"가 무엇인지 기록
+    // 1단계: [번문 전 -> 번문 후] 정밀 분석 (1:1 매칭 큐 사용)
     const diffPrePost = getDiff(sPre, sPost);
     let postMeta = []; 
-    let delBuffer = ""; 
+    let delQueue = []; // 삭제된 글자들을 줄 세우는 대기열
 
+    // 먼저 전체 흐름을 보며 '삭제된 글자'와 '추가된 글자'를 짝지어줍니다.
     diffPrePost.forEach(ch => {
         if (ch.t === 'same') {
+            // 같은 글자가 나오면 큐를 비웁니다 (문맥이 끊김)
+            // *단, 연속된 오타 수정을 위해 큐를 유지하는 전략도 있으나, 
+            // 여기선 '정확한 위치' 매칭을 위해 same에서 끊어주는 게 안전합니다.
+            delQueue = []; 
             postMeta.push({ isNew: false, deletedFromPre: "" }); 
-            delBuffer = "";
-        } else if (ch.t === 'added') {
-            // 이 글자는 새로 쓴 것임. 직전에 지워진 내용(delBuffer)을 기억해둠 (개악 판별용)
-            postMeta.push({ isNew: true, deletedFromPre: delBuffer });
-            // 버퍼는 한 번 매핑했으면 비워줌 (1:1 매칭이 아니더라도 근사치로 동작)
-            // 단, 연속된 added가 있을 수 있으므로 delBuffer를 유지해야 할 수도 있으나,
-            // 여기선 "뭉텅이 교체"를 감지하기 위해 일단 할당 후 비움 전략 사용
-            if(delBuffer.length > 0) delBuffer = ""; 
         } else if (ch.t === 'missing') {
-            delBuffer += ch.c; // 지워진 글자 누적
+            delQueue.push(ch.c); // 삭제된 글자 대기열 등록
+        } else if (ch.t === 'added') {
+            // 추가된 글자가 나오면, 대기열(삭제된 글자)에서 하나 꺼내와서 짝을 짓습니다.
+            // 예: 포항->표향 (포->표, 항->향 순서대로 매칭)
+            let matchedDel = delQueue.shift() || ""; 
+            postMeta.push({ isNew: true, deletedFromPre: matchedDel });
         }
     });
 
-    // 2단계: [원문(Origin) -> 번문 후(Post)] 분석 및 렌더링
+    // 2단계: [원문 -> 번문 후] 최종 렌더링
     const diffOrigPost = getDiff(sOrigin, sPost);
     let html = "";
-    let postIdx = 0; // Post 배열 인덱스 추적
-    let missingBuffer = ""; // 원문에서 빠진 글자들(탈자 후보) 임시 저장
+    let postIdx = 0; 
+    let missingBuffer = ""; 
 
-    // 탈자 버퍼를 비우는 함수 (화면에 출력)
     const flushMissing = () => {
         if (!missingBuffer) return;
-        // 탈자 박스 출력
         for (let char of missingBuffer) {
             if (char === '\n') html += '<br>';
             else if (char === ' ') html += '<span>&nbsp;</span>'; 
@@ -717,71 +716,69 @@ function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
 
     diffOrigPost.forEach(ch => {
         if (ch.t === 'same') {
-            // 정답과 일치함 -> 그동안 쌓인 탈자가 있다면 진짜 탈자임. 출력.
-            flushMissing();
+            flushMissing(); // 쌓인 탈자 출력
             
-            // 정답 글자 출력
+            // 화면 표시 문자
             let displayChar = (ch.c === '\n') ? '<br>' : `<span>${toHtmlChar(ch.c)}</span>`;
             
-            // 혹시 Post 메타데이터상 이게 "새로 고쳐서 맞춘 것(성공)"인지 확인
             let meta = postMeta[postIdx] || { isNew: false };
             if (meta.isNew) {
-                // 공백이 아니면 성공 표시
-                if (!/^\s$/.test(ch.c)) {
-                    html += `<span class="hl-success">${toHtmlChar(ch.c)}</span>`;
-                } else {
-                    html += displayChar;
-                }
+                // 원문과 같지만 '새로 쓴' 글자 (성공)
+                if (!/^\s$/.test(ch.c)) html += `<span class="hl-success">${toHtmlChar(ch.c)}</span>`;
+                else html += displayChar;
             } else {
                 html += displayChar; // 원래 맞았던 것
             }
             postIdx++;
 
         } else if (ch.t === 'missing') {
-            // 원문에 있는데 Post에 없음 -> 일단 버퍼에 담음.
-            // 바로 뒤에 'added'(대체 글자)가 나오면 이 버퍼는 "탈자"로 안 보여주고 "틀린 글자" 판별에 씀.
+            // 원문에 있는데 Post에 없음 (탈자 후보)
             missingBuffer += ch.c;
 
         } else if (ch.t === 'added') {
-            // 원문에 없는데 Post에 있음 (틀린 글자 or 대체된 글자)
-            // ★핵심: 이 자리에 missingBuffer(원문 글자)가 있었다면, 이건 "대체"된 것임.
-            // 따라서 missingBuffer를 "탈자 박스"로 보여주지 않음 (flushMissing 호출 안 함!)
-            // 다만, 개악 판별을 위해 missingBuffer 내용은 알고 있어야 함.
+            // 원문에 없는데 Post에 있음 (틀린 글자)
             
             let targetChar = ch.c;
             let displayChar = toHtmlChar(targetChar);
             if (targetChar === '\n') displayChar = '<br>';
 
-            // 공백/줄바꿈은 형광펜 패스
             if (/^\s$/.test(targetChar)) {
                 html += displayChar;
             } else {
                 let meta = postMeta[postIdx] || { isNew: true, deletedFromPre: "" };
                 
-                // (1) 새로 쓴 글자인가? (수정함)
+                // (1) 새로 쓴 글자라면? (수정함)
                 if (meta.isNew) {
-                    // 틀리게 고침.
-                    // Q. 개악인가? (맞는 걸 지우고 틀린 걸 썼나?)
-                    // -> Pre에서 지운 글자(meta.deletedFromPre)가 원문(cleanO)에 있었는지 확인
-                    // -> 혹은 현재 위치의 원문 글자(missingBuffer)와 Pre에서 지운 글자가 일치하는지 확인
-                    
                     let deletedText = meta.deletedFromPre.trim();
                     
-                    // 지운 내용이 있고, 그게 원문에 포함되어 있다면 -> 개악 (맞는거 지움)
-                    // (좀 더 엄격하게: missingBuffer(여기 있어야 할 글자)가 deletedText에 포함되는지 확인)
+                    // Case A: 지운 글자가 정답이었다 -> 개악 (맞는거 지움)
                     if (deletedText.length > 0 && cleanO.includes(deletedText)) {
                         html += `<span class="hl-bad">${displayChar}</span>`; 
-                    } else {
-                        html += `<span class="hl-warning">${displayChar}</span>`; // 그냥 틀리게 고침 (오수정)
+                    } 
+                    // Case B: 지운 글자가 없었다 (순수 첨자) -> 개악 (안써도 될 걸 씀) ★선생님 요청 반영
+                    else if (deletedText.length === 0) {
+                        html += `<span class="hl-bad">${displayChar}</span>`;
+                    }
+                    // Case C: 지운 글자도 오답이었다 -> 오수정 (틀린거 -> 틀린거)
+                    else {
+                        html += `<span class="hl-warning">${displayChar}</span>`; 
                     }
                 } 
-                // (2) 원래 있던 글자인가? (수정 안 함)
+                // (2) 원래 있던 글자라면? (수정 안 함)
                 else {
-                    // 고치지 않고 틀린 상태 유지 -> 미수정 (빨간 물결)
-                    // 이때도 missingBuffer(원래 있어야 할 글자)는 화면에 안 보여줌 (대체된 걸로 간주)
-                    html += `<span class="hl-missed">${displayChar}</span>`;
+                    html += `<span class="hl-missed">${displayChar}</span>`; // 미수정
                 }
             }
+            
+            // 이 자리에 글자가 채워졌으므로 탈자 버퍼 비움 (대체됨)
+            missingBuffer = ""; 
+            postIdx++;
+        }
+    });
+
+    flushMissing();
+    document.getElementById('reviewContent').innerHTML = html;
+}
             
             // Added를 처리했으므로, 이와 짝이 되는 Missing(탈자 후보)들은 "대체"되어 사라진 것으로 간주하고 버퍼 비움
             missingBuffer = ""; 
@@ -816,4 +813,5 @@ function closeReport() { document.getElementById('overlay').style.display = 'non
 </script>
 </body>
 </html>
+
 
