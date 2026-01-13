@@ -216,6 +216,16 @@
         .hl-bad { background: #ffccbc; border-bottom: 2px solid #ff5722; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
         /* 미수정: 여전히 틀림 (빨간 텍스트) */
         .hl-missed { color: #d32f2f; text-decoration: underline; text-decoration-style: wavy; }
+        /* [추가] 탈자(놓친 글자) 스타일 */
+        .hl-omitted { 
+            background: #F5F5F5; 
+            color: #B0BEC5; 
+            border: 1px dashed #B0BEC5; 
+            border-radius: 4px; 
+            padding: 0 2px;
+            margin: 0 1px;
+            font-size: 0.95em;
+        }
 
         .growth-box { background: #E3F2FD; color: #1565C0; padding: 20px; border-radius: 16px; margin-bottom: 20px;
             display: none; border: 2px solid #90CAF9; }
@@ -410,6 +420,7 @@
                     <span class="hl-warning">오수정(틀림)</span>
                     <span class="hl-bad">개악(망침)</span>
                     <span class="hl-missed">미수정</span>
+                    <span class="hl-omitted">탈자(놓침)</span>
                 </div>
             </div>
             <div class="review-view" id="reviewContent"></div>
@@ -418,6 +429,7 @@
                 <span style="color:#00B894; font-weight:bold;">성공</span>은 틀린걸 맞게 고친 것, 
                 <span style="color:#fbc02d; font-weight:bold;">오수정</span>은 고쳤으나 여전히 틀린 것, 
                 <span style="color:#ff5722; font-weight:bold;">개악</span>은 맞았던걸 틀리게 고친 것입니다.
+                <span style="color:#B0BEC5; font-weight:bold; border:1px dashed #B0BEC5; padding:0 2px;">탈자</span>는 수정하지 못하고 빠뜨린 내용입니다.
             </div>
         </div>
 
@@ -629,94 +641,106 @@ function getExactStats(origin, student, generateHtml = false) {
     return { score, w, mi, ad, html };
 }
 
-// [신규 기능] 번문 수정 하이라이트 생성기 (Highlighter Mode)
-// [최종 수정] 띄어쓰기는 형광펜 칠 절대 금지 적용
-// [최종 수정] 개악(맞는 걸 틀리게 고침) 판별 로직 강화 + 띄어쓰기 무시
+// [최종 업데이트] 수정 내역(형광펜) + 탈자(놓친 내용) 동시 표시 로직
 function generateCorrectionHighlight(txtOriginal, txtPre, txtPost) {
-    // 1. 공백 정규화 및 배열 변환
-    const cleanO = txtOriginal.replace(/\s+/g, ' ').trim(); 
+    const cleanO = txtOriginal.replace(/\s+/g, ' ').trim();
     const sPre = txtPre.trim().split('');
     const sPost = txtPost.trim().split('');
-    
-    // 2. LCS 알고리즘
-    let dp = Array.from(Array(sPre.length + 1), () => Array(sPost.length + 1).fill(0));
-    for (let i = 1; i <= sPre.length; i++) {
-        for (let j = 1; j <= sPost.length; j++) {
-            if (sPre[i-1] === sPost[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
-            else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
-        }
-    }
+    const sOrigin = txtOriginal.trim().split('');
 
-    let i = sPre.length, j = sPost.length;
-    let changes = [];
-    while (i > 0 || j > 0) {
-        if (i > 0 && j > 0 && sPre[i-1] === sPost[j-1]) {
-            changes.push({ t: 'same', c: sPre[i-1] }); i--; j--;
-        } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
-            changes.push({ t: 'post_only', c: sPost[j-1] }); j--; 
-        } else {
-            changes.push({ t: 'pre_only', c: sPre[i-1] }); i--; 
+    // [내부함수] LCS Diff 계산기
+    const getDiff = (arr1, arr2) => {
+        let dp = Array.from(Array(arr1.length + 1), () => Array(arr2.length + 1).fill(0));
+        for (let i = 1; i <= arr1.length; i++) {
+            for (let j = 1; j <= arr2.length; j++) {
+                if (arr1[i-1] === arr2[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
+                else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+            }
         }
-    }
-    changes.reverse();
+        let i = arr1.length, j = arr2.length;
+        let diff = [];
+        while (i > 0 || j > 0) {
+            if (i > 0 && j > 0 && arr1[i-1] === arr2[j-1]) {
+                diff.push({ t: 'same', c: arr1[i-1] }); i--; j--;
+            } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+                diff.push({ t: 'added', c: arr2[j-1] }); j--;
+            } else {
+                diff.push({ t: 'missing', c: arr1[i-1] }); i--;
+            }
+        }
+        return diff.reverse();
+    };
 
-    // 3. HTML 생성 (버퍼링 방식 부활: 개악 판별을 위해)
+    // 1단계: [번문 전 vs 번문 후] 분석 -> 최종본(Post) 각 글자의 "출신 성분" 파악
+    // Post의 각 글자가 "새로 쓴 건지(New)", "원래 있던 건지(Old)" 매핑
+    const changesPrePost = getDiff(sPre, sPost);
+    let postMeta = []; // Post 글자 수만큼 생성될 메타 데이터
+    let delBuffer = ""; // 삭제된 글자 임시 저장(개악 판별용)
+
+    changesPrePost.forEach(ch => {
+        if (ch.t === 'same') {
+            postMeta.push({ isNew: false, replaced: "" }); // 원래 있던 글자
+            delBuffer = "";
+        } else if (ch.t === 'added') {
+            postMeta.push({ isNew: true, replaced: delBuffer }); // 새로 쓴 글자 (+삭제된 내용 기록)
+            delBuffer = ""; 
+        } else if (ch.t === 'missing') {
+            delBuffer += ch.c; // 삭제된 글자 누적
+        }
+    });
+
+    // 2단계: [원문 vs 번문 후] 분석 -> 최종 화면 그리기 (탈자 포함)
+    const changesOrigPost = getDiff(sOrigin, sPost);
     let html = "";
-    let delBuf = ""; // 지워진 내용 (Pre)
-    let insBuf = ""; // 새로 쓴 내용 (Post)
+    let postIdx = 0; // Post 메타 데이터 조회용 커서
 
-    // 변경 사항 처리 함수
-    const processBuffer = () => {
-        if (!delBuf && !insBuf) return;
+    changesOrigPost.forEach(ch => {
+        // A. 탈자 (원문에는 있는데, 최종본에 없음) -> 놓친 부분 표시!
+        if (ch.t === 'missing') {
+            // 줄바꿈은 그냥 줄바꿈으로, 공백은 &nbsp;로, 글자는 박스 처리
+            if (ch.c === '\n') html += '<br>';
+            else if (ch.c === ' ') html += '<span>&nbsp;</span>'; 
+            else html += `<span class="hl-omitted">${escapeHtml(ch.c)}</span>`;
+        }
+        // B. 최종본에 있는 글자 (원문과 같든 다르든 일단 화면에 보임)
+        else {
+            let charMeta = postMeta[postIdx] || { isNew: true, replaced: "" }; 
+            let charCode = ch.c;
+            let displayChar = toHtmlChar(charCode);
+            if(charCode === '\n') displayChar = '<br>';
 
-        // (1) 새로 쓴 내용이 있을 때 (수정 or 추가)
-        if (insBuf.length > 0) {
-            // 공백만 있는 경우 -> 색칠 안 함
-            if (/^\s+$/.test(insBuf)) {
-                // 줄바꿈 포함 처리
-                html += insBuf.replace(/\n/g, '<br>').replace(/ /g, '<span>&nbsp;</span>');
-            } 
-            else {
-                // 의미 있는 글자가 수정됨
-                if (cleanO.includes(insBuf.trim())) {
-                    // A. 고친 말이 원문에 있음 -> 성공 (초록)
-                    html += `<span class="hl-success">${escapeHtml(insBuf)}</span>`;
-                } else {
-                    // B. 고친 말이 원문에 없음 (틀림)
-                    // 여기서 '개악'인지 '오수정'인지 판별하려면 '지운 말(delBuf)'을 봐야 함
-                    if (delBuf.length > 0 && cleanO.includes(delBuf.trim())) {
-                        // 지운 말이 원문에 있었음 (맞는 걸 지움) -> 개악 (주황)
-                        html += `<span class="hl-bad">${escapeHtml(insBuf)}</span>`;
+            // 공백/줄바꿈은 형광펜 칠 금지
+            if (/^\s$/.test(charCode)) {
+                html += displayChar;
+            } else {
+                // (1) 새로 쓴 글자인가? (수정함)
+                if (charMeta.isNew) {
+                    if (cleanO.includes(charCode)) {
+                        // 맞게 고침 (성공)
+                        html += `<span class="hl-success">${displayChar}</span>`;
                     } else {
-                        // 지운 말도 원문에 없었음 (틀린 걸 틀리게 고침) -> 오수정 (노랑)
-                        html += `<span class="hl-warning">${escapeHtml(insBuf)}</span>`;
+                        // 틀리게 고침 -> 개악(Bad)인지 오수정(Warning)인지 판별
+                        if (charMeta.replaced && cleanO.includes(charMeta.replaced.trim())) {
+                            html += `<span class="hl-bad">${displayChar}</span>`; // 개악 (맞는거 지우고 틀린거 씀)
+                        } else {
+                            html += `<span class="hl-warning">${displayChar}</span>`; // 오수정
+                        }
+                    }
+                } 
+                // (2) 원래 있던 글자인가? (수정 안 함)
+                else {
+                    // 원문과 일치하면(same) 그냥 둠, 원문에 없으면(added) 틀린 채로 둔 것
+                    if (ch.t === 'added') { 
+                        // 틀린 글자인데 안 고침 (빨간 물결 밑줄)
+                        html += `<span style="color:#d32f2f; text-decoration:underline; text-decoration-style:wavy;">${displayChar}</span>`;
+                    } else {
+                        html += `<span>${displayChar}</span>`; // 정답 유지
                     }
                 }
             }
+            postIdx++; // Post 커서 이동
         }
-        // (2) 지우기만 하고 안 쓴 경우 (삭제) -> 번문 후 기준이므로 표시 안 함
-        
-        // 버퍼 초기화
-        delBuf = "";
-        insBuf = "";
-    };
-
-    for (let k = 0; k < changes.length; k++) {
-        let ch = changes[k];
-        
-        if (ch.t === 'same') {
-            processBuffer(); // 변경점 처리
-            if(ch.c === '\n') html += '<br>';
-            else html += `<span>${toHtmlChar(ch.c)}</span>`;
-        } 
-        else if (ch.t === 'pre_only') {
-            delBuf += ch.c; // 지운 것 기록 (개악 판별용)
-        } 
-        else if (ch.t === 'post_only') {
-            insBuf += ch.c; // 쓴 것 기록
-        }
-    }
-    processBuffer(); // 남은 버퍼 처리
+    });
     
     document.getElementById('reviewContent').innerHTML = html;
 }
@@ -742,6 +766,3 @@ function closeReport() { document.getElementById('overlay').style.display = 'non
 </script>
 </body>
 </html>
-
-
-
