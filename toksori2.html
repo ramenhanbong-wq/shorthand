@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHORTHAND PRO - 소리 2 (통합판)</title>
+    <title>SHORTHAND PRO - 똑소리 2 (통합판)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -363,7 +363,7 @@
     <div id="result" style="display:none;">
         <div class="card-box" id="result-card-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="margin:0;">📊 분석 결과 (초안 기준)</h3>
+                <h3 style="margin:0;">📊 분석 결과</h3>
                 <button onclick="saveScreenshot()" class="btn-ghost">📸 결과 저장</button>
             </div>
 
@@ -382,7 +382,7 @@
 
             <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
                 <div style="flex:1; background:#F8F9FA; border-radius:16px; padding:30px; text-align:center; display:flex; flex-direction:column; justify-content:center; border:1px solid #eee;">
-                    <div style="color:#888; margin-bottom:5px;">정확도 (초안)</div>
+                    <div style="color:#888; margin-bottom:5px;">정확도</div>
                     <div id="finalScore" style="font-size:4rem; font-weight:900; color:var(--primary);">0</div>
                     <div id="scoreDesc" style="font-weight:600; color:#555;"></div>
                 </div>
@@ -561,12 +561,63 @@ function clearAllInputs() {
     }
 }
 
-// [핵심 로직] 통합 분석 함수
+// [신규] '번문 후' 정밀 채점 함수 (점수 계산용)
+function getExactStats(rawO, rawS) {
+    const isSpecial = (char) => /[^0-9a-zA-Z\uAC00-\uD7A3]/.test(char);
+    let pureLength = rawO.replace(/[^0-9a-zA-Z\uAC00-\uD7A3]/g, '').length;
+    if (pureLength === 0) pureLength = 1;
+
+    let oArr = rawO.trim().split('');
+    let sArr = rawS.trim().split('');
+    let n = oArr.length, m = sArr.length;
+    let dp = Array.from(Array(n + 1), () => Array(m + 1).fill(0));
+    for (let i = 1; i <= n; i++) {
+        for (let j = 1; j <= m; j++) {
+            if (oArr[i-1] === sArr[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
+            else dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+    let i = n, j = m, diffs = [];
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && oArr[i-1] === sArr[j-1]) { diffs.push({ t: 'same', c: oArr[i-1] }); i--; j--; } 
+        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { diffs.push({ t: 'added', c: sArr[j-1] }); j--; } 
+        else { diffs.push({ t: 'missing', c: oArr[i-1] }); i--; }
+    }
+    diffs.reverse();
+
+    let w=0, mi=0, ad=0;
+    let mBuffer = [], aBuffer = []; 
+    
+    function flush() {
+        let mIdx = 0, aIdx = 0;
+        while (mIdx < mBuffer.length || aIdx < aBuffer.length) {
+            let mChar = mBuffer[mIdx], aChar = aBuffer[aIdx];
+            if (mIdx < mBuffer.length && isSpecial(mChar)) { mIdx++; continue; }
+            if (aIdx < aBuffer.length && isSpecial(aChar)) { aIdx++; continue; }
+            if (mIdx < mBuffer.length && aIdx < aBuffer.length) { w++; mIdx++; aIdx++; continue; }
+            if (mIdx < mBuffer.length) { mi++; mIdx++; continue; }
+            if (aIdx < aBuffer.length) { ad++; aIdx++; continue; }
+        }
+        mBuffer = []; aBuffer = [];
+    }
+
+    for (let k = 0; k < diffs.length; k++) {
+        if (diffs[k].t === 'same') { flush(); }
+        else if (diffs[k].t === 'missing') { mBuffer.push(diffs[k].c); }
+        else if (diffs[k].t === 'added') { aBuffer.push(diffs[k].c); }
+    }
+    flush();
+
+    let adPenalty = Math.floor(ad / 3);
+    let score = Math.max(0, 100 - ((w + mi + adPenalty) / pureLength * 100)).toFixed(1);
+    return { score, w, mi, ad, totalErr: w + mi + ad };
+}
+
+// [핵심 로직] 통합 분석 함수 (수정됨: 번문 비교 결과 UI 추가)
 function analyzeAndGrade() {
     let rawO = document.getElementById('original').value;
     let rawS = document.getElementById('studentPre').value; 
     let rawPost = document.getElementById('studentPost').value;
-    // 모드 체크
     const isModeOn = document.getElementById('modeToggle').checked;
 
     if(!rawO.trim()) { alert("정답(원본)을 입력해주세요."); return; }
@@ -574,8 +625,9 @@ function analyzeAndGrade() {
 
     const isSpecial = (char) => /[^0-9a-zA-Z\uAC00-\uD7A3]/.test(char);
     let pureLength = rawO.replace(/[^0-9a-zA-Z\uAC00-\uD7A3]/g, '').length;
+    if(pureLength === 0) pureLength = 1;
 
-    // 1. 기본 채점 (똑1 방식 - 원본 vs 초안)
+    // 1. 기본 채점 (초안 기준) - 기존 로직 유지 (시각화용)
     let oArr = rawO.trim().split('');
     let sArr = rawS.trim().split('');
     let n = oArr.length;
@@ -658,23 +710,84 @@ function analyzeAndGrade() {
 
     let adPenalty = Math.floor(ad / 3);
     let calcN = pureLength > 0 ? pureLength : 1;
-    let score = Math.max(0, 100 - ((w + mi + adPenalty) / calcN * 100)).toFixed(1);
+    let scorePre = Math.max(0, 100 - ((w + mi + adPenalty) / calcN * 100)).toFixed(1);
     const fName = document.getElementById('fileName').value.trim() || "미지정";
 
-    analyzeGrowth(score, w + mi + ad, fName);
-    document.getElementById('finalScore').innerText = score;
-    document.getElementById('scoreDesc').innerText = `총 글자(부호제외): ${pureLength} / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad}`;
+    // 2. 결과 표시 UI 제어 (번문 모드 여부에 따라 분기)
+    const scoreBox = document.getElementById('finalScore').parentElement;
+    
+    // 번문 모드이고, 번문 내용이 있다면 '비교 뷰' 생성
+    if (isModeOn && rawPost.trim()) {
+        const postStats = getExactStats(rawO, rawPost); // 번문 후 정밀 계산
+        const scorePost = postStats.score;
+        const scoreDiff = (scorePost - scorePre).toFixed(1);
+        
+        // 상세 증감 계산
+        const wDiff = postStats.w - w;
+        const miDiff = postStats.mi - mi;
+        const adDiff = postStats.ad - ad;
+        const getSign = (n) => n > 0 ? `+${n}` : `${n}`;
+        const getColor = (n) => n < 0 ? '#00B894' : (n > 0 ? '#FF7675' : '#888'); // 에러는 줄어야(-) 초록색
+
+        // UI 덮어쓰기 (비교 모드)
+        scoreBox.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom:15px;">
+                <div style="text-align:center; opacity:0.6;">
+                    <div style="font-size:0.9rem; margin-bottom:5px;">초안</div>
+                    <div style="font-size:2.2rem; font-weight:bold; color:#555;">${scorePre}</div>
+                </div>
+                <div style="font-size:1.5rem; color:#ccc;">▶</div>
+                <div style="text-align:center;">
+                    <div style="font-size:0.9rem; margin-bottom:5px; color:var(--primary); font-weight:bold;">번문 후</div>
+                    <div style="font-size:3rem; font-weight:900; color:var(--primary);">${scorePost}</div>
+                </div>
+            </div>
+            <div style="background:white; border:1px solid #eee; border-radius:12px; padding:15px; font-size:0.9rem; text-align:left;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed #eee; padding-bottom:8px;">
+                    <span style="font-weight:bold;">📈 점수 변화</span>
+                    <span style="font-weight:bold; color:${scoreDiff >= 0 ? '#00B894' : '#FF7675'}">
+                        ${scoreDiff > 0 ? '+' : ''}${scoreDiff}점
+                    </span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>❌ 오자</span>
+                    <span>${w}개 ➡ <b>${postStats.w}개</b> <span style="font-size:0.8em; color:${getColor(wDiff)}">(${getSign(wDiff)})</span></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>🕳️ 탈자</span>
+                    <span>${mi}개 ➡ <b>${postStats.mi}개</b> <span style="font-size:0.8em; color:${getColor(miDiff)}">(${getSign(miDiff)})</span></span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>➕ 첨자</span>
+                    <span>${ad}개 ➡ <b>${postStats.ad}개</b> <span style="font-size:0.8em; color:${getColor(adDiff)}">(${getSign(adDiff)})</span></span>
+                </div>
+            </div>
+        `;
+    } else {
+        // 일반 모드 (기존 UI 복원)
+        scoreBox.innerHTML = `
+            <div style="color:#888; margin-bottom:5px;">정확도 (초안)</div>
+            <div id="finalScore" style="font-size:4rem; font-weight:900; color:var(--primary);">${scorePre}</div>
+            <div id="scoreDesc" style="font-weight:600; color:#555;">총 글자: ${pureLength} / 오자: ${w} / 탈자: ${mi} / 첨자: ${ad}</div>
+        `;
+        analyzeGrowth(scorePre, w + mi + ad, fName);
+    }
+
     document.getElementById('diffOutput').innerHTML = html;
     
+    // 오답노트 등 나머지 기능 실행
     renderErrorNote();
     document.getElementById('result').style.display = 'block';
 
-    sendDataToServer(score, w, mi, ad, fName, pureLength);
+    // 서버 전송 (초안 점수 기준 기록 유지 - 히스토리 관리용)
+    sendDataToServer(scorePre, w, mi, ad, fName, pureLength);
 
-    // 2. 고급 분석 (똑2 방식 - 수정본이 있을 때만 실행)
+    // 3. 번문 정밀 분석 시각화 (하이라이트)
     if (isModeOn && rawPost.trim()) {
         document.getElementById('review-box').style.display = 'block';
         generateCorrectionHighlight(rawO, rawS, rawPost);
+        // 성장 분석 박스는 비교 뷰가 있으므로 숨김 처리 (중복 정보 방지)
+        document.getElementById('growthBox').style.display = 'none';
     } else {
         document.getElementById('review-box').style.display = 'none';
     }
@@ -998,5 +1111,3 @@ function saveScreenshot() {
 </script>
 </body>
 </html>
-
-
