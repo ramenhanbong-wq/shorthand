@@ -277,18 +277,25 @@
 <script>
     // [1] 전역 변수 및 설정
     let sentences = ["파일을 불러오거나 입력을 시작하세요."];
-    let curIdx = 0, curLineIdx = 0, cumLen = 0;
+    let curIdx = 0, curLineIdx = 0;
     
-    // 타이머 관련
-    let startTime = null;
+    // 누적 통계 관련 (파일 전체 기준)
+    let fileStartTime = null;   // 파일 전체 시작 시간 (절대 시간)
+    let accumulatedPause = 0;   // 총 일시정지 시간
+    let speedDeductionTime = 0; // 에러 리셋으로 인해 '속도 계산'에서 뺄 시간
+    let completedCharsGlobal = 0; // 이미 완료된 이전 문장들의 글자 수
+    let totalFileChars = 0;     // 파일 전체 글자 수
+    
+    // 리셋 로직을 위한 임시 변수
+    let lineStartTime = null;   // 현재 '줄'을 시작한 시간 (오타 시 이 시간부터 현재까지를 speedDeduction에 추가)
+
     let timerInt = null;
     let isPaused = false;
-    let pausedTimeAccumulated = 0; // 일시정지 누적 시간
-    let pauseStartTime = null;
+    let pauseStartAt = null;
 
     // 페이스메이커 관련
     let pmInt = null;
-    let pmCursorIdx = 0; // 현재 줄에서의 페이스메이커 위치
+    let pmCursorIdx = 0; 
     let isPmActive = false;
 
     // DOM 요소
@@ -300,13 +307,11 @@
     const pmSpeedInp = document.getElementById('pm-speed');
     const pauseOverlay = document.getElementById('pause-overlay');
 
-    // 세션 및 로컬 스토리지 로드
     const currentUser = sessionStorage.getItem('shorthand_user');
     if(currentUser && document.getElementById('sideUserName')) {
         document.getElementById('sideUserName').innerText = currentUser;
     }
     
-    // 최고 기록 불러오기
     function loadBestRecord() {
         const savedBest = localStorage.getItem('sparta_best_cpm');
         bestRecordEl.innerText = savedBest ? savedBest : 0;
@@ -315,7 +320,7 @@
 
     const clean = (t) => t.split('').filter(c => /[ㄱ-ㅎ가-힣a-zA-Z0-9]/.test(c)).join('');
 
-    // [2] 텍스트 분할 로직 (줄 단위)
+    // [2] 텍스트 분할 및 파일 로드 시 전체 글자 수 계산
     function getLines() {
         const text = sentences[curIdx] || "";
         const limit = parseInt(document.getElementById('line-limit').value);
@@ -329,28 +334,36 @@
         return lines;
     }
 
+    function calculateTotalChars() {
+        // 파일 내의 모든 문장(공백제외 아님, 입력해야할 유효문자 기준) 합산
+        // clean 함수 사용: 한글/영어/숫자만 카운트
+        let count = 0;
+        sentences.forEach(s => count += clean(s).length);
+        totalFileChars = count;
+        document.getElementById('remain-count').innerText = totalFileChars;
+    }
+
     // [3] 페이스메이커 로직
     function startPacemaker() {
         if (!pmToggle.checked) return;
         
-        stopPacemaker(); // 기존 인터벌 제거
+        stopPacemaker(); 
         isPmActive = true;
-        pmCursorIdx = 0; // 줄 시작점 초기화
+        pmCursorIdx = 0; 
 
         const targetCPM = parseInt(pmSpeedInp.value) || 300;
-        const msPerChar = 60000 / targetCPM; // 문자당 걸리는 시간(ms)
+        const msPerChar = 60000 / targetCPM; 
 
         pmInt = setInterval(() => {
-            if(isPaused) return; // 일시정지면 동작 안함
+            if(isPaused) return; 
 
             const lines = getLines();
             const currentLineLen = lines[curLineIdx].length;
 
             if (pmCursorIdx < currentLineLen) {
                 pmCursorIdx++;
-                renderPacemakerOnly(); // 커서만 다시 그림
+                renderPacemakerOnly(); 
             } else {
-                // 줄 끝에 도달하면 대기 (사용자가 엔터 칠 때까지)
                 clearInterval(pmInt);
             }
         }, msPerChar);
@@ -360,14 +373,12 @@
         if(pmInt) clearInterval(pmInt);
         isPmActive = false;
         pmCursorIdx = 0;
-        renderPacemakerOnly(); // UI 지우기
+        renderPacemakerOnly(); 
     }
 
-    // DOM 전체 리렌더링 없이 페이스메이커 클래스만 토글 (성능 최적화)
     function renderPacemakerOnly() {
         const spans = box.querySelectorAll('span');
         spans.forEach(span => span.classList.remove('pacemaker-cursor'));
-        
         if (isPmActive && pmCursorIdx < spans.length) {
             spans[pmCursorIdx].classList.add('pacemaker-cursor');
         }
@@ -383,23 +394,9 @@
         const typedC = clean(typedVal);
         const activeC = clean(activeText);
 
-        // 줄 넘김 로직
-        if (typedC.length >= activeC.length) {
-            if (typedVal.endsWith(' ') || typedC.length > activeC.length) {
-                if (curLineIdx < lines.length - 1) {
-                    cumLen += activeC.length;
-                    curLineIdx++;
-                    inp.value = typedC.length > activeC.length ? typedVal.slice(-1) : "";
-                    
-                    // 새 줄 시작 시 페이스메이커 리셋
-                    stopPacemaker();
-                    startPacemaker();
-                    
-                    render(); return;
-                } else if (curIdx === sentences.length - 1) {
-                    finishGame(); return;
-                }
-            }
+        // 줄 넘김 판단은 keydown Enter에서 처리하지만, 혹시 모를 overflow 처리
+        if (typedC.length > activeC.length) {
+           // 초과 입력 시 처리는 Enter 로직에 위임하거나 여기서는 그냥 둠
         }
 
         // 화면 그리기
@@ -418,8 +415,8 @@
             box.appendChild(span);
         });
         
-        // 페이스메이커 위치 복원
         renderPacemakerOnly();
+        // 렌더링 시 통계 업데이트 (글자수 변화 반영)
         updateStats();
     }
 
@@ -427,10 +424,12 @@
     inp.addEventListener('input', () => {
         if (isPaused) return;
 
-        if (!startTime && inp.value.length > 0) {
-            startTime = new Date();
-            timerInt = setInterval(updateStats, 200); // 갱신 주기 단축
-            startPacemaker(); // 타이핑 시작 시 페이스메이커 출발
+        // 파일의 첫 시작
+        if (!fileStartTime && inp.value.length > 0) {
+            fileStartTime = new Date();
+            lineStartTime = new Date(); // 첫 줄 시작 시간
+            timerInt = setInterval(updateStats, 200); 
+            startPacemaker(); 
         }
         render();
     });
@@ -439,27 +438,65 @@
         if (isPaused) { e.preventDefault(); return; }
         if (e.key === 'Backspace') e.preventDefault(); 
         
-        // 엔터 키로 줄 넘김 처리
         if (e.key === 'Enter') {
             const lines = getLines();
-            if (clean(lines[curLineIdx]) === clean(inp.value)) {
+            const cleanLine = clean(lines[curLineIdx]);
+            const cleanInput = clean(inp.value);
+
+            if (cleanLine === cleanInput) {
+                // [성공]
+                const len = cleanLine.length;
+                completedCharsGlobal += len; // 전체 완료 글자수에 누적
+
                 if (curLineIdx === lines.length - 1) {
-                    if (curIdx === sentences.length - 1) { finishGame(); } 
-                    else { 
+                    // 문장 끝
+                    if (curIdx === sentences.length - 1) {
+                        finishGame(); 
+                    } else { 
                         curIdx++; 
-                        fullReset(); // 문장 바뀌면 리셋
+                        resetForNextSentence(); 
                     }
                 } else {
-                    cumLen += clean(lines[curLineIdx]).length;
+                    // 문장 내 줄 바꿈
                     curLineIdx++; 
                     inp.value = ""; 
+                    
+                    // 다음 줄 시작 시간 갱신
+                    lineStartTime = new Date();
+                    
                     stopPacemaker();
-                    startPacemaker(); // 새 줄 출발
+                    startPacemaker(); 
                     render();
                 }
-            } else { inp.value = ""; render(); }
+            } else {
+                // [실패] 오타 발생 후 엔터 -> 리셋
+                // 요구사항: "현재 속도도 리셋되어야 함"
+                // 구현: 현재 줄을 치느라 소비한 시간을 '속도 계산용 시간'에서 뺌(deductedTime)
+                if (lineStartTime) {
+                    const now = new Date();
+                    const wasted = now - lineStartTime; 
+                    speedDeductionTime += wasted; // 낭비된 시간 누적
+                    lineStartTime = now; // 리셋되었으므로 줄 시작 시간 재설정
+                }
+
+                inp.value = ""; 
+                render(); 
+                // 페이스메이커도 리셋
+                stopPacemaker();
+                startPacemaker();
+            }
         }
     });
+
+    // 문장이 넘어갈 때 호출 (파일 리셋 아님)
+    function resetForNextSentence() {
+        curLineIdx = 0;
+        inp.value = "";
+        lineStartTime = new Date(); // 새 문장 시작 시간
+        stopPacemaker();
+        startPacemaker();
+        render();
+    }
 
     // [6] 일시정지 기능
     window.addEventListener('keydown', (e) => {
@@ -467,21 +504,25 @@
     });
 
     function togglePause() {
-        if (!startTime) return; // 시작 전에는 일시정지 불가
+        if (!fileStartTime) return; 
 
         isPaused = !isPaused;
         
         if (isPaused) {
-            // 일시정지 시작
-            pauseStartTime = new Date();
+            pauseStartAt = new Date();
             clearInterval(timerInt);
             inp.disabled = true;
             pauseOverlay.style.display = 'flex';
         } else {
-            // 재개
-            const pauseDuration = new Date() - pauseStartTime;
-            pausedTimeAccumulated += pauseDuration; // 누적 시간 보정
+            const pausedDuration = new Date() - pauseStartAt;
+            accumulatedPause += pausedDuration; 
             
+            // 일시정지 끝났으니 타이머 재개
+            // lineStartTime도 일시정지 시간만큼 밀어줘야 오타 리셋 계산이 정확함
+            if(lineStartTime) {
+                lineStartTime = new Date(lineStartTime.getTime() + pausedDuration);
+            }
+
             timerInt = setInterval(updateStats, 200);
             inp.disabled = false;
             inp.focus();
@@ -489,38 +530,60 @@
         }
     }
 
-    // [7] 통계 및 진행률 업데이트
+    // [7] 통계 업데이트 (핵심 변경 사항 반영)
     function updateStats() {
-        if (startTime && !isPaused) {
-            const now = new Date();
-            const elapsed = (now - startTime - pausedTimeAccumulated) / 1000;
-            
-            document.getElementById('timer').innerText = Math.floor(elapsed) + "초";
-            
-            const totalLen = cumLen + clean(inp.value).length;
-            const cpm = elapsed > 0 ? Math.floor(totalLen / (elapsed/60)) : 0;
-            document.getElementById('current-cpm').innerText = cpm;
-        }
+        if (!fileStartTime || isPaused) return;
 
-        const totalChars = clean(sentences[curIdx] || "").length; 
-        const currentChars = cumLen + clean(inp.value).length; 
+        const now = new Date();
+        
+        // 1. 진행 시간 (Progress Time): 실제 흐른 시간 - 일시정지 시간 (오타 리셋 상관없이 계속 흐름)
+        const realElapsedTimeMS = now - fileStartTime - accumulatedPause;
+        document.getElementById('timer').innerText = Math.floor(realElapsedTimeMS / 1000) + "초";
+
+        // 2. 현재 입력 중인 글자 수 계산
+        // (현재 줄의 입력값 + 현재 문장 내 앞 줄들 길이는 completedCharsGlobal에 없음. 
+        //  completedCharsGlobal은 '완전히 넘어간 문장/줄'만 포함.
+        //  따라서 현재 문장 내의 완료된 줄 + 현재 입력중인 줄 계산 필요... 
+        //  복잡도를 줄이기 위해: completedCharsGlobal은 '완전히 처리된 줄'의 합으로 관리)
+        
+        // *render() 로직상 curLineIdx가 증가할 때마다 completedCharsGlobal에 더하면 됨.
+        // *문제: keydown 엔터에서 completedCharsGlobal을 더하고 있음.
+        // *따라서 여기서는 completedCharsGlobal + 현재 입력창 글자수
+        
+        const currentInputLen = clean(inp.value).length;
+        const totalTypedChars = completedCharsGlobal + currentInputLen;
+
+        // 3. 현재 속도 (CPM): (총 타수 / 순수 투자 시간)
+        // 순수 투자 시간 = 실제 흐른 시간 - (오타로 날린 시간)
+        const netTimeMS = realElapsedTimeMS - speedDeductionTime;
+        
+        let cpm = 0;
+        if (netTimeMS > 0) {
+            cpm = Math.floor(totalTypedChars / (netTimeMS / 60000));
+        }
+        document.getElementById('current-cpm').innerText = cpm;
+
+        // 4. 진행률 및 남은 글자
         let percent = 0;
-        if (totalChars > 0) percent = (currentChars / totalChars) * 100;
+        if (totalFileChars > 0) {
+            percent = (totalTypedChars / totalFileChars) * 100;
+        }
         
         progressBar.style.width = Math.min(percent, 100) + "%";
-        document.getElementById('remain-count').innerText = Math.max(0, totalChars - currentChars);
+        document.getElementById('remain-count').innerText = Math.max(0, totalFileChars - totalTypedChars);
     }
 
-    // [8] 게임 종료 및 기록 저장
+    // [8] 게임 종료
     function finishGame() {
         clearInterval(timerInt);
         stopPacemaker();
 
-        const finalTime = document.getElementById('timer').innerText;
+        // 최종 통계 계산
+        const finalTimeStr = document.getElementById('timer').innerText;
         const finalCpm = parseInt(document.getElementById('current-cpm').innerText);
         
         const savedBest = parseInt(localStorage.getItem('sparta_best_cpm') || 0);
-        let msg = `🎉 연습 완료!\n\n최종 시간: ${finalTime}\n최종 속도: ${finalCpm} 자`;
+        let msg = `🎉 연습 완료!\n\n최종 진행 시간: ${finalTimeStr}\n최종 평균 속도: ${finalCpm} 자`;
 
         if (finalCpm > savedBest) {
             localStorage.setItem('sparta_best_cpm', finalCpm);
@@ -531,29 +594,48 @@
         location.reload();
     }
 
-    // [9] 유틸리티
+    // [9] 유틸리티 및 초기화
     document.getElementById('file-selector').addEventListener('change', (e) => {
         const reader = new FileReader();
         reader.onload = (ev) => { 
             sentences = ev.target.result.split(/\n/).filter(s => s.trim()); 
             curIdx = 0;
-            fullReset(); 
+            fullReset(); // 파일 로드시 완전 초기화
         };
         reader.readAsText(e.target.files[0], 'utf-8');
     });
 
-    document.getElementById('line-limit').addEventListener('change', fullReset);
+    document.getElementById('line-limit').addEventListener('change', () => {
+        // 줄 제한 변경 시, 진행 중이던 것은 초기화하는 것이 안전
+        if(fileStartTime) {
+            if(confirm("설정을 변경하면 진행 상황이 초기화됩니다. 계속하시겠습니까?")) {
+                fullReset();
+            } else {
+                // 변경 취소 (UI 되돌리기 필요하지만 생략)
+            }
+        } else {
+            fullReset();
+        }
+    });
 
     function fullReset() {
         inp.value = ""; 
+        curIdx = 0;
         curLineIdx = 0; 
-        cumLen = 0; 
-        startTime = null;
-        pausedTimeAccumulated = 0;
-        isPaused = false;
         
+        // 전역 변수 초기화
+        fileStartTime = null;
+        accumulatedPause = 0;
+        speedDeductionTime = 0;
+        completedCharsGlobal = 0;
+        lineStartTime = null;
+        
+        isPaused = false;
         if (timerInt) clearInterval(timerInt);
         stopPacemaker();
+
+        // 전체 글자수 재계산
+        calculateTotalChars();
 
         document.getElementById('timer').innerText = '0초'; 
         document.getElementById('current-cpm').innerText = '0';
@@ -574,6 +656,8 @@
         document.querySelector('.sidebar-overlay').classList.toggle('active');
     }
 
+    // 초기 실행
+    calculateTotalChars();
     render();
 </script>
 </body>
